@@ -6,14 +6,23 @@ public class WaveManager : MonoBehaviour
 {
     [Header("Configuration")]
     public List<WaveConfig> waves;
-    public Transform spawnPoint;
+    public List<Transform> waypoints;
+
+    [Header("References")]
+    public EnemyPool enemyPool;
 
     private int currentWaveIndex = 0;
+    private int activeEnemies = 0;
     private bool isWaveActive = false;
 
-    private void Start()
+    private void OnEnable()
     {
-        // Waiting for UI or GameManager to call StartWave
+        GameEvents.OnEnemyKilled += HandleEnemyKilled;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.OnEnemyKilled -= HandleEnemyKilled;
     }
 
     public void StartWave()
@@ -32,7 +41,7 @@ public class WaveManager : MonoBehaviour
     private IEnumerator SpawnWaveRoutine(WaveConfig waveConfig)
     {
         isWaveActive = true;
-        if (GameEvents.OnWaveStart != null) GameEvents.OnWaveStart.Invoke();
+        GameEvents.OnWaveStart?.Invoke();
         Debug.Log($"Starting Wave {currentWaveIndex + 1}");
 
         foreach (var group in waveConfig.enemyGroups)
@@ -45,26 +54,40 @@ public class WaveManager : MonoBehaviour
             yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
         }
 
-        currentWaveIndex++;
-        isWaveActive = false;
+        // Wait for all enemies to be defeated
+        yield return new WaitUntil(() => activeEnemies <= 0);
 
-        // Note: Real wave end logic should wait for enemies to die.
-        // Simplified here to just mark spawning end.
-        if (GameEvents.OnWaveEnd != null) GameEvents.OnWaveEnd.Invoke();
-        Debug.Log($"Wave {currentWaveIndex} Spawning Complete");
+        EndWave();
     }
 
     private void SpawnEnemy(EnemyConfig config)
     {
-        if (config.prefab == null)
+        if (enemyPool == null)
         {
-             Debug.LogWarning($"Enemy config {config.enemyName} has no prefab!");
-             return;
+            Debug.LogError("EnemyPool not assigned!");
+            return;
         }
 
-        // Logic to instantiate enemy from pool would go here
-        // var enemy = EnemyPool.Instance.Get(); ...
+        Enemy enemy = enemyPool.Get();
+        // Assuming waypoints has at least one point
+        if (waypoints != null && waypoints.Count > 0)
+            enemy.transform.position = waypoints[0].position;
 
-        Debug.Log($"Spawning Enemy: {config.enemyName} at {spawnPoint?.position}");
+        enemy.Initialize(config, waypoints);
+        activeEnemies++;
+    }
+
+    private void HandleEnemyKilled(Enemy enemy, int bits)
+    {
+        activeEnemies--;
+        enemyPool.ReturnToPool(enemy);
+    }
+
+    private void EndWave()
+    {
+        isWaveActive = false;
+        currentWaveIndex++;
+        GameEvents.OnWaveEnd?.Invoke();
+        Debug.Log($"Wave {currentWaveIndex} Complete");
     }
 }

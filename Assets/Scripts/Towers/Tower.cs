@@ -1,88 +1,73 @@
 using UnityEngine;
 
-public enum TowerType
-{
-    Laser,
-    Missile
-}
-
 public class Tower : MonoBehaviour
 {
-    [Header("Attributes")]
-    public float range = 5f;
-    public float fireRate = 1f;
-    public TowerType type;
-
-    private float fireCooldown = 0f;
-    private Transform currentTarget;
+    private TowerConfig config;
     private IAttackStrategy attackStrategy;
+    private Transform currentTarget;
+    private float fireCooldown;
 
-    private void Start()
+    public void Initialize(TowerConfig config, IAttackStrategy strategy)
     {
-        InitializeStrategy();
-    }
-
-    private void InitializeStrategy()
-    {
-        switch (type)
-        {
-            case TowerType.Laser:
-                attackStrategy = new LaserAttackStrategy();
-                break;
-            case TowerType.Missile:
-                attackStrategy = new MissileAttackStrategy();
-                break;
-        }
+        this.config = config;
+        this.attackStrategy = strategy;
+        this.fireCooldown = 0f;
     }
 
     private void Update()
     {
+        if (config == null || attackStrategy == null) return;
+
         FindTarget();
 
         fireCooldown -= Time.deltaTime;
         if (fireCooldown <= 0 && currentTarget != null)
         {
             Attack();
-            fireCooldown = 1f / fireRate;
+            fireCooldown = 1f / config.fireRate;
         }
     }
 
     private void FindTarget()
     {
-        // Placeholder for target finding logic
-        // In a real implementation, this would iterate over active enemies
-        // from a manager or use Physics.OverlapSphere
-    }
+        // In a real optimized game, we'd query an EnemyManager for active enemies
+        // instead of Physics.OverlapSphere every frame.
+        // But for this scope, Physics is acceptable.
 
-    public void SetTarget(Transform target)
-    {
-        if (target == null)
+        Collider[] hits = Physics.OverlapSphere(transform.position, config.range);
+        float minDist = float.MaxValue;
+        Transform bestTarget = null;
+
+        foreach (var hit in hits)
         {
-            currentTarget = null;
-            return;
+            if (hit.TryGetComponent<Enemy>(out var enemy))
+            {
+                float d = Vector3.Distance(transform.position, hit.transform.position);
+                if (d < minDist)
+                {
+                    minDist = d;
+                    bestTarget = hit.transform;
+                }
+            }
         }
 
-        if (Vector3.Distance(transform.position, target.position) <= range)
-        {
-            currentTarget = target;
-        }
-        else
-        {
-            currentTarget = null;
-        }
+        currentTarget = bestTarget;
     }
 
     private void Attack()
     {
-        if (attackStrategy != null && currentTarget != null)
+        if (currentTarget != null)
         {
-            attackStrategy.Attack(currentTarget, transform);
+            attackStrategy.ExecuteAttack(transform, currentTarget, config);
         }
     }
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, range);
+        if (config != null)
+        {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireSphere(transform.position, config.range);
+        }
     }
 }

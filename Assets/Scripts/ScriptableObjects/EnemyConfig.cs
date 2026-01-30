@@ -4,10 +4,10 @@ using UnityEngine;
 public class EnemyConfig : ScriptableObject
 {
     [Header("Attributes")]
-    public string enemyName;
-    public float health;
-    public float speed;
-    public int bitDropAmount;
+    public string enemyName = "Virus";
+    public float health = 100f;
+    public float speed = 5f;
+    public int bitDrop = 10;
 
     [Header("Visuals")]
     public GameObject prefab;

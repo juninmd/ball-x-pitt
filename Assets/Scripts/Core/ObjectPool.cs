@@ -1,10 +1,10 @@
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 
 public abstract class ObjectPool<T> : MonoBehaviour where T : Component
 {
     [SerializeField] protected T prefab;
-    [SerializeField] protected int initialSize = 10;
+    [SerializeField] protected int initialSize = 20;
 
     protected Queue<T> pool = new Queue<T>();
 
@@ -17,15 +17,20 @@ public abstract class ObjectPool<T> : MonoBehaviour where T : Component
     {
         for (int i = 0; i < initialSize; i++)
         {
-            T instance = CreateNewInstance();
-            instance.gameObject.SetActive(false);
-            pool.Enqueue(instance);
+            CreateNewInstance();
         }
     }
 
-    protected T CreateNewInstance()
+    private T CreateNewInstance()
     {
+        if (prefab == null)
+        {
+            Debug.LogError($"Pool {name} is missing a prefab!");
+            return null;
+        }
         T instance = Instantiate(prefab, transform);
+        instance.gameObject.SetActive(false);
+        pool.Enqueue(instance);
         return instance;
     }
 
@@ -33,7 +38,7 @@ public abstract class ObjectPool<T> : MonoBehaviour where T : Component
     {
         if (pool.Count == 0)
         {
-            return CreateNewInstance();
+            CreateNewInstance();
         }
 
         T instance = pool.Dequeue();

@@ -2,16 +2,21 @@ using UnityEngine;
 
 public class MissileAttackStrategy : IAttackStrategy
 {
-    public void Attack(Transform target, Transform origin)
+    public void ExecuteAttack(Transform origin, Transform target, TowerConfig config)
     {
-        if (ProjectilePool.Instance == null)
+        if (config.projectilePrefab == null)
         {
-            Debug.LogError("ProjectilePool not found!");
+            Debug.LogWarning("MissileAttackStrategy: No projectile prefab in config!");
             return;
         }
 
-        Projectile projectile = ProjectilePool.Instance.Get();
+        // Use pooling
+        var projectile = ProjectilePool.Instance.Get();
         projectile.transform.position = origin.position;
         projectile.Initialize(target);
+
+        // Set properties from config
+        // Note: speed could also be in config, but for now we set damage.
+        projectile.damage = config.damage;
     }
 }
