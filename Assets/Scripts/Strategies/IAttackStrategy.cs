@@ -2,5 +2,5 @@ using UnityEngine;
 
 public interface IAttackStrategy
 {
-    void Attack(Transform target, Transform origin);
+    void ExecuteAttack(Transform origin, Transform target, TowerConfig config);
 }

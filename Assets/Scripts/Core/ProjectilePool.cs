@@ -6,14 +6,12 @@ public class ProjectilePool : ObjectPool<Projectile>
 
     protected override void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            base.Awake();
-        }
-        else
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
+            return;
         }
+        Instance = this;
+        base.Awake();
     }
 }

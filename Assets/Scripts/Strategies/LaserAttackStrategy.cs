@@ -2,10 +2,19 @@ using UnityEngine;
 
 public class LaserAttackStrategy : IAttackStrategy
 {
-    public void Attack(Transform target, Transform origin)
+    public void ExecuteAttack(Transform origin, Transform target, TowerConfig config)
     {
-        // Logic to draw laser
-        // In a real implementation, we would access a LineRenderer component here.
-        Debug.Log($"Laser beaming {target.name} from {origin.name}");
+        // Instant hit logic
+        if (target != null)
+        {
+            var enemy = target.GetComponent<Enemy>();
+            if (enemy != null)
+            {
+                enemy.TakeDamage(config.damage);
+            }
+
+            // Visuals could be handled here (e.g. enabling a LineRenderer component on the tower)
+            Debug.Log($"Laser fired at {target.name} for {config.damage} damage");
+        }
     }
 }

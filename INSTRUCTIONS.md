@@ -1,52 +1,71 @@
-# NeonDefense Project Setup
+# NeonDefense Project Instructions
 
-## Unity Configuration
+## 1. Unity Project Setup (ScriptableObjects)
 
-### 1. Creating Enemies
-1. In the Project window, right-click and select `Create -> NeonDefense -> EnemyConfig`.
+To configure the game data, you need to create ScriptableObject assets in the Project window.
+
+### Creating Enemy Configs
+1. Right-click in the Project window: `Create -> NeonDefense -> EnemyConfig`.
 2. Name the file (e.g., `BasicVirus`).
 3. Set the attributes:
-   - **Name**: Virus Alpha
+   - **Name**: "Virus Alpha"
    - **Health**: 100
    - **Speed**: 5
    - **Bit Drop**: 10
-   - **Prefab**: Assign your enemy prefab here.
+   - **Prefab**: Assign your Enemy prefab (must have `Enemy` script attached).
 
-### 2. Creating Waves
-1. Right-click and select `Create -> NeonDefense -> WaveConfig`.
-2. In the inspector, expand **Enemy Groups**.
-3. Add a new element:
-   - **Enemy Config**: Drag your `BasicVirus` config here.
-   - **Count**: 10 (number of enemies)
-   - **Spawn Rate**: 0.5 (seconds between spawns)
-4. Set **Time Between Groups** (e.g., 2 seconds).
+### Creating Tower Configs
+1. Right-click: `Create -> NeonDefense -> TowerConfig`.
+2. Name the file (e.g., `LaserTurret`).
+3. Set attributes:
+   - **Cost**: 100
+   - **Range**: 10
+   - **Fire Rate**: 2 (shots per second)
+   - **Strategy Type**: Select `Laser` or `Missile`.
+   - **Prefab**: The tower model prefab.
+   - **Projectile Prefab**: (Optional) Assign if using Missile strategy.
 
-### 3. Setting up the Scene
+### Creating Wave Configs
+1. Right-click: `Create -> NeonDefense -> WaveConfig`.
+2. Name the file (e.g., `Wave01`).
+3. In **Enemy Groups**, add a new element:
+   - **Enemy Config**: Drag your `BasicVirus` asset here.
+   - **Count**: 10
+   - **Spawn Rate**: 1 (second delay between spawns).
+
+### Scene Setup
 1. Create an empty GameObject named `WaveManager`.
-2. Attach the `WaveManager` script.
-3. In the `Waves` list, drag your `WaveConfig` assets.
-4. Assign a **Spawn Point** transform.
+   - Attach `WaveManager` script.
+   - Assign your `WaveConfig` assets to the **Waves** list.
+   - Assign Waypoints (Transformers representing the path).
+   - Create a child object with `EnemyPool` script (or attach `EnemyPool` to the manager) and assign it to the `Enemy Pool` field.
+2. Create an empty GameObject named `EconomyManager`.
+   - Attach `EconomyManager` script.
+   - Set starting bits.
 
-## DevOps Setup (GitHub Actions)
+## 2. DevOps & GitHub Actions
 
-To enable the automated build and release pipeline, add the following Secrets to your GitHub repository (`Settings -> Secrets and variables -> Actions`):
+To enable automated builds (Windows & WebGL) and Releases:
 
-1. **UNITY_LICENSE**
+### Required GitHub Secrets
+Go to your repository **Settings -> Secrets and variables -> Actions** and add:
+
+1. `UNITY_LICENSE`
    - The content of your Unity License file (`.ulf`).
-   - *Tip: You can extract this from a local machine activation or use the `game-ci` activation method to generate it.*
+   - If using a Personal license, you may need to acquire this via the `game-ci` activation steps locally or use their documentation to export it.
+2. `UNITY_EMAIL`
+   - Your Unity account email.
+3. `UNITY_PASSWORD`
+   - Your Unity account password.
 
-2. **UNITY_EMAIL**
-   - The email address associated with your Unity ID.
+### Triggering a Build
+The pipeline runs **only** when you push a tag starting with `v`.
 
-3. **UNITY_PASSWORD**
-   - The password for your Unity ID.
+```bash
+git add .
+git commit -m "feat: Ready for release"
+git tag v1.0
+git push origin v1.0
+```
 
-### How to Trigger a Release
-1. Commit your changes.
-2. Create a tag starting with `v` (e.g., `v1.0.0`).
-   ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
-3. Go to the "Actions" tab in GitHub to watch the build process.
-4. Once complete, a new Release will be created with the Windows and WebGL builds attached.
+Check the **Actions** tab in GitHub to see the build progress.
