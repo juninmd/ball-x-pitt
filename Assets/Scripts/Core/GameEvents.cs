@@ -7,7 +7,15 @@ public static class GameEvents
     // Param 2: The bit drop amount
     public static Action<Enemy, int> OnEnemyKilled;
 
+    // Event triggered when an enemy reaches the goal.
+    // Param 1: The Enemy script
+    // Param 2: The damage to deal to the player
+    public static Action<Enemy, float> OnEnemyReachedGoal;
+
     // Wave events
     public static Action OnWaveStart;
     public static Action OnWaveEnd;
+
+    // Game State events
+    public static Action OnGameOver;
 }

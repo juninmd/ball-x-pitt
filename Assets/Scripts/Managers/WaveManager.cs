@@ -19,11 +19,13 @@ public class WaveManager : MonoBehaviour
     private void OnEnable()
     {
         GameEvents.OnEnemyKilled += HandleEnemyKilled;
+        GameEvents.OnEnemyReachedGoal += HandleEnemyReachedGoal;
     }
 
     private void OnDisable()
     {
         GameEvents.OnEnemyKilled -= HandleEnemyKilled;
+        GameEvents.OnEnemyReachedGoal -= HandleEnemyReachedGoal;
     }
 
     private void Start()
@@ -89,6 +91,12 @@ public class WaveManager : MonoBehaviour
     }
 
     private void HandleEnemyKilled(Enemy enemy, int bits)
+    {
+        activeEnemies--;
+        enemyPool.ReturnToPool(enemy);
+    }
+
+    private void HandleEnemyReachedGoal(Enemy enemy, float damage)
     {
         activeEnemies--;
         enemyPool.ReturnToPool(enemy);
