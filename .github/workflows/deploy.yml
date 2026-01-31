@@ -1,116 +1,64 @@
-name: Deploy
+name: Deploy to Production
 
 on:
   push:
     tags:
-      - "v*"
-    branches:
-      - main
-      - master
-
-env:
-  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-  UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-  UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+      - 'v*'
 
 jobs:
-  tag_and_release_prep:
-    name: Tag and Release Prep
+  build:
+    name: Build for ${{ matrix.targetPlatform }}
     runs-on: ubuntu-latest
-    outputs:
-      new_tag: ${{ steps.tag_version.outputs.new_tag }}
+    strategy:
+      fail-fast: false
+      matrix:
+        targetPlatform:
+          - StandaloneWindows64
+          - WebGL
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Bump version and push tag
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          default_bump: patch
-          release_branches: main,master
-
-  buildWindows:
-    name: Build Windows
-    runs-on: ubuntu-latest
-    needs: tag_and_release_prep
-    if: always()
-    steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           lfs: true
-          ref: ${{ needs.tag_and_release_prep.outputs.new_tag || github.ref }}
 
-      - name: Cache
+      - name: Cache Library
         uses: actions/cache@v3
         with:
           path: Library
-          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
+            Library-${{ matrix.targetPlatform }}-
             Library-
 
       - name: Build project
         uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          targetPlatform: StandaloneWindows64
-          versioning: Semantic
+          targetPlatform: ${{ matrix.targetPlatform }}
+          versioning: Tag
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Build-Windows
-          path: build/StandaloneWindows64
-
-  buildWebGL:
-    name: Build WebGL
-    runs-on: ubuntu-latest
-    needs: tag_and_release_prep
-    if: always()
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          lfs: true
-          ref: ${{ needs.tag_and_release_prep.outputs.new_tag || github.ref }}
-
-      - name: Cache
-        uses: actions/cache@v3
-        with:
-          path: Library
-          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
-          restore-keys: |
-            Library-
-
-      - name: Build project
-        uses: game-ci/unity-builder@v4
-        with:
-          targetPlatform: WebGL
-          versioning: Semantic
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Build-WebGL
-          path: build/WebGL
+          name: Build-${{ matrix.targetPlatform }}
+          path: build/${{ matrix.targetPlatform }}
 
   release:
     name: Create Release
+    needs: build
     runs-on: ubuntu-latest
-    needs: [tag_and_release_prep, buildWindows, buildWebGL]
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Download Windows Artifact
         uses: actions/download-artifact@v4
         with:
-          name: Build-Windows
-          path: build/StandaloneWindows64
+          name: Build-StandaloneWindows64
+          path: build/Windows
 
       - name: Download WebGL Artifact
         uses: actions/download-artifact@v4
@@ -118,16 +66,23 @@ jobs:
           name: Build-WebGL
           path: build/WebGL
 
-      - name: Zip Artifacts
+      - name: Zip Windows Build
         run: |
-          zip -r Windows.zip build/StandaloneWindows64
-          zip -r WebGL.zip build/WebGL
+          cd build/Windows
+          zip -r ../../Windows-Build.zip .
+
+      - name: Zip WebGL Build
+        run: |
+          cd build/WebGL
+          zip -r ../../WebGL-Build.zip .
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ needs.tag_and_release_prep.outputs.new_tag || github.ref_name }}
           files: |
-            Windows.zip
-            WebGL.zip
+            Windows-Build.zip
+            WebGL-Build.zip
           generate_release_notes: true
