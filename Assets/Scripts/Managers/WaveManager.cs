@@ -4,12 +4,13 @@ using System.Collections.Generic;
 
 public class WaveManager : MonoBehaviour
 {
-    [Header("Configuration")]
-    public List<WaveConfig> waves;
-    public List<Transform> waypoints;
+    [Header("Wave Configuration")]
+    [SerializeField] private List<WaveConfig> waves;
+    [SerializeField] private List<Transform> waypoints;
+    [SerializeField] private float timeBetweenWaves = 5f;
 
     [Header("References")]
-    public EnemyPool enemyPool;
+    [SerializeField] private EnemyPool enemyPool;
 
     private int currentWaveIndex = 0;
     private int activeEnemies = 0;
@@ -25,11 +26,30 @@ public class WaveManager : MonoBehaviour
         GameEvents.OnEnemyKilled -= HandleEnemyKilled;
     }
 
+    private void Start()
+    {
+        if (enemyPool == null)
+        {
+            Debug.LogError("WaveManager: EnemyPool reference is missing!");
+            enabled = false;
+            return;
+        }
+
+        // Optional: Auto-start for testing
+        // StartCoroutine(StartGameRoutine());
+    }
+
+    private IEnumerator StartGameRoutine()
+    {
+        yield return new WaitForSeconds(2f);
+        StartWave();
+    }
+
     public void StartWave()
     {
         if (currentWaveIndex >= waves.Count)
         {
-            Debug.Log("All waves complete!");
+            Debug.Log("All waves complete! Victory!");
             return;
         }
 
@@ -54,7 +74,7 @@ public class WaveManager : MonoBehaviour
             yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
         }
 
-        // Wait for all enemies to be defeated
+        // Wait until all enemies are cleared
         yield return new WaitUntil(() => activeEnemies <= 0);
 
         EndWave();
@@ -62,17 +82,8 @@ public class WaveManager : MonoBehaviour
 
     private void SpawnEnemy(EnemyConfig config)
     {
-        if (enemyPool == null)
-        {
-            Debug.LogError("EnemyPool not assigned!");
-            return;
-        }
-
         Enemy enemy = enemyPool.Get();
-        // Assuming waypoints has at least one point
-        if (waypoints != null && waypoints.Count > 0)
-            enemy.transform.position = waypoints[0].position;
-
+        enemy.transform.position = waypoints[0].position; // Ensure start position
         enemy.Initialize(config, waypoints);
         activeEnemies++;
     }
@@ -89,5 +100,16 @@ public class WaveManager : MonoBehaviour
         currentWaveIndex++;
         GameEvents.OnWaveEnd?.Invoke();
         Debug.Log($"Wave {currentWaveIndex} Complete");
+
+        if (currentWaveIndex < waves.Count)
+        {
+            StartCoroutine(NextWaveCooldown());
+        }
+    }
+
+    private IEnumerator NextWaveCooldown()
+    {
+        yield return new WaitForSeconds(timeBetweenWaves);
+        StartWave();
     }
 }
