@@ -19,11 +19,15 @@ public class WaveManager : MonoBehaviour
     private void OnEnable()
     {
         GameEvents.OnEnemyKilled += HandleEnemyKilled;
+        GameEvents.OnEnemyReachedGoal += HandleEnemyReachedGoal;
+        GameEvents.OnGameOver += HandleGameOver;
     }
 
     private void OnDisable()
     {
         GameEvents.OnEnemyKilled -= HandleEnemyKilled;
+        GameEvents.OnEnemyReachedGoal -= HandleEnemyReachedGoal;
+        GameEvents.OnGameOver -= HandleGameOver;
     }
 
     private void Start()
@@ -92,6 +96,21 @@ public class WaveManager : MonoBehaviour
     {
         activeEnemies--;
         enemyPool.ReturnToPool(enemy);
+    }
+
+    private void HandleEnemyReachedGoal(Enemy enemy, int damage)
+    {
+        activeEnemies--;
+        enemyPool.ReturnToPool(enemy);
+    }
+
+    private void HandleGameOver()
+    {
+        StopAllCoroutines();
+        isWaveActive = false;
+        // Optionally disable this script to prevent further updates
+        enabled = false;
+        Debug.Log("Game Over! Waves stopped.");
     }
 
     private void EndWave()

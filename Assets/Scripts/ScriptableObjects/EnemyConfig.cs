@@ -11,6 +11,8 @@ public class EnemyConfig : ScriptableObject
     public float speed = 5f;
     [Tooltip("Amount of bits dropped on death")]
     public int bitDrop = 10;
+    [Tooltip("Damage dealt to player when reaching the goal")]
+    public int damage = 1;
 
     [Header("Visuals")]
     public GameObject prefab;
