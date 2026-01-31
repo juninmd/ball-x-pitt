@@ -3,11 +3,11 @@ using System;
 
 public class PlayerHealthManager : MonoBehaviour
 {
-    [SerializeField] private float startingHealth = 100f;
+    [SerializeField] private int startingHealth = 20;
 
-    public float CurrentHealth { get; private set; }
+    public int CurrentHealth { get; private set; }
 
-    public event Action<float> OnHealthChanged;
+    public event Action<int> OnHealthChanged;
 
     private void Awake()
     {
@@ -24,21 +24,30 @@ public class PlayerHealthManager : MonoBehaviour
         GameEvents.OnEnemyReachedGoal -= HandleEnemyReachedGoal;
     }
 
-    private void HandleEnemyReachedGoal(Enemy enemy, float damage)
+    private void HandleEnemyReachedGoal(Enemy enemy, int damage)
     {
         TakeDamage(damage);
     }
 
-    public void TakeDamage(float amount)
+    public void TakeDamage(int amount)
     {
+        if (CurrentHealth <= 0) return;
+
         CurrentHealth -= amount;
+        if (CurrentHealth < 0) CurrentHealth = 0;
+
         OnHealthChanged?.Invoke(CurrentHealth);
+        Debug.Log($"Player took {amount} damage. Current Health: {CurrentHealth}");
 
         if (CurrentHealth <= 0)
         {
-            CurrentHealth = 0;
-            GameEvents.OnGameOver?.Invoke();
-            Debug.Log("Game Over!");
+            Die();
         }
+    }
+
+    private void Die()
+    {
+        Debug.Log("Player Health Depleted! Game Over.");
+        GameEvents.OnGameOver?.Invoke();
     }
 }

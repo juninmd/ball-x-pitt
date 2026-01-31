@@ -6,7 +6,7 @@ public class Enemy : MonoBehaviour
     private float health;
     private float speed;
     private int bitDrop;
-    private float damage;
+    private int damage;
 
     private List<Transform> waypoints;
     private int currentWaypointIndex = 0;
@@ -70,7 +70,10 @@ public class Enemy : MonoBehaviour
 
     private void ReachGoal()
     {
+        // Logic for reaching the core (damage player)
         GameEvents.OnEnemyReachedGoal?.Invoke(this, damage);
-        gameObject.SetActive(false);
+
+        // Do NOT call Die() here, as it triggers OnEnemyKilled (which awards bits).
+        // The WaveManager should handle returning this enemy to the pool via the OnEnemyReachedGoal event.
     }
 }

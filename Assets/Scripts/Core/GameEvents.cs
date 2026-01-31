@@ -9,8 +9,10 @@ public static class GameEvents
 
     // Event triggered when an enemy reaches the goal.
     // Param 1: The Enemy script
-    // Param 2: The damage to deal to the player
-    public static Action<Enemy, float> OnEnemyReachedGoal;
+    // Param 2: The damage amount
+    public static Action<Enemy, int> OnEnemyReachedGoal;
+
+    public static Action OnGameOver;
 
     // Wave events
     public static Action OnWaveStart;
