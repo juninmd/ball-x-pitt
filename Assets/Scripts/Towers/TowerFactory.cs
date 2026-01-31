@@ -2,29 +2,37 @@ using UnityEngine;
 
 public class TowerFactory : MonoBehaviour
 {
-    public GameObject laserTowerPrefab;
-    public GameObject missileTowerPrefab;
-
-    public Tower CreateTower(TowerType type, Vector3 position)
+    public Tower CreateTower(TowerConfig config, Vector3 position)
     {
-        GameObject prefab = null;
+        if (config == null || config.prefab == null)
+        {
+             Debug.LogWarning("Invalid TowerConfig!");
+             return null;
+        }
+
+        GameObject instance = Instantiate(config.prefab, position, Quaternion.identity);
+        Tower tower = instance.GetComponent<Tower>();
+
+        if (tower != null)
+        {
+            IAttackStrategy strategy = CreateStrategy(config.strategyType);
+            tower.Initialize(config, strategy);
+        }
+        else
+        {
+            Debug.LogError("Prefab does not have a Tower component!");
+        }
+
+        return tower;
+    }
+
+    private IAttackStrategy CreateStrategy(AttackStrategyType type)
+    {
         switch (type)
         {
-            case TowerType.Laser:
-                prefab = laserTowerPrefab;
-                break;
-            case TowerType.Missile:
-                prefab = missileTowerPrefab;
-                break;
+            case AttackStrategyType.Laser: return new LaserAttackStrategy();
+            case AttackStrategyType.Missile: return new MissileAttackStrategy();
+            default: return new LaserAttackStrategy();
         }
-
-        if (prefab != null)
-        {
-            GameObject instance = Instantiate(prefab, position, Quaternion.identity);
-            return instance.GetComponent<Tower>();
-        }
-
-        Debug.LogWarning($"Prefab for tower type {type} is missing!");
-        return null;
     }
 }
