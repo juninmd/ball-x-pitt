@@ -19,5 +19,4 @@ public static class GameEvents
     public static Action OnWaveEnd;
 
     // Game State events
-    public static Action OnGameOver;
 }
