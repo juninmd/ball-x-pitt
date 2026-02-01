@@ -12,6 +12,9 @@ public class WaveManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private EnemyPool enemyPool;
 
+    [Header("Settings")]
+    [SerializeField] private bool autoStart = true;
+
     private int currentWaveIndex = 0;
     private int activeEnemies = 0;
     private bool isWaveActive = false;
@@ -40,7 +43,10 @@ public class WaveManager : MonoBehaviour
         }
 
         // Optional: Auto-start for testing
-        // StartCoroutine(StartGameRoutine());
+        if (autoStart)
+        {
+            StartCoroutine(StartGameRoutine());
+        }
     }
 
     private IEnumerator StartGameRoutine()
