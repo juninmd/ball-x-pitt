@@ -42,7 +42,13 @@ public class WaveManager : MonoBehaviour
             return;
         }
 
-        // Optional: Auto-start for testing
+        if (waypoints == null || waypoints.Count == 0)
+        {
+            Debug.LogError("WaveManager: No waypoints assigned!");
+            enabled = false;
+            return;
+        }
+
         if (autoStart)
         {
             StartCoroutine(StartGameRoutine());
@@ -93,7 +99,12 @@ public class WaveManager : MonoBehaviour
     private void SpawnEnemy(EnemyConfig config)
     {
         Enemy enemy = enemyPool.Get();
-        enemy.transform.position = waypoints[0].position; // Ensure start position
+        // Position at the start
+        if (waypoints.Count > 0)
+        {
+            enemy.transform.position = waypoints[0].position;
+        }
+
         enemy.Initialize(config, waypoints);
         activeEnemies++;
     }
@@ -101,20 +112,19 @@ public class WaveManager : MonoBehaviour
     private void HandleEnemyKilled(Enemy enemy, int bits)
     {
         activeEnemies--;
-        enemyPool.ReturnToPool(enemy);
+        if (enemyPool != null) enemyPool.ReturnToPool(enemy);
     }
 
     private void HandleEnemyReachedGoal(Enemy enemy, int damage)
     {
         activeEnemies--;
-        enemyPool.ReturnToPool(enemy);
+        if (enemyPool != null) enemyPool.ReturnToPool(enemy);
     }
 
     private void HandleGameOver()
     {
         StopAllCoroutines();
         isWaveActive = false;
-        // Optionally disable this script to prevent further updates
         enabled = false;
         Debug.Log("Game Over! Waves stopped.");
     }
@@ -129,6 +139,10 @@ public class WaveManager : MonoBehaviour
         if (currentWaveIndex < waves.Count)
         {
             StartCoroutine(NextWaveCooldown());
+        }
+        else
+        {
+            Debug.Log("All Waves Cleared!");
         }
     }
 
