@@ -1,26 +1,29 @@
 using UnityEngine;
 
-public enum AttackStrategyType
+namespace NeonDefense.ScriptableObjects
 {
-    Laser,
-    Missile,
-    Slow
-}
+    public enum AttackStrategyType
+    {
+        Laser,
+        Missile,
+        Slow
+    }
 
-[CreateAssetMenu(fileName = "NewTowerConfig", menuName = "NeonDefense/TowerConfig")]
-public class TowerConfig : ScriptableObject
-{
-    [Header("General")]
-    public string towerName = "Turret";
-    public int cost = 100;
-    public GameObject prefab;
+    [CreateAssetMenu(fileName = "NewTowerConfig", menuName = "NeonDefense/TowerConfig")]
+    public class TowerConfig : ScriptableObject
+    {
+        [Header("General")]
+        public string towerName;
+        public int cost;
+        public GameObject prefab;
+        public GameObject projectilePrefab; // For missile/projectile towers
 
-    [Header("Combat")]
-    public float damage = 10f;
-    public float range = 5f;
-    public float fireRate = 1f;
-    public GameObject projectilePrefab;
+        [Header("Combat Stats")]
+        public float range;
+        public float fireRate;
+        public float damage;
 
-    [Header("Behavior")]
-    public AttackStrategyType strategyType;
+        [Header("Behavior")]
+        public AttackStrategyType strategyType;
+    }
 }

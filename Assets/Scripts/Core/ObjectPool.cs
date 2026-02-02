@@ -1,54 +1,58 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
-public abstract class ObjectPool<T> : MonoBehaviour where T : Component
+namespace NeonDefense.Core
 {
-    [SerializeField] protected T prefab;
-    [SerializeField] protected int initialSize = 20;
-
-    protected Queue<T> pool = new Queue<T>();
-
-    protected virtual void Awake()
+    public abstract class ObjectPool<T> : MonoBehaviour where T : Component
     {
-        InitializePool();
-    }
+        [SerializeField] protected T prefab;
+        [SerializeField] protected int initialPoolSize = 10;
 
-    private void InitializePool()
-    {
-        for (int i = 0; i < initialSize; i++)
+        private Queue<T> pool = new Queue<T>();
+
+        protected virtual void Awake()
         {
-            CreateNewInstance();
-        }
-    }
+            if (prefab == null)
+            {
+                Debug.LogError($"Prefab not assigned in pool: {gameObject.name}");
+                return;
+            }
 
-    private T CreateNewInstance()
-    {
-        if (prefab == null)
-        {
-            Debug.LogError($"Pool {name} is missing a prefab!");
-            return null;
-        }
-        T instance = Instantiate(prefab, transform);
-        instance.gameObject.SetActive(false);
-        pool.Enqueue(instance);
-        return instance;
-    }
-
-    public T Get()
-    {
-        if (pool.Count == 0)
-        {
-            CreateNewInstance();
+            InitializePool();
         }
 
-        T instance = pool.Dequeue();
-        instance.gameObject.SetActive(true);
-        return instance;
-    }
+        private void InitializePool()
+        {
+            for (int i = 0; i < initialPoolSize; i++)
+            {
+                CreateNewPoolObject();
+            }
+        }
 
-    public void ReturnToPool(T instance)
-    {
-        instance.gameObject.SetActive(false);
-        pool.Enqueue(instance);
+        private T CreateNewPoolObject()
+        {
+            T newObj = Instantiate(prefab, transform);
+            newObj.gameObject.SetActive(false);
+            pool.Enqueue(newObj);
+            return newObj;
+        }
+
+        public T Get()
+        {
+            if (pool.Count == 0)
+            {
+                CreateNewPoolObject();
+            }
+
+            T obj = pool.Dequeue();
+            obj.gameObject.SetActive(true);
+            return obj;
+        }
+
+        public void ReturnToPool(T obj)
+        {
+            obj.gameObject.SetActive(false);
+            pool.Enqueue(obj);
+        }
     }
 }

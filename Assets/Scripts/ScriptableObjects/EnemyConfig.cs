@@ -1,23 +1,18 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "NewEnemyConfig", menuName = "NeonDefense/EnemyConfig")]
-public class EnemyConfig : ScriptableObject
+namespace NeonDefense.ScriptableObjects
 {
-    [Header("Enemy Stats")]
-    public string enemyName = "Virus";
+    [CreateAssetMenu(fileName = "NewEnemyConfig", menuName = "NeonDefense/EnemyConfig")]
+    public class EnemyConfig : ScriptableObject
+    {
+        [Header("Attributes")]
+        public string enemyName;
+        public float health;
+        public float speed;
+        public int bitDrop;
+        public int damageToPlayer;
 
-    [Tooltip("Health points of the enemy")]
-    public float health = 100f;
-
-    [Tooltip("Movement speed")]
-    public float speed = 5f;
-
-    [Tooltip("Amount of bits dropped on death")]
-    public int bitDrop = 10;
-
-    [Tooltip("Damage dealt to the player's core when reaching the end")]
-    public int damage = 1;
-
-    [Header("Visuals")]
-    public GameObject prefab;
+        [Header("Visuals")]
+        public GameObject prefab;
+    }
 }
