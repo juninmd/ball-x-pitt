@@ -1,9 +1,12 @@
-name: Build and Release
+name: Deploy
 
 on:
   push:
     tags:
       - 'v*'
+
+permissions:
+  contents: write
 
 env:
   UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -21,29 +24,25 @@ jobs:
           - StandaloneWindows64
           - WebGL
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           lfs: true
 
-      - name: Cache Library
+      - name: Cache
         uses: actions/cache@v3
         with:
           path: Library
           key: Library-${{ matrix.targetPlatform }}
-          restore-keys: |
-            Library-
+          restore-keys: Library-
 
-      - name: Build project
+      - name: Build
         uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
 
-      - name: Upload Artifact
+      - name: Upload Build
         uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
@@ -51,38 +50,33 @@ jobs:
 
   release:
     name: Create Release
-    needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    needs: build
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download Windows Artifact
+      - name: Download Windows Build
         uses: actions/download-artifact@v4
         with:
           name: Build-StandaloneWindows64
-          path: build/StandaloneWindows64
+          path: build/Windows
 
-      - name: Download WebGL Artifact
+      - name: Download WebGL Build
         uses: actions/download-artifact@v4
         with:
           name: Build-WebGL
           path: build/WebGL
 
       - name: Zip Windows Build
-        run: zip -r WindowsBuild.zip build/StandaloneWindows64
+        run: zip -r Windows.zip build/Windows
 
       - name: Zip WebGL Build
-        run: zip -r WebGLBuild.zip build/WebGL
+        run: zip -r WebGL.zip build/WebGL
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: ncipollo/release-action@v1
         with:
-          files: |
-            WindowsBuild.zip
-            WebGLBuild.zip
-          generate_release_notes: true
-          draft: false
-          prerelease: false
+          artifacts: "Windows.zip,WebGL.zip"
+          generateReleaseNotes: true
+          token: ${{ secrets.GITHUB_TOKEN }}

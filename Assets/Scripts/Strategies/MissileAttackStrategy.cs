@@ -1,22 +1,22 @@
 using UnityEngine;
+using NeonDefense.Core;
+using NeonDefense.Enemies;
+using NeonDefense.ScriptableObjects;
+using NeonDefense.Managers;
 
-public class MissileAttackStrategy : IAttackStrategy
+namespace NeonDefense.Strategies
 {
-    public void ExecuteAttack(Transform origin, Transform target, TowerConfig config)
+    public class MissileAttackStrategy : IAttackStrategy
     {
-        if (config.projectilePrefab == null)
+        public void Attack(Enemy target, Transform firePoint, TowerConfig config)
         {
-            Debug.LogWarning("MissileAttackStrategy: No projectile prefab in config!");
-            return;
+            if (ProjectilePool.Instance == null) return;
+
+            var projectile = ProjectilePool.Instance.Get();
+            projectile.transform.position = firePoint.position;
+            projectile.transform.rotation = firePoint.rotation;
+
+            projectile.Initialize(target, config.damage, (p) => ProjectilePool.Instance.ReturnToPool(p));
         }
-
-        // Use pooling
-        var projectile = ProjectilePool.Instance.Get();
-        projectile.transform.position = origin.position;
-        projectile.Initialize(target);
-
-        // Set properties from config
-        // Note: speed could also be in config, but for now we set damage.
-        projectile.damage = config.damage;
     }
 }

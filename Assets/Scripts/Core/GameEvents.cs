@@ -1,22 +1,24 @@
 using System;
+using UnityEngine;
+using NeonDefense.Enemies; // Forward reference
 
-public static class GameEvents
+namespace NeonDefense.Core
 {
-    // Event triggered when an enemy is killed.
-    // Param 1: The Enemy script (for object pooling return logic if needed elsewhere)
-    // Param 2: The bit drop amount
-    public static Action<Enemy, int> OnEnemyKilled;
+    public static class GameEvents
+    {
+        // Event triggered when an enemy is killed. Passes the Enemy instance and the bit reward.
+        public static Action<Enemy, int> OnEnemyKilled;
 
-    // Event triggered when an enemy reaches the goal.
-    // Param 1: The Enemy script
-    // Param 2: The damage amount
-    public static Action<Enemy, int> OnEnemyReachedGoal;
+        // Event triggered when an enemy reaches the goal (Core). Passes damage amount.
+        public static Action<int> OnEnemyReachedGoal;
 
-    public static Action OnGameOver;
+        // Event triggered when a wave starts. Passes wave index.
+        public static Action<int> OnWaveStart;
 
-    // Wave events
-    public static Action OnWaveStart;
-    public static Action OnWaveEnd;
+        // Event triggered when a wave is cleared.
+        public static Action OnWaveEnd;
 
-    // Game State events
+        // Event triggered when player health reaches 0.
+        public static Action OnGameOver;
+    }
 }

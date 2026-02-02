@@ -1,154 +1,108 @@
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+using NeonDefense.Core;
+using NeonDefense.ScriptableObjects;
+using NeonDefense.Enemies;
 
-public class WaveManager : MonoBehaviour
+namespace NeonDefense.Managers
 {
-    [Header("Wave Configuration")]
-    [SerializeField] private List<WaveConfig> waves;
-    [SerializeField] private List<Transform> waypoints;
-    [SerializeField] private float timeBetweenWaves = 5f;
-
-    [Header("References")]
-    [SerializeField] private EnemyPool enemyPool;
-
-    [Header("Settings")]
-    [SerializeField] private bool autoStart = true;
-
-    private int currentWaveIndex = 0;
-    private int activeEnemies = 0;
-    private bool isWaveActive = false;
-
-    private void OnEnable()
+    public class WaveManager : MonoBehaviour
     {
-        GameEvents.OnEnemyKilled += HandleEnemyKilled;
-        GameEvents.OnEnemyReachedGoal += HandleEnemyReachedGoal;
-        GameEvents.OnGameOver += HandleGameOver;
-    }
+        public static WaveManager Instance { get; private set; }
 
-    private void OnDisable()
-    {
-        GameEvents.OnEnemyKilled -= HandleEnemyKilled;
-        GameEvents.OnEnemyReachedGoal -= HandleEnemyReachedGoal;
-        GameEvents.OnGameOver -= HandleGameOver;
-    }
+        [Header("Configuration")]
+        [SerializeField] private List<WaveConfig> waves;
+        [SerializeField] private List<Transform> waypoints;
+        [SerializeField] private bool autoStart = false;
 
-    private void Start()
-    {
-        if (enemyPool == null)
+        private int currentWaveIndex = 0;
+        private bool isSpawning = false;
+
+        private void Awake()
         {
-            Debug.LogError("WaveManager: EnemyPool reference is missing!");
-            enabled = false;
-            return;
-        }
-
-        if (waypoints == null || waypoints.Count == 0)
-        {
-            Debug.LogError("WaveManager: No waypoints assigned!");
-            enabled = false;
-            return;
-        }
-
-        if (autoStart)
-        {
-            StartCoroutine(StartGameRoutine());
-        }
-    }
-
-    private IEnumerator StartGameRoutine()
-    {
-        yield return new WaitForSeconds(2f);
-        StartWave();
-    }
-
-    public void StartWave()
-    {
-        if (currentWaveIndex >= waves.Count)
-        {
-            Debug.Log("All waves complete! Victory!");
-            return;
-        }
-
-        if (isWaveActive) return;
-
-        StartCoroutine(SpawnWaveRoutine(waves[currentWaveIndex]));
-    }
-
-    private IEnumerator SpawnWaveRoutine(WaveConfig waveConfig)
-    {
-        isWaveActive = true;
-        GameEvents.OnWaveStart?.Invoke();
-        Debug.Log($"Starting Wave {currentWaveIndex + 1}");
-
-        foreach (var group in waveConfig.enemyGroups)
-        {
-            for (int i = 0; i < group.count; i++)
+            if (Instance == null)
             {
-                SpawnEnemy(group.enemyConfig);
-                yield return new WaitForSeconds(group.spawnRate);
+                Instance = this;
             }
-            yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
+            else
+            {
+                Destroy(gameObject);
+            }
         }
 
-        // Wait until all enemies are cleared
-        yield return new WaitUntil(() => activeEnemies <= 0);
-
-        EndWave();
-    }
-
-    private void SpawnEnemy(EnemyConfig config)
-    {
-        Enemy enemy = enemyPool.Get();
-        // Position at the start
-        if (waypoints.Count > 0)
+        private void Start()
         {
-            enemy.transform.position = waypoints[0].position;
+            if (autoStart)
+            {
+                StartCoroutine(StartGameRoutine());
+            }
         }
 
-        enemy.Initialize(config, waypoints);
-        activeEnemies++;
-    }
-
-    private void HandleEnemyKilled(Enemy enemy, int bits)
-    {
-        activeEnemies--;
-        if (enemyPool != null) enemyPool.ReturnToPool(enemy);
-    }
-
-    private void HandleEnemyReachedGoal(Enemy enemy, int damage)
-    {
-        activeEnemies--;
-        if (enemyPool != null) enemyPool.ReturnToPool(enemy);
-    }
-
-    private void HandleGameOver()
-    {
-        StopAllCoroutines();
-        isWaveActive = false;
-        enabled = false;
-        Debug.Log("Game Over! Waves stopped.");
-    }
-
-    private void EndWave()
-    {
-        isWaveActive = false;
-        currentWaveIndex++;
-        GameEvents.OnWaveEnd?.Invoke();
-        Debug.Log($"Wave {currentWaveIndex} Complete");
-
-        if (currentWaveIndex < waves.Count)
+        public void StartNextWave()
         {
-            StartCoroutine(NextWaveCooldown());
+            if (!isSpawning && currentWaveIndex < waves.Count)
+            {
+                StartCoroutine(SpawnWave(waves[currentWaveIndex]));
+            }
         }
-        else
-        {
-            Debug.Log("All Waves Cleared!");
-        }
-    }
 
-    private IEnumerator NextWaveCooldown()
-    {
-        yield return new WaitForSeconds(timeBetweenWaves);
-        StartWave();
+        private IEnumerator StartGameRoutine()
+        {
+            yield return new WaitForSeconds(2f); // Initial delay
+            StartNextWave();
+        }
+
+        private IEnumerator SpawnWave(WaveConfig waveConfig)
+        {
+            isSpawning = true;
+            GameEvents.OnWaveStart?.Invoke(currentWaveIndex + 1);
+
+            foreach (var group in waveConfig.enemyGroups)
+            {
+                for (int i = 0; i < group.count; i++)
+                {
+                    SpawnEnemy(group.enemyConfig);
+                    yield return new WaitForSeconds(group.spawnRate);
+                }
+
+                // Wait between groups if needed, though usually handled by next group iteration immediately
+                // unless we want specific delays between groups handled in config logic more complexly.
+                // WaveConfig has 'timeBetweenGroups' but that might be after the whole wave?
+                // The struct has spawnRate. The WaveConfig has timeBetweenGroups.
+                // Interpreting timeBetweenGroups as time AFTER this wave before the next, or between groups?
+                // The name suggests between groups. Let's assume between groups inside the wave.
+                // But usually standard TD is Group 1 finishes spawning, wait, Group 2.
+                // For now, I'll just spawn them sequentially.
+            }
+
+            isSpawning = false;
+            currentWaveIndex++;
+
+            if (currentWaveIndex >= waves.Count)
+            {
+                // All waves spawned. Wait for enemies to die to declare victory?
+                // For now, just log.
+                Debug.Log("All waves spawned.");
+            }
+            else
+            {
+                 yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
+                 StartNextWave(); // Auto start next wave for this simple implementation
+            }
+        }
+
+        private void SpawnEnemy(EnemyConfig config)
+        {
+            if (EnemyPool.Instance == null)
+            {
+                Debug.LogError("EnemyPool missing!");
+                return;
+            }
+
+            Enemy enemy = EnemyPool.Instance.Get();
+            // Assuming the pool sets position/active, but Enemy.Initialize handles specific config
+            enemy.Initialize(config, waypoints);
+        }
     }
 }

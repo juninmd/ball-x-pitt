@@ -25,6 +25,7 @@ This project uses ScriptableObjects for data-driven configuration. Follow these 
    - **Fire Rate**: 2
    - **Strategy Type**: Laser
    - **Prefab**: Assign your Tower prefab.
+   - **Projectile Prefab**: Assign if using Missile strategy.
 
 ### Step 3: Create Wave Config
 1. Navigate to `Assets/Data/Waves`.
@@ -36,12 +37,21 @@ This project uses ScriptableObjects for data-driven configuration. Follow these 
    - **Spawn Rate**: 1 (spawn every 1 second).
    - **Time Between Groups**: 0 (if only one group).
 
-### Step 4: Assign to WaveManager
-1. Select the `WaveManager` GameObject in your scene.
-2. In the `WaveManager` component, locate the `Waves` list.
-3. Add `Wave01` to the list.
-4. Ensure `Waypoints` list is populated with Transform objects representing the path.
-5. Ensure `EnemyPool` reference is assigned.
+### Step 4: Scene Setup (Managers)
+1. Create an empty GameObject named `GameManager` (or similar).
+2. Attach `WaveManager` and `EconomyManager` scripts.
+3. In `WaveManager`:
+   - Populate `Waves` list with your `WaveConfig` assets.
+   - Populate `Waypoints` list with Transform objects representing the path.
+
+### Step 5: Scene Setup (Pools)
+1. Create an empty GameObject named `Pools`.
+2. Attach `EnemyPool` script.
+   - Assign the **Enemy Prefab** to the pool.
+   - Set `Initial Pool Size`.
+3. Attach `ProjectilePool` script.
+   - Assign the **Projectile Prefab** to the pool.
+   - Set `Initial Pool Size`.
 
 ---
 
