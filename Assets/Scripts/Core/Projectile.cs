@@ -1,45 +1,65 @@
 using UnityEngine;
+using NeonDefense.Enemies;
 
-public class Projectile : MonoBehaviour
+namespace NeonDefense.Core
 {
-    public float speed = 10f;
-    public float damage = 1f;
-    private Transform target;
-
-    public void Initialize(Transform target)
+    public class Projectile : MonoBehaviour
     {
-        this.target = target;
-    }
+        private float speed = 20f;
+        private float damage;
+        private Enemy target;
 
-    void Update()
-    {
-        if (target == null)
+        public void Initialize(Enemy target, float damage)
         {
-            // Simple check to return to pool if target is lost
-            // In a real game we might want to continue or destroy after time
-             if (ProjectilePool.Instance != null)
-                ProjectilePool.Instance.ReturnToPool(this);
-            else
-                Destroy(gameObject);
-            return;
+            this.target = target;
+            this.damage = damage;
+
+            // Auto-return to pool after lifetime if no target hit (fail-safe)
+            CancelInvoke(nameof(ReturnToPool));
+            Invoke(nameof(ReturnToPool), 5f);
         }
 
-        Vector3 dir = (target.position - transform.position).normalized;
-        transform.position += dir * speed * Time.deltaTime;
-
-        if (Vector3.Distance(transform.position, target.position) < 0.2f)
+        private void Update()
         {
-            // Hit logic
-            Enemy enemy = target.GetComponent<Enemy>();
-            if (enemy != null)
+            if (target == null || !target.gameObject.activeInHierarchy)
             {
-                enemy.TakeDamage(damage);
+                ReturnToPool();
+                return;
             }
 
-             if (ProjectilePool.Instance != null)
-                ProjectilePool.Instance.ReturnToPool(this);
+            Vector3 direction = (target.transform.position - transform.position).normalized;
+            float distanceThisFrame = speed * Time.deltaTime;
+
+            if (Vector3.Distance(transform.position, target.transform.position) <= distanceThisFrame)
+            {
+                HitTarget();
+            }
             else
+            {
+                transform.Translate(direction * distanceThisFrame, Space.World);
+            }
+        }
+
+        private void HitTarget()
+        {
+            if (target != null)
+            {
+                target.TakeDamage(damage);
+            }
+            ReturnToPool();
+        }
+
+        private void ReturnToPool()
+        {
+            CancelInvoke(nameof(ReturnToPool));
+            if (ProjectilePool.Instance != null)
+            {
+                ProjectilePool.Instance.ReturnToPool(this);
+            }
+            else
+            {
                 Destroy(gameObject);
+            }
         }
     }
 }

@@ -3,7 +3,6 @@ using NeonDefense.Core;
 using NeonDefense.Enemies;
 using NeonDefense.ScriptableObjects;
 using NeonDefense.Strategies;
-// using NeonDefense.Managers; // If we needed pools here directly
 
 namespace NeonDefense.Towers
 {
@@ -44,12 +43,6 @@ namespace NeonDefense.Towers
             }
         }
 
-        // Helper to inject strategy if needed (Factory pattern)
-        public void SetStrategy(IAttackStrategy strategy)
-        {
-            this.attackStrategy = strategy;
-        }
-
         private void Update()
         {
             if (config == null) return;
@@ -70,24 +63,28 @@ namespace NeonDefense.Towers
 
         private void UpdateTarget()
         {
-            // Simple closest target logic
+            // Efficiency: Could use OverlapSphereNonAlloc, but this is simple enough for now.
             Collider[] hits = Physics.OverlapSphere(transform.position, config.range, enemyLayer);
             float shortestDistance = Mathf.Infinity;
-            GameObject nearestEnemy = null;
+            Enemy nearestEnemy = null;
 
             foreach (var hit in hits)
             {
+                // Check if it's actually an enemy
+                Enemy enemyComponent = hit.GetComponent<Enemy>();
+                if (enemyComponent == null) continue;
+
                 float distance = Vector3.Distance(transform.position, hit.transform.position);
                 if (distance < shortestDistance)
                 {
                     shortestDistance = distance;
-                    nearestEnemy = hit.gameObject;
+                    nearestEnemy = enemyComponent;
                 }
             }
 
             if (nearestEnemy != null && shortestDistance <= config.range)
             {
-                currentTarget = nearestEnemy.GetComponent<Enemy>();
+                currentTarget = nearestEnemy;
             }
             else
             {

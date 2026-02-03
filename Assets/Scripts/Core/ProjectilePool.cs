@@ -1,21 +1,21 @@
 using UnityEngine;
 
-public class ProjectilePool : ObjectPool<Projectile>
+namespace NeonDefense.Core
 {
-    public static ProjectilePool Instance { get; private set; }
-
-    protected override void Awake()
+    public class ProjectilePool : ObjectPool<Projectile>
     {
-        // Singleton pattern implementation
-        if (Instance != null && Instance != this)
+        public static ProjectilePool Instance { get; private set; }
+
+        protected override void Awake()
         {
-            Destroy(gameObject);
-            return;
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
+            base.Awake();
         }
-
-        Instance = this;
-
-        // Initialize pool from base class
-        base.Awake();
     }
 }
