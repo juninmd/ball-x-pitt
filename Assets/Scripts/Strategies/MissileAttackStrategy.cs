@@ -1,8 +1,8 @@
 using UnityEngine;
-using NeonDefense.Core;
 using NeonDefense.Enemies;
 using NeonDefense.ScriptableObjects;
-using NeonDefense.Managers;
+using NeonDefense.Core; // For ProjectilePool if needed
+using NeonDefense.Managers; // For ProjectilePool if needed
 
 namespace NeonDefense.Strategies
 {
@@ -10,13 +10,23 @@ namespace NeonDefense.Strategies
     {
         public void Attack(Enemy target, Transform firePoint, TowerConfig config)
         {
-            if (ProjectilePool.Instance == null) return;
+            if (config.projectilePrefab == null)
+            {
+                Debug.LogWarning($"Missile Strategy requires a projectile prefab in config: {config.name}");
+                return;
+            }
 
-            var projectile = ProjectilePool.Instance.Get();
+            // Get projectile from pool
+            if (ProjectilePool.Instance == null)
+            {
+                 Debug.LogError("ProjectilePool not found!");
+                 return;
+            }
+
+            Projectile projectile = ProjectilePool.Instance.Get();
             projectile.transform.position = firePoint.position;
             projectile.transform.rotation = firePoint.rotation;
-
-            projectile.Initialize(target, config.damage, (p) => ProjectilePool.Instance.ReturnToPool(p));
+            projectile.Initialize(target, config.damage);
         }
     }
 }

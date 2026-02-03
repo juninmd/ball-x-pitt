@@ -1,6 +1,11 @@
 using UnityEngine;
+using NeonDefense.Enemies;
+using NeonDefense.ScriptableObjects;
 
-public interface IAttackStrategy
+namespace NeonDefense.Strategies
 {
-    void ExecuteAttack(Transform origin, Transform target, TowerConfig config);
+    public interface IAttackStrategy
+    {
+        void Attack(Enemy target, Transform firePoint, TowerConfig config);
+    }
 }
