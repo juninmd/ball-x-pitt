@@ -1,53 +1,58 @@
 using UnityEngine;
 using System;
+using NeonDefense.Core;
+using NeonDefense.Enemies;
 
-public class PlayerHealthManager : MonoBehaviour
+namespace NeonDefense.Managers
 {
-    [SerializeField] private int startingHealth = 20;
-
-    public int CurrentHealth { get; private set; }
-
-    public event Action<int> OnHealthChanged;
-
-    private void Awake()
+    public class PlayerHealthManager : MonoBehaviour
     {
-        CurrentHealth = startingHealth;
-    }
+        [SerializeField] private int startingHealth = 20;
 
-    private void OnEnable()
-    {
-        GameEvents.OnEnemyReachedGoal += HandleEnemyReachedGoal;
-    }
+        public int CurrentHealth { get; private set; }
 
-    private void OnDisable()
-    {
-        GameEvents.OnEnemyReachedGoal -= HandleEnemyReachedGoal;
-    }
+        public event Action<int> OnHealthChanged;
 
-    private void HandleEnemyReachedGoal(Enemy enemy, int damage)
-    {
-        TakeDamage(damage);
-    }
-
-    public void TakeDamage(int amount)
-    {
-        if (CurrentHealth <= 0) return;
-
-        CurrentHealth -= amount;
-        if (CurrentHealth < 0) CurrentHealth = 0;
-
-        OnHealthChanged?.Invoke(CurrentHealth);
-        Debug.Log($"Player took {amount} damage. Current Health: {CurrentHealth}");
-
-        if (CurrentHealth <= 0)
+        private void Awake()
         {
-            Die();
+            CurrentHealth = startingHealth;
         }
-    }
 
-    private void Die()
-    {
-        Debug.Log("Player Health Depleted! Game Over.");
-        GameEvents.OnGameOver?.Invoke();
+        private void OnEnable()
+        {
+            GameEvents.OnEnemyReachedGoal += HandleEnemyReachedGoal;
+        }
+
+        private void OnDisable()
+        {
+            GameEvents.OnEnemyReachedGoal -= HandleEnemyReachedGoal;
+        }
+
+        private void HandleEnemyReachedGoal(Enemy enemy, int damage)
+        {
+            TakeDamage(damage);
+        }
+
+        public void TakeDamage(int amount)
+        {
+            if (CurrentHealth <= 0) return;
+
+            CurrentHealth -= amount;
+            if (CurrentHealth < 0) CurrentHealth = 0;
+
+            OnHealthChanged?.Invoke(CurrentHealth);
+            Debug.Log($"Player took {amount} damage. Current Health: {CurrentHealth}");
+
+            if (CurrentHealth <= 0)
+            {
+                Die();
+            }
+        }
+
+        private void Die()
+        {
+            Debug.Log("Player Health Depleted! Game Over.");
+            GameEvents.OnGameOver?.Invoke();
+        }
     }
 }

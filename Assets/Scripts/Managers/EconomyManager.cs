@@ -1,5 +1,6 @@
 using UnityEngine;
 using NeonDefense.Core;
+using NeonDefense.Enemies;
 
 namespace NeonDefense.Managers
 {
@@ -43,22 +44,7 @@ namespace NeonDefense.Managers
             GameEvents.OnEnemyKilled -= AddBits;
         }
 
-        private void AddBits(object enemy, int amount) // Matching Action<Enemy, int> but using object/clean signature
-        {
-            // Note: GameEvents.OnEnemyKilled is Action<Enemy, int>.
-            // In C#, we can subscribe with a method that matches signature.
-            // But if I defined it as Action<Enemy, int>, I need to match types.
-            // I'll fix the signature below.
-            AddBitsInternal(amount);
-        }
-
-        // Correct signature for the event
-        private void AddBits(NeonDefense.Enemies.Enemy enemy, int amount)
-        {
-            AddBitsInternal(amount);
-        }
-
-        private void AddBitsInternal(int amount)
+        private void AddBits(Enemy enemy, int amount)
         {
             currentBits += amount;
             OnBitsChanged?.Invoke(currentBits);

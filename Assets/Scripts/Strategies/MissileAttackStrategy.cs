@@ -3,6 +3,7 @@ using NeonDefense.Core;
 using NeonDefense.Enemies;
 using NeonDefense.ScriptableObjects;
 using NeonDefense.Managers;
+using NeonDefense.Towers;
 
 namespace NeonDefense.Strategies
 {

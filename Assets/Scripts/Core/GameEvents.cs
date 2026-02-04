@@ -10,7 +10,7 @@ namespace NeonDefense.Core
         public static Action<Enemy, int> OnEnemyKilled;
 
         // Event triggered when an enemy reaches the goal (Core). Passes damage amount.
-        public static Action<int> OnEnemyReachedGoal;
+        public static Action<Enemy, int> OnEnemyReachedGoal;
 
         // Event triggered when a wave starts. Passes wave index.
         public static Action<int> OnWaveStart;
