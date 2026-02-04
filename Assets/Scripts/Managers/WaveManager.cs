@@ -41,9 +41,15 @@ namespace NeonDefense.Managers
 
         public void StartNextWave()
         {
-            if (!isSpawning && currentWaveIndex < waves.Count)
+            if (isSpawning) return;
+
+            if (currentWaveIndex < waves.Count)
             {
                 StartCoroutine(SpawnWave(waves[currentWaveIndex]));
+            }
+            else
+            {
+                Debug.Log("All waves completed!");
             }
         }
 
@@ -56,6 +62,7 @@ namespace NeonDefense.Managers
         private IEnumerator SpawnWave(WaveConfig waveConfig)
         {
             isSpawning = true;
+            Debug.Log($"Starting Wave {currentWaveIndex + 1}");
             GameEvents.OnWaveStart?.Invoke(currentWaveIndex + 1);
 
             foreach (var group in waveConfig.enemyGroups)
@@ -65,26 +72,16 @@ namespace NeonDefense.Managers
                     SpawnEnemy(group.enemyConfig);
                     yield return new WaitForSeconds(group.spawnRate);
                 }
-
-                // Optional: Wait between groups? Currently logic is sequential.
             }
 
             isSpawning = false;
             currentWaveIndex++;
 
-            if (currentWaveIndex >= waves.Count)
+            // Wait before starting next wave automatically
+            if (waveConfig.timeBetweenGroups > 0 && currentWaveIndex < waves.Count)
             {
-                Debug.Log("All waves spawned!");
-                // GameEvents.OnGameWin?.Invoke(); // If we had such event
-            }
-            else
-            {
-                // Auto start next wave after delay defined in config
-                if (waveConfig.timeBetweenGroups > 0)
-                {
-                    yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
-                    StartNextWave();
-                }
+                yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
+                StartNextWave();
             }
         }
 
@@ -92,23 +89,15 @@ namespace NeonDefense.Managers
         {
             if (EnemyPool.Instance == null)
             {
-                Debug.LogError("EnemyPool missing in scene!");
+                Debug.LogError("EnemyPool is missing from the scene!");
                 return;
             }
 
-            // We need to ensure the pool has the correct prefab if we want to support multiple types.
-            // However, generic ObjectPool<T> usually has ONE prefab.
-            // For a complex TD, we'd need a PoolManager or Dictionary<string, Pool>.
-            // Given the scope/time, we'll assume the Pool is generic or the EnemyConfig prefab matches the pool's prefab.
-            // OR: We instantiate directly if pool doesn't match?
-            // Better: The EnemyPool handles generic 'Enemy' type. The 'Enemy' script then initializes visually/stat-wise.
-            // So we Get() a generic Enemy shell, and Initialize() it with the config (which sets stats).
-            // Visuals: If models differ significantly, we'd need multiple pools.
-            // For this implementation, we assume the Enemy Prefab in the pool is a container that adapts,
-            // OR we accept that for this demo, only one visual type is pooled.
-
             Enemy enemy = EnemyPool.Instance.Get();
-            enemy.Initialize(config, waypoints);
+            if (enemy != null)
+            {
+                enemy.Initialize(config, waypoints);
+            }
         }
     }
 }
