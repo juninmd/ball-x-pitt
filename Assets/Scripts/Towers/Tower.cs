@@ -8,6 +8,7 @@ namespace NeonDefense.Towers
 {
     public class Tower : MonoBehaviour
     {
+        [Header("Configuration")]
         [SerializeField] private TowerConfig config;
         [SerializeField] private Transform firePoint;
         [SerializeField] private LayerMask enemyLayer;
@@ -16,18 +17,22 @@ namespace NeonDefense.Towers
         private float fireCountdown = 0f;
         private Enemy currentTarget;
 
-        private void Start()
+        public void Initialize(TowerConfig config, IAttackStrategy strategy)
         {
-            if (config == null)
-            {
-                Debug.LogError("TowerConfig not assigned!");
-                return;
-            }
-
-            InitializeStrategy();
+            this.config = config;
+            this.attackStrategy = strategy;
         }
 
-        private void InitializeStrategy()
+        private void Start()
+        {
+            // Fallback initialization if set via Inspector
+            if (config != null && attackStrategy == null)
+            {
+                InitializeStrategyInternal();
+            }
+        }
+
+        private void InitializeStrategyInternal()
         {
             switch (config.strategyType)
             {
@@ -63,22 +68,21 @@ namespace NeonDefense.Towers
 
         private void UpdateTarget()
         {
-            // Efficiency: Could use OverlapSphereNonAlloc, but this is simple enough for now.
             Collider[] hits = Physics.OverlapSphere(transform.position, config.range, enemyLayer);
             float shortestDistance = Mathf.Infinity;
             Enemy nearestEnemy = null;
 
             foreach (var hit in hits)
             {
-                // Check if it's actually an enemy
                 Enemy enemyComponent = hit.GetComponent<Enemy>();
-                if (enemyComponent == null) continue;
-
-                float distance = Vector3.Distance(transform.position, hit.transform.position);
-                if (distance < shortestDistance)
+                if (enemyComponent != null)
                 {
-                    shortestDistance = distance;
-                    nearestEnemy = enemyComponent;
+                    float distance = Vector3.Distance(transform.position, hit.transform.position);
+                    if (distance < shortestDistance)
+                    {
+                        shortestDistance = distance;
+                        nearestEnemy = enemyComponent;
+                    }
                 }
             }
 
