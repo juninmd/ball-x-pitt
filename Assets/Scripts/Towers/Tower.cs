@@ -6,6 +6,9 @@ using NeonDefense.Strategies;
 
 namespace NeonDefense.Towers
 {
+    /// <summary>
+    /// Base class for all towers. Handles targeting and delegates attacks to an IAttackStrategy.
+    /// </summary>
     public class Tower : MonoBehaviour
     {
         [Header("Configuration")]
@@ -17,6 +20,9 @@ namespace NeonDefense.Towers
         private float fireCountdown = 0f;
         private Enemy currentTarget;
 
+        /// <summary>
+        /// Initializes the tower with configuration and a specific strategy.
+        /// </summary>
         public void Initialize(TowerConfig config, IAttackStrategy strategy)
         {
             this.config = config;
@@ -34,6 +40,7 @@ namespace NeonDefense.Towers
 
         private void InitializeStrategyInternal()
         {
+             // Simple factory logic for standalone usage
             switch (config.strategyType)
             {
                 case AttackStrategyType.Laser:
@@ -68,6 +75,7 @@ namespace NeonDefense.Towers
 
         private void UpdateTarget()
         {
+            // Using OverlapSphere is efficient enough for this scale
             Collider[] hits = Physics.OverlapSphere(transform.position, config.range, enemyLayer);
             float shortestDistance = Mathf.Infinity;
             Enemy nearestEnemy = null;
@@ -98,7 +106,7 @@ namespace NeonDefense.Towers
 
         private void Attack()
         {
-            if (attackStrategy != null)
+            if (attackStrategy != null && currentTarget != null)
             {
                 attackStrategy.Attack(currentTarget, firePoint, config);
             }

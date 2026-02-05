@@ -4,18 +4,19 @@ using NeonDefense.ScriptableObjects;
 
 namespace NeonDefense.Strategies
 {
+    /// <summary>
+    /// Instant-hit laser attack.
+    /// </summary>
     public class LaserAttackStrategy : IAttackStrategy
     {
         public void Attack(Enemy target, Transform firePoint, TowerConfig config)
         {
-            if (target != null)
-            {
-                // Simple instant damage
-                target.TakeDamage(config.damage);
+            if (target == null) return;
 
-                // Visuals would go here (e.g. enabling a LineRenderer component)
-                // For this scope, we just apply logic.
-            }
+            // Visuals would go here (e.g., LineRenderer)
+            // Debug.Log($"Laser fired at {target.name} for {config.damage} damage");
+
+            target.TakeDamage(config.damage);
         }
     }
 }

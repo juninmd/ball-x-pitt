@@ -3,12 +3,20 @@ using NeonDefense.Enemies;
 
 namespace NeonDefense.Core
 {
+    /// <summary>
+    /// Handles projectile movement and collision logic.
+    /// </summary>
     public class Projectile : MonoBehaviour
     {
-        private float speed = 20f;
+        [SerializeField] private float speed = 20f;
         private float damage;
         private Enemy target;
 
+        /// <summary>
+        /// Initializes the projectile.
+        /// </summary>
+        /// <param name="target">The enemy to chase.</param>
+        /// <param name="damage">Damage to deal on hit.</param>
         public void Initialize(Enemy target, float damage)
         {
             this.target = target;

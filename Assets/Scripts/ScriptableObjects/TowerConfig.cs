@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace NeonDefense.ScriptableObjects
 {
+    /// <summary>
+    /// Defines the attack behavior type for a tower.
+    /// </summary>
     public enum AttackStrategyType
     {
         Laser,
@@ -9,6 +12,9 @@ namespace NeonDefense.ScriptableObjects
         Slow
     }
 
+    /// <summary>
+    /// Configuration data for a Tower type.
+    /// </summary>
     [CreateAssetMenu(fileName = "NewTowerConfig", menuName = "NeonDefense/TowerConfig")]
     public class TowerConfig : ScriptableObject
     {
@@ -16,7 +22,8 @@ namespace NeonDefense.ScriptableObjects
         public string towerName;
         public int cost;
         public GameObject prefab;
-        public GameObject projectilePrefab; // For missile/projectile towers
+        [Tooltip("Prefab for the projectile (required for Missile strategy).")]
+        public GameObject projectilePrefab;
 
         [Header("Combat Stats")]
         public float range;

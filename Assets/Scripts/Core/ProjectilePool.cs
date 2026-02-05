@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace NeonDefense.Core
 {
+    /// <summary>
+    /// Singleton Object Pool for Projectiles.
+    /// </summary>
     public class ProjectilePool : ObjectPool<Projectile>
     {
         public static ProjectilePool Instance { get; private set; }

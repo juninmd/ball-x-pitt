@@ -3,6 +3,10 @@ using UnityEngine;
 
 namespace NeonDefense.Core
 {
+    /// <summary>
+    /// A generic object pooling system.
+    /// </summary>
+    /// <typeparam name="T">The component type to pool.</typeparam>
     public abstract class ObjectPool<T> : MonoBehaviour where T : Component
     {
         [SerializeField] protected T prefab;
@@ -37,6 +41,9 @@ namespace NeonDefense.Core
             return newObj;
         }
 
+        /// <summary>
+        /// Retrieves an object from the pool. Creates a new one if pool is empty.
+        /// </summary>
         public T Get()
         {
             if (pool.Count == 0)
@@ -49,6 +56,9 @@ namespace NeonDefense.Core
             return obj;
         }
 
+        /// <summary>
+        /// Returns an object to the pool.
+        /// </summary>
         public void ReturnToPool(T obj)
         {
             obj.gameObject.SetActive(false);
