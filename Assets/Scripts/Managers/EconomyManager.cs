@@ -1,18 +1,29 @@
 using UnityEngine;
 using NeonDefense.Core;
+using NeonDefense.Enemies;
 
 namespace NeonDefense.Managers
 {
+    /// <summary>
+    /// Manages the player's currency (Bits).
+    /// </summary>
     public class EconomyManager : MonoBehaviour
     {
         public static EconomyManager Instance { get; private set; }
 
+        [Header("Settings")]
         [SerializeField] private int startingBits = 100;
+
         private int currentBits;
 
+        /// <summary>
+        /// Gets the current amount of bits.
+        /// </summary>
         public int CurrentBits => currentBits;
 
-        // Event for UI to listen to
+        /// <summary>
+        /// Event triggered when the bit count changes.
+        /// </summary>
         public System.Action<int> OnBitsChanged;
 
         private void Awake()
@@ -35,35 +46,30 @@ namespace NeonDefense.Managers
 
         private void OnEnable()
         {
-            GameEvents.OnEnemyKilled += AddBits;
+            GameEvents.OnEnemyKilled += HandleEnemyKilled;
         }
 
         private void OnDisable()
         {
-            GameEvents.OnEnemyKilled -= AddBits;
+            GameEvents.OnEnemyKilled -= HandleEnemyKilled;
         }
 
-        private void AddBits(object enemy, int amount) // Matching Action<Enemy, int> but using object/clean signature
+        private void HandleEnemyKilled(Enemy enemy, int amount)
         {
-            // Note: GameEvents.OnEnemyKilled is Action<Enemy, int>.
-            // In C#, we can subscribe with a method that matches signature.
-            // But if I defined it as Action<Enemy, int>, I need to match types.
-            // I'll fix the signature below.
-            AddBitsInternal(amount);
+            AddBits(amount);
         }
 
-        // Correct signature for the event
-        private void AddBits(NeonDefense.Enemies.Enemy enemy, int amount)
-        {
-            AddBitsInternal(amount);
-        }
-
-        private void AddBitsInternal(int amount)
+        private void AddBits(int amount)
         {
             currentBits += amount;
             OnBitsChanged?.Invoke(currentBits);
         }
 
+        /// <summary>
+        /// Attempts to spend the specified amount of bits.
+        /// </summary>
+        /// <param name="amount">Amount to spend.</param>
+        /// <returns>True if purchase was successful, false otherwise.</returns>
         public bool SpendBits(int amount)
         {
             if (currentBits >= amount)

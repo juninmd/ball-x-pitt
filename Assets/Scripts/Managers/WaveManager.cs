@@ -7,6 +7,9 @@ using NeonDefense.Enemies;
 
 namespace NeonDefense.Managers
 {
+    /// <summary>
+    /// Manages the spawning of enemy waves.
+    /// </summary>
     public class WaveManager : MonoBehaviour
     {
         public static WaveManager Instance { get; private set; }
@@ -39,6 +42,9 @@ namespace NeonDefense.Managers
             }
         }
 
+        /// <summary>
+        /// Starts the next wave if one is available and not currently spawning.
+        /// </summary>
         public void StartNextWave()
         {
             if (isSpawning) return;
@@ -50,6 +56,7 @@ namespace NeonDefense.Managers
             else
             {
                 Debug.Log("All waves completed!");
+                GameEvents.OnWaveEnd?.Invoke();
             }
         }
 
