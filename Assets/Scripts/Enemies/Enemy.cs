@@ -96,7 +96,7 @@ namespace NeonDefense.Enemies
         private void ReachGoal()
         {
             isDead = true; // Technically not dead, but done interacting
-            GameEvents.OnEnemyReachedGoal?.Invoke(damageToPlayer);
+            GameEvents.OnEnemyReachedGoal?.Invoke(this, damageToPlayer);
 
             if (EnemyPool.Instance != null)
             {

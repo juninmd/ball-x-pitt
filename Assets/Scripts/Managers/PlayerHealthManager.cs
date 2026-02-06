@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using NeonDefense.Core;
+using NeonDefense.Enemies;
 
 namespace NeonDefense.Managers
 {
@@ -25,6 +26,7 @@ namespace NeonDefense.Managers
                 Destroy(gameObject);
             }
 
+
             CurrentHealth = startingHealth;
         }
 
@@ -38,7 +40,7 @@ namespace NeonDefense.Managers
             GameEvents.OnEnemyReachedGoal -= HandleEnemyReachedGoal;
         }
 
-        private void HandleEnemyReachedGoal(int damage)
+        private void HandleEnemyReachedGoal(Enemy enemy, int damage)
         {
             TakeDamage(damage);
         }

@@ -1,6 +1,8 @@
 using UnityEngine;
 using NeonDefense.Enemies;
 using NeonDefense.ScriptableObjects;
+using NeonDefense.Managers;
+using NeonDefense.Towers;
 using NeonDefense.Core;
 
 namespace NeonDefense.Strategies
