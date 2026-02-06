@@ -50,3 +50,15 @@ The pipeline triggers automatically when you push a tag starting with `v`.
 git tag v1.0.0
 git push origin v1.0.0
 ```
+
+## 3. Scene Setup
+
+To run the game, ensure your scene contains the following Managers:
+
+1. **GameManager**: Create an empty GameObject, name it `GameManager`, and attach `GameManager.cs`.
+2. **WaveManager**: Create an empty GameObject, name it `WaveManager`, attach `WaveManager.cs`. Assign your `WaveConfig` assets to the `Waves` list. Assign Waypoints.
+3. **EconomyManager**: Create an empty GameObject, name it `EconomyManager`, attach `EconomyManager.cs`.
+4. **PlayerHealthManager**: Create an empty GameObject (or attach to Core), attach `PlayerHealthManager.cs`.
+5. **Pools**:
+   - **ProjectilePool**: Create an empty GameObject, name it `ProjectilePool`, attach `ProjectilePool.cs`. Assign a projectile prefab.
+   - **EnemyPool**: Create an empty GameObject, name it `EnemyPool`, attach `EnemyPool.cs` (if available) or ensure logic handles instantiation.

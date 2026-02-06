@@ -1,6 +1,6 @@
+// NeonDefense Core System
 using System;
-using UnityEngine;
-using NeonDefense.Enemies; // Forward reference
+using NeonDefense.Enemies;
 
 namespace NeonDefense.Core
 {
