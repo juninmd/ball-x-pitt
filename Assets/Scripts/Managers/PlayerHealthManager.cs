@@ -7,6 +7,8 @@ namespace NeonDefense.Managers
 {
     public class PlayerHealthManager : MonoBehaviour
     {
+        public static PlayerHealthManager Instance { get; private set; }
+
         [SerializeField] private int startingHealth = 20;
 
         public int CurrentHealth { get; private set; }
@@ -15,6 +17,16 @@ namespace NeonDefense.Managers
 
         private void Awake()
         {
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+
+
             CurrentHealth = startingHealth;
         }
 

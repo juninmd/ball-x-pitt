@@ -1,70 +1,64 @@
 # NeonDefense Setup Guide
 
-## 1. Configuring ScriptableObjects
+## 1. ScriptableObject Configuration
 
-This project uses ScriptableObjects for data-driven configuration. Follow these steps to set up your first wave.
+To set up the game data, use the Unity Editor Project window.
 
-### Step 1: Create Enemy Config
-1. In the Project window, navigate to `Assets/Data/Enemies` (create folders if needed).
-2. Right-click and select `Create -> NeonDefense -> EnemyConfig`.
-3. Name it (e.g., `BasicVirus`).
-4. Set the values:
-   - **Name**: "Virus Alpha"
-   - **Health**: 100
-   - **Speed**: 5
-   - **Bit Drop**: 10
-   - **Prefab**: Assign your Enemy prefab.
+### Creating Enemy Configs
+1. Right-click in the Project window: `Create -> NeonDefense -> EnemyConfig`.
+2. Name the file (e.g., `BasicVirus`).
+3. Set the attributes:
+   - **Name**: e.g., "Virus Alpha"
+   - **Health**: e.g., 100
+   - **Speed**: e.g., 5
+   - **Bit Drop**: e.g., 10
+   - **Prefab**: Assign your Enemy prefab (must have `Enemy` script).
 
-### Step 2: Create Tower Config
-1. Navigate to `Assets/Data/Towers`.
-2. Right-click and select `Create -> NeonDefense -> TowerConfig`.
-3. Name it (e.g., `LaserTurret`).
-4. Set the values:
-   - **Cost**: 100
-   - **Range**: 10
-   - **Fire Rate**: 2
-   - **Strategy Type**: Laser
-   - **Prefab**: Assign your Tower prefab.
-   - **Projectile Prefab**: Assign if using Missile strategy.
+### Creating Tower Configs
+1. Right-click: `Create -> NeonDefense -> TowerConfig`.
+2. Name the file (e.g., `LaserTurret`).
+3. Set attributes:
+   - **Cost**: e.g., 100
+   - **Range**: e.g., 10
+   - **Fire Rate**: e.g., 2
+   - **Strategy Type**: Select `Laser` or `Missile`.
+   - **Prefab**: The tower model prefab.
+   - **Projectile Prefab**: (Optional) Assign if using Missile strategy.
 
-### Step 3: Create Wave Config
-1. Navigate to `Assets/Data/Waves`.
-2. Right-click and select `Create -> NeonDefense -> WaveConfig`.
-3. Name it `Wave01`.
-4. In the `Enemy Groups` list, add a new element:
-   - **Enemy Config**: Drag `BasicVirus` here.
+### Creating Wave Configs
+1. Right-click: `Create -> NeonDefense -> WaveConfig`.
+2. Name the file (e.g., `Wave01`).
+3. In **Enemy Groups**, add a new element:
+   - **Enemy Config**: Drag your `BasicVirus` asset here.
    - **Count**: 10
-   - **Spawn Rate**: 1 (spawn every 1 second).
-   - **Time Between Groups**: 0 (if only one group).
-
-### Step 4: Scene Setup (Managers)
-1. Create an empty GameObject named `GameManager` (or similar).
-2. Attach `WaveManager` and `EconomyManager` scripts.
-3. In `WaveManager`:
-   - Populate `Waves` list with your `WaveConfig` assets.
-   - Populate `Waypoints` list with Transform objects representing the path.
-
-### Step 5: Scene Setup (Pools)
-1. Create an empty GameObject named `Pools`.
-2. Attach `EnemyPool` script.
-   - Assign the **Enemy Prefab** to the pool.
-   - Set `Initial Pool Size`.
-3. Attach `ProjectilePool` script.
-   - Assign the **Projectile Prefab** to the pool.
-   - Set `Initial Pool Size`.
-
----
+   - **Spawn Rate**: 1 (second delay between spawns).
 
 ## 2. GitHub Actions Secrets
 
-To enable the automated build pipeline, you must add the following Secrets to your GitHub repository:
-
-Go to **Settings -> Secrets and variables -> Actions -> New repository secret**.
+To enable the CI/CD pipeline, add the following Secrets in your GitHub Repository settings:
 
 | Secret Name | Description |
 | :--- | :--- |
-| `UNITY_LICENSE` | The content of your Unity License file (`.ulf`). You can obtain this by activating a license locally or via `game-ci` CLI. |
-| `UNITY_EMAIL` | The email address associated with your Unity ID. |
-| `UNITY_PASSWORD` | The password for your Unity ID. |
+| `UNITY_LICENSE` | The content of your Unity License file (`.ulf`). |
+| `UNITY_EMAIL` | Your Unity account email address. |
+| `UNITY_PASSWORD` | Your Unity account password. |
 
-**Note:** The pipeline triggers automatically when you push a tag starting with `v` (e.g., `git tag v1.0 && git push origin v1.0`).
+### Triggering a Release
+The pipeline triggers automatically when you push a tag starting with `v`.
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+## 3. Scene Setup
+
+To run the game, ensure your scene contains the following Managers:
+
+1. **GameManager**: Create an empty GameObject, name it `GameManager`, and attach `GameManager.cs`.
+2. **WaveManager**: Create an empty GameObject, name it `WaveManager`, attach `WaveManager.cs`. Assign your `WaveConfig` assets to the `Waves` list. Assign Waypoints.
+3. **EconomyManager**: Create an empty GameObject, name it `EconomyManager`, attach `EconomyManager.cs`.
+4. **PlayerHealthManager**: Create an empty GameObject (or attach to Core), attach `PlayerHealthManager.cs`.
+5. **Pools**:
+   - **ProjectilePool**: Create an empty GameObject, name it `ProjectilePool`, attach `ProjectilePool.cs`. Assign a projectile prefab.
+   - **EnemyPool**: Create an empty GameObject, name it `EnemyPool`, attach `EnemyPool.cs` (if available) or ensure logic handles instantiation.

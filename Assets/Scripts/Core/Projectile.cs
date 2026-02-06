@@ -1,30 +1,30 @@
 using UnityEngine;
 using NeonDefense.Enemies;
-using NeonDefense.Managers; // For ProjectilePool if needed to return itself, though usually caller handles it.
-// Actually simpler: Projectile handles its own lifetime or collision.
 
-namespace NeonDefense.Towers
+namespace NeonDefense.Core
 {
+    /// <summary>
+    /// Handles projectile movement and collision logic.
+    /// </summary>
     public class Projectile : MonoBehaviour
     {
-        private float speed = 10f;
+        [SerializeField] private float speed = 20f;
         private float damage;
         private Enemy target;
 
-        // Callback to return to pool
-        private System.Action<Projectile> returnToPoolAction;
-
-        public void Initialize(Enemy target, float damage, System.Action<Projectile> returnToPool)
+        /// <summary>
+        /// Initializes the projectile.
+        /// </summary>
+        /// <param name="target">The enemy to chase.</param>
+        /// <param name="damage">Damage to deal on hit.</param>
+        public void Initialize(Enemy target, float damage)
         {
             this.target = target;
             this.damage = damage;
-            this.returnToPoolAction = returnToPool;
 
-            // Safety destroy/return if target is null (shouldn't happen on init)
-             if (target == null)
-            {
-                ReturnToPool();
-            }
+            // Auto-return to pool after lifetime if no target hit (fail-safe)
+            CancelInvoke(nameof(ReturnToPool));
+            Invoke(nameof(ReturnToPool), 5f);
         }
 
         private void Update()
@@ -59,7 +59,15 @@ namespace NeonDefense.Towers
 
         private void ReturnToPool()
         {
-            returnToPoolAction?.Invoke(this);
+            CancelInvoke(nameof(ReturnToPool));
+            if (ProjectilePool.Instance != null)
+            {
+                ProjectilePool.Instance.ReturnToPool(this);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
     }
 }

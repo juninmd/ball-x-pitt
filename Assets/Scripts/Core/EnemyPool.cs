@@ -1,8 +1,7 @@
 using UnityEngine;
-using NeonDefense.Core;
 using NeonDefense.Enemies;
 
-namespace NeonDefense.Managers
+namespace NeonDefense.Core
 {
     public class EnemyPool : ObjectPool<Enemy>
     {
@@ -10,15 +9,13 @@ namespace NeonDefense.Managers
 
         protected override void Awake()
         {
-            if (Instance == null)
-            {
-                Instance = this;
-            }
-            else
+            if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
                 return;
             }
+
+            Instance = this;
             base.Awake();
         }
     }

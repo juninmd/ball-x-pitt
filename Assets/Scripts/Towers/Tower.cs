@@ -1,14 +1,18 @@
+// NeonDefense Core System
 using UnityEngine;
 using NeonDefense.Core;
 using NeonDefense.Enemies;
 using NeonDefense.ScriptableObjects;
 using NeonDefense.Strategies;
-// using NeonDefense.Managers; // If we needed pools here directly
 
 namespace NeonDefense.Towers
 {
+    /// <summary>
+    /// Base class for all towers. Handles targeting and delegates attacks to an IAttackStrategy.
+    /// </summary>
     public class Tower : MonoBehaviour
     {
+        [Header("Configuration")]
         [SerializeField] private TowerConfig config;
         [SerializeField] private Transform firePoint;
         [SerializeField] private LayerMask enemyLayer;
@@ -17,19 +21,27 @@ namespace NeonDefense.Towers
         private float fireCountdown = 0f;
         private Enemy currentTarget;
 
-        private void Start()
+        /// <summary>
+        /// Initializes the tower with configuration and a specific strategy.
+        /// </summary>
+        public void Initialize(TowerConfig config, IAttackStrategy strategy)
         {
-            if (config == null)
-            {
-                Debug.LogError("TowerConfig not assigned!");
-                return;
-            }
-
-            InitializeStrategy();
+            this.config = config;
+            this.attackStrategy = strategy;
         }
 
-        private void InitializeStrategy()
+        private void Start()
         {
+            // Fallback initialization if set via Inspector
+            if (config != null && attackStrategy == null)
+            {
+                InitializeStrategyInternal();
+            }
+        }
+
+        private void InitializeStrategyInternal()
+        {
+             // Simple factory logic for standalone usage
             switch (config.strategyType)
             {
                 case AttackStrategyType.Laser:
@@ -42,12 +54,6 @@ namespace NeonDefense.Towers
                     attackStrategy = new LaserAttackStrategy();
                     break;
             }
-        }
-
-        // Helper to inject strategy if needed (Factory pattern)
-        public void SetStrategy(IAttackStrategy strategy)
-        {
-            this.attackStrategy = strategy;
         }
 
         private void Update()
@@ -70,24 +76,28 @@ namespace NeonDefense.Towers
 
         private void UpdateTarget()
         {
-            // Simple closest target logic
+            // Using OverlapSphere is efficient enough for this scale
             Collider[] hits = Physics.OverlapSphere(transform.position, config.range, enemyLayer);
             float shortestDistance = Mathf.Infinity;
-            GameObject nearestEnemy = null;
+            Enemy nearestEnemy = null;
 
             foreach (var hit in hits)
             {
-                float distance = Vector3.Distance(transform.position, hit.transform.position);
-                if (distance < shortestDistance)
+                Enemy enemyComponent = hit.GetComponent<Enemy>();
+                if (enemyComponent != null)
                 {
-                    shortestDistance = distance;
-                    nearestEnemy = hit.gameObject;
+                    float distance = Vector3.Distance(transform.position, hit.transform.position);
+                    if (distance < shortestDistance)
+                    {
+                        shortestDistance = distance;
+                        nearestEnemy = enemyComponent;
+                    }
                 }
             }
 
             if (nearestEnemy != null && shortestDistance <= config.range)
             {
-                currentTarget = nearestEnemy.GetComponent<Enemy>();
+                currentTarget = nearestEnemy;
             }
             else
             {
@@ -97,7 +107,7 @@ namespace NeonDefense.Towers
 
         private void Attack()
         {
-            if (attackStrategy != null)
+            if (attackStrategy != null && currentTarget != null)
             {
                 attackStrategy.Attack(currentTarget, firePoint, config);
             }

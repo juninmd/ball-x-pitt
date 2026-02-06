@@ -1,22 +1,22 @@
 using UnityEngine;
-using NeonDefense.Core;
 using NeonDefense.Enemies;
 using NeonDefense.ScriptableObjects;
 
 namespace NeonDefense.Strategies
 {
+    /// <summary>
+    /// Instant-hit laser attack.
+    /// </summary>
     public class LaserAttackStrategy : IAttackStrategy
     {
         public void Attack(Enemy target, Transform firePoint, TowerConfig config)
         {
-            // Instant damage for Laser
-            if (target != null)
-            {
-                target.TakeDamage(config.damage);
+            if (target == null) return;
 
-                // In a full implementation, we would enable a LineRenderer component on the Tower here.
-                // For now, we simulate the logic.
-            }
+            // Visuals would go here (e.g., LineRenderer)
+            // Debug.Log($"Laser fired at {target.name} for {config.damage} damage");
+
+            target.TakeDamage(config.damage);
         }
     }
 }

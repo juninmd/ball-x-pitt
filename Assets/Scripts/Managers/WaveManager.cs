@@ -1,3 +1,4 @@
+// NeonDefense Core System
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,6 +8,9 @@ using NeonDefense.Enemies;
 
 namespace NeonDefense.Managers
 {
+    /// <summary>
+    /// Manages the spawning of enemy waves.
+    /// </summary>
     public class WaveManager : MonoBehaviour
     {
         public static WaveManager Instance { get; private set; }
@@ -39,23 +43,34 @@ namespace NeonDefense.Managers
             }
         }
 
+        /// <summary>
+        /// Starts the next wave if one is available and not currently spawning.
+        /// </summary>
         public void StartNextWave()
         {
-            if (!isSpawning && currentWaveIndex < waves.Count)
+            if (isSpawning) return;
+
+            if (currentWaveIndex < waves.Count)
             {
                 StartCoroutine(SpawnWave(waves[currentWaveIndex]));
+            }
+            else
+            {
+                Debug.Log("All waves completed!");
+                GameEvents.OnWaveEnd?.Invoke();
             }
         }
 
         private IEnumerator StartGameRoutine()
         {
-            yield return new WaitForSeconds(2f); // Initial delay
+            yield return new WaitForSeconds(2f); // Initial warm-up
             StartNextWave();
         }
 
         private IEnumerator SpawnWave(WaveConfig waveConfig)
         {
             isSpawning = true;
+            Debug.Log($"Starting Wave {currentWaveIndex + 1}");
             GameEvents.OnWaveStart?.Invoke(currentWaveIndex + 1);
 
             foreach (var group in waveConfig.enemyGroups)
@@ -65,30 +80,16 @@ namespace NeonDefense.Managers
                     SpawnEnemy(group.enemyConfig);
                     yield return new WaitForSeconds(group.spawnRate);
                 }
-
-                // Wait between groups if needed, though usually handled by next group iteration immediately
-                // unless we want specific delays between groups handled in config logic more complexly.
-                // WaveConfig has 'timeBetweenGroups' but that might be after the whole wave?
-                // The struct has spawnRate. The WaveConfig has timeBetweenGroups.
-                // Interpreting timeBetweenGroups as time AFTER this wave before the next, or between groups?
-                // The name suggests between groups. Let's assume between groups inside the wave.
-                // But usually standard TD is Group 1 finishes spawning, wait, Group 2.
-                // For now, I'll just spawn them sequentially.
             }
 
             isSpawning = false;
             currentWaveIndex++;
 
-            if (currentWaveIndex >= waves.Count)
+            // Wait before starting next wave automatically
+            if (waveConfig.timeBetweenGroups > 0 && currentWaveIndex < waves.Count)
             {
-                // All waves spawned. Wait for enemies to die to declare victory?
-                // For now, just log.
-                Debug.Log("All waves spawned.");
-            }
-            else
-            {
-                 yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
-                 StartNextWave(); // Auto start next wave for this simple implementation
+                yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
+                StartNextWave();
             }
         }
 
@@ -96,13 +97,15 @@ namespace NeonDefense.Managers
         {
             if (EnemyPool.Instance == null)
             {
-                Debug.LogError("EnemyPool missing!");
+                Debug.LogError("EnemyPool is missing from the scene!");
                 return;
             }
 
             Enemy enemy = EnemyPool.Instance.Get();
-            // Assuming the pool sets position/active, but Enemy.Initialize handles specific config
-            enemy.Initialize(config, waypoints);
+            if (enemy != null)
+            {
+                enemy.Initialize(config, waypoints);
+            }
         }
     }
 }
