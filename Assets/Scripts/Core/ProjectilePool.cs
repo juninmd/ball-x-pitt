@@ -1,3 +1,4 @@
+// NeonDefense Core System
 using UnityEngine;
 
 namespace NeonDefense.Core
