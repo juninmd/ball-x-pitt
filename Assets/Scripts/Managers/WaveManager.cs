@@ -1,4 +1,4 @@
-// NeonDefense Core System
+// NeonDefense Core System - WaveManager
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
