@@ -100,7 +100,7 @@ namespace NeonDefense.Towers
                     }
                 }
 
-                // Clear reference to avoid holding onto destroyed objects
+                // Clear reference immediately to avoid holding onto destroyed objects
                 hitBuffer[i] = null;
             }
 
