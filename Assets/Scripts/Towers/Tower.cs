@@ -21,6 +21,9 @@ namespace NeonDefense.Towers
         private float fireCountdown = 0f;
         private Enemy currentTarget;
 
+        // NonAlloc buffer for OverlapSphere
+        private readonly Collider[] hitBuffer = new Collider[20];
+
         /// <summary>
         /// Initializes the tower with configuration and a specific strategy.
         /// </summary>
@@ -76,13 +79,16 @@ namespace NeonDefense.Towers
 
         private void UpdateTarget()
         {
-            // Using OverlapSphere is efficient enough for this scale
-            Collider[] hits = Physics.OverlapSphere(transform.position, config.range, enemyLayer);
+            // Using OverlapSphereNonAlloc is more efficient for GC
+            int count = Physics.OverlapSphereNonAlloc(transform.position, config.range, hitBuffer, enemyLayer);
             float shortestDistance = Mathf.Infinity;
             Enemy nearestEnemy = null;
 
-            foreach (var hit in hits)
+            for (int i = 0; i < count; i++)
             {
+                Collider hit = hitBuffer[i];
+                if (hit == null) continue;
+
                 Enemy enemyComponent = hit.GetComponent<Enemy>();
                 if (enemyComponent != null)
                 {
@@ -93,6 +99,9 @@ namespace NeonDefense.Towers
                         nearestEnemy = enemyComponent;
                     }
                 }
+
+                // Clear reference to avoid holding onto destroyed objects
+                hitBuffer[i] = null;
             }
 
             if (nearestEnemy != null && shortestDistance <= config.range)

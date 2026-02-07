@@ -1,3 +1,4 @@
+// NeonDefense Core System
 using UnityEngine;
 using NeonDefense.Enemies;
 
@@ -9,8 +10,11 @@ namespace NeonDefense.Core
     public class Projectile : MonoBehaviour
     {
         [SerializeField] private float speed = 20f;
+        [SerializeField] private float lifetime = 5f;
+
         private float damage;
         private Enemy target;
+        private float lifeTimer;
 
         /// <summary>
         /// Initializes the projectile.
@@ -21,14 +25,19 @@ namespace NeonDefense.Core
         {
             this.target = target;
             this.damage = damage;
-
-            // Auto-return to pool after lifetime if no target hit (fail-safe)
-            CancelInvoke(nameof(ReturnToPool));
-            Invoke(nameof(ReturnToPool), 5f);
+            this.lifeTimer = lifetime;
         }
 
         private void Update()
         {
+            // Handle lifetime
+            lifeTimer -= Time.deltaTime;
+            if (lifeTimer <= 0)
+            {
+                ReturnToPool();
+                return;
+            }
+
             if (target == null || !target.gameObject.activeInHierarchy)
             {
                 ReturnToPool();
@@ -59,7 +68,6 @@ namespace NeonDefense.Core
 
         private void ReturnToPool()
         {
-            CancelInvoke(nameof(ReturnToPool));
             if (ProjectilePool.Instance != null)
             {
                 ProjectilePool.Instance.ReturnToPool(this);
