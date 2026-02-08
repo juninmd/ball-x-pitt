@@ -9,15 +9,19 @@ using NeonDefense.Enemies;
 namespace NeonDefense.Managers
 {
     /// <summary>
-    /// Manages the spawning of enemy waves.
+    /// Manages the spawning of enemy waves based on WaveConfig ScriptableObjects.
+    /// Handles GameEvents for wave start and end.
     /// </summary>
     public class WaveManager : MonoBehaviour
     {
         public static WaveManager Instance { get; private set; }
 
         [Header("Configuration")]
+        [Tooltip("List of Wave Configurations to spawn in order.")]
         [SerializeField] private List<WaveConfig> waves;
+        [Tooltip("Waypoints for enemies to follow.")]
         [SerializeField] private List<Transform> waypoints;
+        [Tooltip("Automatically start the first wave on play.")]
         [SerializeField] private bool autoStart = false;
 
         private int currentWaveIndex = 0;
@@ -71,6 +75,8 @@ namespace NeonDefense.Managers
         {
             isSpawning = true;
             Debug.Log($"Starting Wave {currentWaveIndex + 1}");
+
+            // Notify UI and other systems
             GameEvents.OnWaveStart?.Invoke(currentWaveIndex + 1);
 
             foreach (var group in waveConfig.enemyGroups)
@@ -85,9 +91,12 @@ namespace NeonDefense.Managers
             isSpawning = false;
             currentWaveIndex++;
 
-            // Wait before starting next wave automatically
+            // Optional: Auto-start next wave after delay, or wait for player input/events
             if (waveConfig.timeBetweenGroups > 0 && currentWaveIndex < waves.Count)
             {
+                // In a real game, we might wait for all enemies to die instead of just time
+                // For now, we wait a duration or let the player trigger it.
+                // Here, we wait for the duration defined in config before enabling the button again or auto-starting.
                 yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
                 StartNextWave();
             }
@@ -101,7 +110,11 @@ namespace NeonDefense.Managers
                 return;
             }
 
+            // Note: This assumes the pool handles the instantiation or reuse.
+            // In a more complex system, we'd pass the config.prefab to a PoolManager.
+            // Here we use the singleton pool which recycles a generic Enemy prefab.
             Enemy enemy = EnemyPool.Instance.Get();
+
             if (enemy != null)
             {
                 enemy.Initialize(config, waypoints);

@@ -1,4 +1,3 @@
-// NeonDefense Core System
 using UnityEngine;
 using NeonDefense.Core;
 using NeonDefense.Enemies;
@@ -8,7 +7,8 @@ using NeonDefense.Strategies;
 namespace NeonDefense.Towers
 {
     /// <summary>
-    /// Base class for all towers. Handles targeting and delegates attacks to an IAttackStrategy.
+    /// Base class for all towers. Handles targeting logic and delegates attack execution to an IAttackStrategy.
+    /// Follows the Strategy Pattern.
     /// </summary>
     public class Tower : MonoBehaviour
     {
@@ -21,11 +21,12 @@ namespace NeonDefense.Towers
         private float fireCountdown = 0f;
         private Enemy currentTarget;
 
-        // NonAlloc buffer for OverlapSphere
+        // Pre-allocated buffer for OverlapSphereNonAlloc to avoid GC
         private readonly Collider[] hitBuffer = new Collider[20];
 
         /// <summary>
-        /// Initializes the tower with configuration and a specific strategy.
+        /// Initializes the tower with a specific configuration and strategy.
+        /// Useful for Factory creation.
         /// </summary>
         public void Initialize(TowerConfig config, IAttackStrategy strategy)
         {
@@ -35,16 +36,15 @@ namespace NeonDefense.Towers
 
         private void Start()
         {
-            // Fallback initialization if set via Inspector
+            // If placed in editor without Factory, try to self-initialize based on config
             if (config != null && attackStrategy == null)
             {
-                InitializeStrategyInternal();
+                InitializeStrategyFromConfig();
             }
         }
 
-        private void InitializeStrategyInternal()
+        private void InitializeStrategyFromConfig()
         {
-             // Simple factory logic for standalone usage
             switch (config.strategyType)
             {
                 case AttackStrategyType.Laser:
@@ -54,6 +54,7 @@ namespace NeonDefense.Towers
                     attackStrategy = new MissileAttackStrategy();
                     break;
                 default:
+                    Debug.LogWarning($"Unknown strategy type: {config.strategyType}. Defaulting to Laser.");
                     attackStrategy = new LaserAttackStrategy();
                     break;
             }
@@ -79,8 +80,9 @@ namespace NeonDefense.Towers
 
         private void UpdateTarget()
         {
-            // Using OverlapSphereNonAlloc is more efficient for GC
+            // Efficiency: Search for enemies within range using a non-allocating Physics call
             int count = Physics.OverlapSphereNonAlloc(transform.position, config.range, hitBuffer, enemyLayer);
+
             float shortestDistance = Mathf.Infinity;
             Enemy nearestEnemy = null;
 
@@ -89,8 +91,8 @@ namespace NeonDefense.Towers
                 Collider hit = hitBuffer[i];
                 if (hit == null) continue;
 
-                Enemy enemyComponent = hit.GetComponent<Enemy>();
-                if (enemyComponent != null)
+                // Optimization: Check for component
+                if (hit.TryGetComponent<Enemy>(out var enemyComponent))
                 {
                     float distance = Vector3.Distance(transform.position, hit.transform.position);
                     if (distance < shortestDistance)
@@ -100,10 +102,11 @@ namespace NeonDefense.Towers
                     }
                 }
 
-                // Clear reference immediately to avoid holding onto destroyed objects
+                // Clear reference to help GC (though buffer is reused, it's good practice)
                 hitBuffer[i] = null;
             }
 
+            // Update target if valid and within range
             if (nearestEnemy != null && shortestDistance <= config.range)
             {
                 currentTarget = nearestEnemy;

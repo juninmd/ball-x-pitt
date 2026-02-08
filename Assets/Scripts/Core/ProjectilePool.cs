@@ -1,10 +1,10 @@
-// NeonDefense Core System - ProjectilePool
 using UnityEngine;
 
 namespace NeonDefense.Core
 {
     /// <summary>
     /// Singleton Object Pool for Projectiles.
+    /// Manages reusable projectile instances to avoid GC.
     /// </summary>
     public class ProjectilePool : ObjectPool<Projectile>
     {
@@ -12,6 +12,7 @@ namespace NeonDefense.Core
 
         protected override void Awake()
         {
+            // Ensure Singleton pattern
             if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
@@ -19,6 +20,8 @@ namespace NeonDefense.Core
             }
 
             Instance = this;
+
+            // Initialize the pool from the base class
             base.Awake();
         }
     }

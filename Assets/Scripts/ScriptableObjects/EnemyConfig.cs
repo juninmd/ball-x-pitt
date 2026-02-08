@@ -1,4 +1,3 @@
-// NeonDefense Core System - EnemyConfig
 using UnityEngine;
 
 namespace NeonDefense.ScriptableObjects
