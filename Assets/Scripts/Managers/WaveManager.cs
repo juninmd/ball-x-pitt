@@ -26,6 +26,7 @@ namespace NeonDefense.Managers
 
         private int currentWaveIndex = 0;
         private bool isSpawning = false;
+        private int activeEnemies = 0;
 
         private void Awake()
         {
@@ -39,12 +40,59 @@ namespace NeonDefense.Managers
             }
         }
 
+        private void OnEnable()
+        {
+            GameEvents.OnEnemyKilled += HandleEnemyRemoved;
+            GameEvents.OnEnemyReachedGoal += HandleEnemyRemoved;
+        }
+
+        private void OnDisable()
+        {
+            GameEvents.OnEnemyKilled -= HandleEnemyRemoved;
+            GameEvents.OnEnemyReachedGoal -= HandleEnemyRemoved;
+        }
+
         private void Start()
         {
             if (autoStart)
             {
                 StartCoroutine(StartGameRoutine());
             }
+        }
+
+        private void HandleEnemyRemoved(Enemy enemy, int value)
+        {
+            activeEnemies--;
+            CheckWaveCompletion();
+        }
+
+        private void CheckWaveCompletion()
+        {
+            if (!isSpawning && activeEnemies <= 0)
+            {
+                Debug.Log($"Wave {currentWaveIndex + 1} Cleared!");
+                GameEvents.OnWaveEnd?.Invoke();
+
+                // Prepare for next wave logic could go here
+                currentWaveIndex++;
+                if (currentWaveIndex < waves.Count)
+                {
+                    // Logic to start next wave automatically or wait for player input
+                    // For now, we wait for a delay defined in the previous wave config
+                    StartCoroutine(WaitAndStartNextWave(waves[currentWaveIndex - 1].timeBetweenGroups));
+                }
+                else
+                {
+                    Debug.Log("All waves completed! Victory!");
+                    // GameEvents.OnVictory?.Invoke(); // If exists
+                }
+            }
+        }
+
+        private IEnumerator WaitAndStartNextWave(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            StartNextWave();
         }
 
         /// <summary>
@@ -58,11 +106,6 @@ namespace NeonDefense.Managers
             {
                 StartCoroutine(SpawnWave(waves[currentWaveIndex]));
             }
-            else
-            {
-                Debug.Log("All waves completed!");
-                GameEvents.OnWaveEnd?.Invoke();
-            }
         }
 
         private IEnumerator StartGameRoutine()
@@ -74,32 +117,30 @@ namespace NeonDefense.Managers
         private IEnumerator SpawnWave(WaveConfig waveConfig)
         {
             isSpawning = true;
-            Debug.Log($"Starting Wave {currentWaveIndex + 1}");
+            activeEnemies = 0; // Reset just in case, though should be 0
 
-            // Notify UI and other systems
+            // Calculate total expected enemies to avoid premature completion checks
+            int totalEnemies = 0;
+            foreach(var group in waveConfig.enemyGroups) totalEnemies += group.count;
+
+            Debug.Log($"Starting Wave {currentWaveIndex + 1} with {totalEnemies} enemies.");
             GameEvents.OnWaveStart?.Invoke(currentWaveIndex + 1);
 
             foreach (var group in waveConfig.enemyGroups)
             {
                 for (int i = 0; i < group.count; i++)
                 {
+                    activeEnemies++;
                     SpawnEnemy(group.enemyConfig);
                     yield return new WaitForSeconds(group.spawnRate);
                 }
+                // Optional delay between groups if needed, not in structure currently
             }
 
             isSpawning = false;
-            currentWaveIndex++;
 
-            // Optional: Auto-start next wave after delay, or wait for player input/events
-            if (waveConfig.timeBetweenGroups > 0 && currentWaveIndex < waves.Count)
-            {
-                // In a real game, we might wait for all enemies to die instead of just time
-                // For now, we wait a duration or let the player trigger it.
-                // Here, we wait for the duration defined in config before enabling the button again or auto-starting.
-                yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
-                StartNextWave();
-            }
+            // Check immediately in case all enemies died during spawn (unlikely but possible)
+            CheckWaveCompletion();
         }
 
         private void SpawnEnemy(EnemyConfig config)
@@ -110,9 +151,7 @@ namespace NeonDefense.Managers
                 return;
             }
 
-            // Note: This assumes the pool handles the instantiation or reuse.
-            // In a more complex system, we'd pass the config.prefab to a PoolManager.
-            // Here we use the singleton pool which recycles a generic Enemy prefab.
+            // Get enemy from pool
             Enemy enemy = EnemyPool.Instance.Get();
 
             if (enemy != null)

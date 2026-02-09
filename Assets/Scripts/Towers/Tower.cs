@@ -32,6 +32,7 @@ namespace NeonDefense.Towers
         {
             this.config = config;
             this.attackStrategy = strategy;
+            this.fireCountdown = 0f;
         }
 
         private void Start()
@@ -40,6 +41,11 @@ namespace NeonDefense.Towers
             if (config != null && attackStrategy == null)
             {
                 InitializeStrategyFromConfig();
+            }
+
+            if (firePoint == null)
+            {
+                firePoint = transform;
             }
         }
 
@@ -53,6 +59,7 @@ namespace NeonDefense.Towers
                 case AttackStrategyType.Missile:
                     attackStrategy = new MissileAttackStrategy();
                     break;
+                // Add more strategies here
                 default:
                     Debug.LogWarning($"Unknown strategy type: {config.strategyType}. Defaulting to Laser.");
                     attackStrategy = new LaserAttackStrategy();
@@ -91,7 +98,8 @@ namespace NeonDefense.Towers
                 Collider hit = hitBuffer[i];
                 if (hit == null) continue;
 
-                // Optimization: Check for component
+                // Optimization: Check for component.
+                // Assuming Enemy component is on the same object as the collider.
                 if (hit.TryGetComponent<Enemy>(out var enemyComponent))
                 {
                     float distance = Vector3.Distance(transform.position, hit.transform.position);

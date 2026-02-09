@@ -4,22 +4,28 @@ namespace NeonDefense.ScriptableObjects
 {
     /// <summary>
     /// Configuration data for an Enemy type.
+    /// Stores base attributes like Health, Speed, and Rewards.
     /// </summary>
     [CreateAssetMenu(fileName = "NewEnemyConfig", menuName = "NeonDefense/EnemyConfig")]
     public class EnemyConfig : ScriptableObject
     {
         [Header("General")]
+        [Tooltip("The name of the enemy type.")]
         public string enemyName;
+        [Tooltip("The prefab to spawn for this enemy.")]
         public GameObject prefab;
 
         [Header("Stats")]
         [Tooltip("Health points of the enemy.")]
-        public float health;
+        public float health = 10f;
+
         [Tooltip("Movement speed in units per second.")]
-        public float speed;
+        public float speed = 5f;
+
         [Tooltip("Currency awarded to player on death.")]
-        public int bitDrop;
+        public int bitDrop = 10;
+
         [Tooltip("Damage dealt to player/core upon reaching the goal.")]
-        public int damageToPlayer;
+        public int damageToPlayer = 1;
     }
 }
