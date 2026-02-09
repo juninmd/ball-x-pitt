@@ -1,3 +1,4 @@
+// NeonDefense Core System - Projectile Pool
 using UnityEngine;
 
 namespace NeonDefense.Core
