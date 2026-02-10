@@ -73,18 +73,17 @@ namespace NeonDefense.Managers
                 Debug.Log($"Wave {currentWaveIndex + 1} Cleared!");
                 GameEvents.OnWaveEnd?.Invoke();
 
-                // Prepare for next wave logic could go here
+                // Prepare for next wave logic
                 currentWaveIndex++;
                 if (currentWaveIndex < waves.Count)
                 {
-                    // Logic to start next wave automatically or wait for player input
-                    // For now, we wait for a delay defined in the previous wave config
-                    StartCoroutine(WaitAndStartNextWave(waves[currentWaveIndex - 1].timeBetweenGroups));
+                    // Wait for delay defined in the previous wave config
+                    float delay = waves[currentWaveIndex - 1].timeBetweenGroups;
+                    StartCoroutine(WaitAndStartNextWave(delay));
                 }
                 else
                 {
                     Debug.Log("All waves completed! Victory!");
-                    // GameEvents.OnVictory?.Invoke(); // If exists
                 }
             }
         }
@@ -117,13 +116,9 @@ namespace NeonDefense.Managers
         private IEnumerator SpawnWave(WaveConfig waveConfig)
         {
             isSpawning = true;
-            activeEnemies = 0; // Reset just in case, though should be 0
+            activeEnemies = 0;
 
-            // Calculate total expected enemies to avoid premature completion checks
-            int totalEnemies = 0;
-            foreach(var group in waveConfig.enemyGroups) totalEnemies += group.count;
-
-            Debug.Log($"Starting Wave {currentWaveIndex + 1} with {totalEnemies} enemies.");
+            Debug.Log($"Starting Wave {currentWaveIndex + 1}");
             GameEvents.OnWaveStart?.Invoke(currentWaveIndex + 1);
 
             foreach (var group in waveConfig.enemyGroups)
@@ -134,12 +129,11 @@ namespace NeonDefense.Managers
                     SpawnEnemy(group.enemyConfig);
                     yield return new WaitForSeconds(group.spawnRate);
                 }
-                // Optional delay between groups if needed, not in structure currently
             }
 
             isSpawning = false;
 
-            // Check immediately in case all enemies died during spawn (unlikely but possible)
+            // Check immediately in case all enemies died during spawn
             CheckWaveCompletion();
         }
 
