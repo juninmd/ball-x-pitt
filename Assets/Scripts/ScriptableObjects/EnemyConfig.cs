@@ -1,4 +1,5 @@
 using UnityEngine;
+using NeonDefense.Enemies;
 
 namespace NeonDefense.ScriptableObjects
 {
@@ -13,7 +14,7 @@ namespace NeonDefense.ScriptableObjects
         [Tooltip("The name of the enemy type.")]
         public string enemyName;
         [Tooltip("The prefab to spawn for this enemy.")]
-        public GameObject prefab;
+        public Enemy prefab;
 
         [Header("Stats")]
         [Tooltip("Health points of the enemy.")]

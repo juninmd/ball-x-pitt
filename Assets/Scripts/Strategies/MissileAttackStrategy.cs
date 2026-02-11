@@ -18,17 +18,17 @@ namespace NeonDefense.Strategies
 
             // Use pool if possible
             Projectile projectile = null;
-            if (ProjectilePool.Instance != null)
+            if (ProjectilePool.Instance != null && config.projectilePrefab != null)
             {
-                projectile = ProjectilePool.Instance.Get();
+                projectile = ProjectilePool.Instance.Get(config.projectilePrefab);
                 projectile.transform.position = firePoint.position;
                 projectile.transform.rotation = firePoint.rotation;
             }
-            else
+            else if (config.projectilePrefab != null)
             {
                 // Fallback instantiation
-                GameObject obj = Object.Instantiate(config.projectilePrefab, firePoint.position, firePoint.rotation);
-                projectile = obj.GetComponent<Projectile>();
+                Projectile obj = Object.Instantiate(config.projectilePrefab, firePoint.position, firePoint.rotation);
+                projectile = obj;
             }
 
             if (projectile != null)
