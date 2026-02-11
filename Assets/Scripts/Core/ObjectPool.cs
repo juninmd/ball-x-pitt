@@ -4,65 +4,135 @@ using UnityEngine;
 namespace NeonDefense.Core
 {
     /// <summary>
-    /// A generic object pooling system.
+    /// A generic object pooling system supporting multiple prefab variants.
     /// </summary>
     /// <typeparam name="T">The component type to pool.</typeparam>
     public abstract class ObjectPool<T> : MonoBehaviour where T : Component
     {
+        [Tooltip("Default prefab to use if none specified.")]
         [SerializeField] protected T prefab;
         [SerializeField] protected int initialPoolSize = 10;
 
-        private Queue<T> pool = new Queue<T>();
+        // Key: Prefab Instance ID, Value: Queue of available objects
+        private Dictionary<int, Queue<T>> pools = new Dictionary<int, Queue<T>>();
+
+        // Key: Active Object Instance ID, Value: Prefab Instance ID (Origin)
+        private Dictionary<int, int> activeObjectOrigins = new Dictionary<int, int>();
 
         protected virtual void Awake()
         {
-            if (prefab == null)
+            if (prefab != null)
             {
-                Debug.LogError($"Prefab not assigned in pool: {gameObject.name}");
-                return;
-            }
-
-            InitializePool();
-        }
-
-        private void InitializePool()
-        {
-            for (int i = 0; i < initialPoolSize; i++)
-            {
-                CreateNewPoolObject();
+                InitializePool(prefab, initialPoolSize);
             }
         }
 
-        private T CreateNewPoolObject()
+        private void InitializePool(T prefabToPool, int count)
         {
-            T newObj = Instantiate(prefab, transform);
+            int prefabId = prefabToPool.GetInstanceID();
+
+            if (!pools.ContainsKey(prefabId))
+            {
+                pools[prefabId] = new Queue<T>();
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                CreateNewPoolObject(prefabToPool, prefabId);
+            }
+        }
+
+        private T CreateNewPoolObject(T prefabToPool, int prefabId)
+        {
+            T newObj = Instantiate(prefabToPool, transform);
             newObj.gameObject.SetActive(false);
-            pool.Enqueue(newObj);
+
+            // Register to the correct pool queue
+            pools[prefabId].Enqueue(newObj);
+
             return newObj;
         }
 
         /// <summary>
-        /// Retrieves an object from the pool. Creates a new one if pool is empty.
+        /// Retrieves an object from the pool using the default prefab.
         /// </summary>
         public T Get()
         {
-            if (pool.Count == 0)
+            if (prefab == null)
             {
-                CreateNewPoolObject();
+                Debug.LogError($"Default prefab not assigned in pool: {gameObject.name}");
+                return null;
+            }
+            return Get(prefab);
+        }
+
+        /// <summary>
+        /// Retrieves an object from the pool corresponding to the specified prefab.
+        /// </summary>
+        public T Get(T specificPrefab)
+        {
+            if (specificPrefab == null)
+            {
+                Debug.LogError("Cannot get null prefab from pool.");
+                return null;
             }
 
-            T obj = pool.Dequeue();
+            int prefabId = specificPrefab.GetInstanceID();
+
+            // Ensure pool exists
+            if (!pools.ContainsKey(prefabId))
+            {
+                pools[prefabId] = new Queue<T>();
+            }
+
+            Queue<T> queue = pools[prefabId];
+            T obj;
+
+            if (queue.Count == 0)
+            {
+                obj = CreateNewPoolObject(specificPrefab, prefabId);
+                // CreateNewPoolObject enqueues it, so we dequeue immediately
+                obj = queue.Dequeue();
+            }
+            else
+            {
+                obj = queue.Dequeue();
+            }
+
             obj.gameObject.SetActive(true);
+            activeObjectOrigins[obj.GetInstanceID()] = prefabId;
+
             return obj;
         }
 
         /// <summary>
-        /// Returns an object to the pool.
+        /// Returns an object to its original pool.
         /// </summary>
         public void ReturnToPool(T obj)
         {
-            obj.gameObject.SetActive(false);
-            pool.Enqueue(obj);
+            if (obj == null) return;
+
+            int objId = obj.GetInstanceID();
+
+            if (activeObjectOrigins.TryGetValue(objId, out int prefabId))
+            {
+                if (pools.ContainsKey(prefabId))
+                {
+                    obj.gameObject.SetActive(false);
+                    pools[prefabId].Enqueue(obj);
+                    activeObjectOrigins.Remove(objId);
+                }
+                else
+                {
+                    Debug.LogWarning($"Pool for object {obj.name} not found. Destroying.");
+                    Destroy(obj.gameObject);
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"Object {obj.name} does not belong to this pool. Destroying.");
+                Destroy(obj.gameObject);
+            }
         }
     }
 }

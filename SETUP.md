@@ -12,13 +12,25 @@ O jogo utiliza ScriptableObjects para definir Inimigos, Torres e Ondas. Siga os 
 3. Nomeie o arquivo (ex: `Virus_Basic`).
 4. No Inspector, defina:
    - **Enemy Name**: `Virus Alpha`
-   - **Prefab**: Arraste o Prefab do inimigo.
+   - **Prefab**: Arraste o Prefab do inimigo. **Importante:** O Prefab deve conter o componente `Enemy`.
    - **Health**: `100`
    - **Speed**: `3.5`
    - **Bit Drop**: `15`
    - **Damage To Player**: `1`
 
-### Passo 2: Criar Configuração de Onda (`WaveConfig`)
+### Passo 2: Criar Configuração de Torre (`TowerConfig`)
+1. No Unity, clique com o botão direito na janela **Project** (ex: pasta `Assets/Data/Towers`).
+2. Vá em **Create -> NeonDefense -> TowerConfig**.
+3. Nomeie o arquivo (ex: `Tower_Missile`).
+4. No Inspector, defina:
+   - **Tower Name**: `Missile Turret`
+   - **Strategy Type**: Selecione `Missile`.
+   - **Projectile Prefab**: Arraste o Prefab do projétil. **Importante:** O Prefab deve conter o componente `Projectile`.
+   - **Range**: `10`
+   - **Fire Rate**: `1` (tiros por segundo).
+   - **Damage**: `50`
+
+### Passo 3: Criar Configuração de Onda (`WaveConfig`)
 1. Clique com o botão direito na janela **Project** (ex: pasta `Assets/Data/Waves`).
 2. Vá em **Create -> NeonDefense -> WaveConfig**.
 3. Nomeie o arquivo (ex: `Wave_01`).
@@ -30,7 +42,7 @@ O jogo utiliza ScriptableObjects para definir Inimigos, Torres e Ondas. Siga os 
    - **Spawn Rate**: `0.5` (tempo em segundos entre cada spawn).
    - **Time Between Groups**: `5` (tempo de espera após este grupo terminar).
 
-### Passo 3: Configurar o WaveManager
+### Passo 4: Configurar o WaveManager
 1. Na cena, selecione o GameObject `GameManagers` (ou onde estiver o script `WaveManager`).
 2. No componente **Wave Manager**:
    - Expanda a lista **Waves**.

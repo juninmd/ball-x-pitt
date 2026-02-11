@@ -146,7 +146,7 @@ namespace NeonDefense.Managers
             }
 
             // Get enemy from pool
-            Enemy enemy = EnemyPool.Instance.Get();
+            Enemy enemy = EnemyPool.Instance.Get(config.prefab);
 
             if (enemy != null)
             {

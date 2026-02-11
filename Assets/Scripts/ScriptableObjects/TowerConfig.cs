@@ -1,4 +1,5 @@
 using UnityEngine;
+using NeonDefense.Core;
 
 namespace NeonDefense.ScriptableObjects
 {
@@ -23,7 +24,7 @@ namespace NeonDefense.ScriptableObjects
         public int cost;
         public GameObject prefab;
         [Tooltip("Prefab for the projectile (required for Missile strategy).")]
-        public GameObject projectilePrefab;
+        public Projectile projectilePrefab;
 
         [Header("Combat Stats")]
         public float range;

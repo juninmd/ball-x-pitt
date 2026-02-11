@@ -25,13 +25,17 @@ namespace NeonDefense.Enemies
             this.bitDrop = config.bitDrop;
             this.damageToPlayer = config.damageToPlayer;
             this.waypoints = path;
-            this.waypointIndex = 0;
             this.isDead = false;
 
-            // Reset position to first waypoint
+            // Reset position to first waypoint and target the next one
             if (waypoints != null && waypoints.Count > 0)
             {
                 transform.position = waypoints[0].position;
+                this.waypointIndex = (waypoints.Count > 1) ? 1 : 0;
+            }
+            else
+            {
+                this.waypointIndex = 0;
             }
         }
 
