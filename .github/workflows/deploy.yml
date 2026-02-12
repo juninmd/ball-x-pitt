@@ -3,7 +3,7 @@ name: Deploy
 on:
   push:
     tags:
-      - "v*"
+      - "v*" # Trigger only on version tags
 
 env:
   UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}

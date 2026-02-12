@@ -1,30 +1,45 @@
 # NeonDefense
 
-A Cyberpunk Tower Defense game developed in Unity.
+A Cyberpunk Tower Defense game developed in Unity, focusing on clean architecture, design patterns, and robust DevOps practices.
 
-## Overview
-NeonDefense is a strategy game where players defend a core against waves of enemies using various towers. The game features a modular architecture with ScriptableObjects for configuration and Event-Driven communication.
+## 🏗️ Architecture & Clean Code
 
-## Getting Started
+This project adheres to **SOLID principles** and isolates Data logic from View logic.
 
-### Prerequisites
-- Unity 2022.3 LTS or later.
+### Core Systems
+- **Managers:** Centralized control via `GameManager` (State), `WaveManager` (Spawning), and `EconomyManager` (Currency).
+- **Event-Driven:** Uses a lightweight Event Bus (`GameEvents.cs`) to decouple systems. For example, `OnEnemyKilled` triggers economy updates without direct dependencies.
 
-### Setup
-1. Clone the repository.
-2. Open the project in Unity.
-3. See [SETUP.md](SETUP.md) for detailed configuration instructions on creating Enemies, Towers, and Waves.
+### Design Patterns
+1.  **Object Pooling:** Essential for performance. `ProjectilePool` and `EnemyPool` manage reusable instances to minimize Garbage Collection.
+2.  **Factory Method:** `TowerFactory` handles the instantiation of towers and injection of strategies.
+3.  **Strategy Pattern:** `IAttackStrategy` defines attack behaviors (Laser, Missile), allowing towers to switch logic at runtime or configuration.
+4.  **ScriptableObjects:** Used extensively for data configuration (`EnemyConfig`, `TowerConfig`, `WaveConfig`).
 
-## Project Structure
-- `Assets/Scripts/Core`: Core systems (Events, Pools).
-- `Assets/Scripts/Managers`: Game Logic Managers (Wave, Economy, Health).
-- `Assets/Scripts/Enemies`: Enemy logic.
-- `Assets/Scripts/Towers`: Tower and Projectile logic.
-- `Assets/Scripts/Strategies`: Attack strategies (Laser, Missile).
-- `Assets/Scripts/ScriptableObjects`: Configuration data definitions.
+## 🚀 DevOps (GitHub Actions)
 
-## Contributing
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+The project includes a production-ready CI/CD pipeline in `.github/workflows/deploy.yml`.
 
-## License
-MIT
+- **Trigger:** Builds are triggered **only** on tags starting with `v*` (e.g., `v1.0`).
+- **Targets:** Builds for **Windows 64-bit** and **WebGL**.
+- **License Handling:** Automatically activates Unity Pro/Plus license via GitHub Secrets.
+- **Automated Release:** Creates a GitHub Release with changelogs and attaches zipped artifacts for both platforms.
+
+## 🛠️ Setup & Configuration
+
+For detailed instructions on how to configure Waves, Enemies, and Towers in the Unity Editor, please refer to [SETUP.md](SETUP.md).
+
+### Quick Start
+1.  Open the project in Unity.
+2.  Navigate to `Assets/Scripts/ScriptableObjects/` to create new configurations.
+3.  Assign configurations to the `WaveManager` in the scene.
+4.  Press Play!
+
+## 📂 Project Structure
+
+- `Assets/Scripts/Core`: Fundamental systems (Pooling, Events).
+- `Assets/Scripts/Managers`: Game state and logic controllers.
+- `Assets/Scripts/ScriptableObjects`: Data definitions.
+- `Assets/Scripts/Strategies`: Attack logic implementations.
+- `Assets/Scripts/Towers`: Tower components and factory.
+- `Assets/Scripts/Enemies`: Enemy AI and movement.

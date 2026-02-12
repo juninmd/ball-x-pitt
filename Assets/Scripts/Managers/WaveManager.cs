@@ -118,7 +118,10 @@ namespace NeonDefense.Managers
             isSpawning = true;
             activeEnemies = 0;
 
-            Debug.Log($"Starting Wave {currentWaveIndex + 1}");
+            int totalEnemiesInWave = 0;
+            foreach (var group in waveConfig.enemyGroups) totalEnemiesInWave += group.count;
+
+            Debug.Log($"Starting Wave {currentWaveIndex + 1} with {totalEnemiesInWave} enemies.");
             GameEvents.OnWaveStart?.Invoke(currentWaveIndex + 1);
 
             foreach (var group in waveConfig.enemyGroups)

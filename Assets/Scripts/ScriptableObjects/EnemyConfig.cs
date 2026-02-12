@@ -18,9 +18,11 @@ namespace NeonDefense.ScriptableObjects
 
         [Header("Stats")]
         [Tooltip("Health points of the enemy.")]
+        [Range(1f, 10000f)]
         public float health = 10f;
 
         [Tooltip("Movement speed in units per second.")]
+        [Range(0.1f, 50f)]
         public float speed = 5f;
 
         [Tooltip("Currency awarded to player on death.")]
