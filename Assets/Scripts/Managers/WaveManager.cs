@@ -1,4 +1,3 @@
-// NeonDefense Core System - WaveManager
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,8 +18,10 @@ namespace NeonDefense.Managers
         [Header("Configuration")]
         [Tooltip("List of Wave Configurations to spawn in order.")]
         [SerializeField] private List<WaveConfig> waves;
-        [Tooltip("Waypoints for enemies to follow.")]
+
+        [Tooltip("Waypoints for enemies to follow. First waypoint is spawn point.")]
         [SerializeField] private List<Transform> waypoints;
+
         [Tooltip("Automatically start the first wave on play.")]
         [SerializeField] private bool autoStart = false;
 
@@ -68,6 +69,7 @@ namespace NeonDefense.Managers
 
         private void CheckWaveCompletion()
         {
+            // Only end wave if spawning is finished and no enemies remain
             if (!isSpawning && activeEnemies <= 0)
             {
                 Debug.Log($"Wave {currentWaveIndex + 1} Cleared!");
@@ -77,13 +79,14 @@ namespace NeonDefense.Managers
                 currentWaveIndex++;
                 if (currentWaveIndex < waves.Count)
                 {
-                    // Wait for delay defined in the previous wave config
+                    // Wait for delay defined in the previous wave config (or fixed delay)
                     float delay = waves[currentWaveIndex - 1].timeBetweenGroups;
                     StartCoroutine(WaitAndStartNextWave(delay));
                 }
                 else
                 {
                     Debug.Log("All waves completed! Victory!");
+                    // Trigger generic victory event or UI here
                 }
             }
         }

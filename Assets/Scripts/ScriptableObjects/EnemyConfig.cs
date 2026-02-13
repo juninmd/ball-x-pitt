@@ -13,6 +13,7 @@ namespace NeonDefense.ScriptableObjects
         [Header("General")]
         [Tooltip("The name of the enemy type.")]
         public string enemyName;
+
         [Tooltip("The prefab to spawn for this enemy.")]
         public Enemy prefab;
 
