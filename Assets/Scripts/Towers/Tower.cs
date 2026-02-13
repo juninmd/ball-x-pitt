@@ -37,11 +37,6 @@ namespace NeonDefense.Towers
 
         private void Start()
         {
-            if (config == null)
-            {
-                Debug.LogError($"Tower {gameObject.name} is missing a TowerConfig!");
-            }
-
             // If placed in editor without Factory, try to self-initialize based on config
             if (config != null && attackStrategy == null)
             {
