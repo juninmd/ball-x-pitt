@@ -122,18 +122,24 @@ namespace NeonDefense.Managers
             activeEnemies = 0;
 
             int totalEnemiesInWave = 0;
-            foreach (var group in waveConfig.enemyGroups) totalEnemiesInWave += group.count;
+            if (waveConfig.enemyGroups != null)
+            {
+                foreach (var group in waveConfig.enemyGroups) totalEnemiesInWave += group.count;
+            }
 
             Debug.Log($"Starting Wave {currentWaveIndex + 1} with {totalEnemiesInWave} enemies.");
             GameEvents.OnWaveStart?.Invoke(currentWaveIndex + 1);
 
-            foreach (var group in waveConfig.enemyGroups)
+            if (waveConfig.enemyGroups != null)
             {
-                for (int i = 0; i < group.count; i++)
+                foreach (var group in waveConfig.enemyGroups)
                 {
-                    activeEnemies++;
-                    SpawnEnemy(group.enemyConfig);
-                    yield return new WaitForSeconds(group.spawnRate);
+                    for (int i = 0; i < group.count; i++)
+                    {
+                        activeEnemies++;
+                        SpawnEnemy(group.enemyConfig);
+                        yield return new WaitForSeconds(group.spawnRate);
+                    }
                 }
             }
 
@@ -148,6 +154,7 @@ namespace NeonDefense.Managers
             if (EnemyPool.Instance == null)
             {
                 Debug.LogError("EnemyPool is missing from the scene!");
+                activeEnemies--;
                 return;
             }
 
@@ -157,6 +164,10 @@ namespace NeonDefense.Managers
             if (enemy != null)
             {
                 enemy.Initialize(config, waypoints);
+            }
+            else
+            {
+                activeEnemies--;
             }
         }
     }

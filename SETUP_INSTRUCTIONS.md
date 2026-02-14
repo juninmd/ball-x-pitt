@@ -1,59 +1,60 @@
 # NeonDefense Setup Instructions
 
-## 1. Configuring Game Data (ScriptableObjects)
+## 1. Configuring ScriptableObjects
 
-### creating Enemy Configurations
-1. In the Project window, right-click and select `Create -> NeonDefense -> EnemyConfig`.
-2. Name the file (e.g., `BasicEnemy`).
-3. In the Inspector:
-   - Assign the **Prefab** (must have `Enemy` script).
-   - Set **Health** (e.g., 100).
-   - Set **Speed** (e.g., 5).
-   - Set **Bit Drop** (e.g., 10).
+To create the first wave, you need to set up `EnemyConfig` and `WaveConfig` assets.
 
-### Creating Wave Configurations
-1. Right-click and select `Create -> NeonDefense -> WaveConfig`.
-2. Name the file (e.g., `Wave1`).
-3. In the Inspector:
-   - Expand **Enemy Groups**.
-   - Add a new Element.
-   - Assign an `EnemyConfig`.
-   - Set **Count** (e.g., 10).
-   - Set **Spawn Rate** (e.g., 0.5 for half a second between spawns).
-   - Adjust **Time Between Groups** if needed.
+### Creating an Enemy Configuration
+1.  In the Project window, right-click in a folder (e.g., `Assets/ScriptableObjects`).
+2.  Select **Create -> NeonDefense -> EnemyConfig**.
+3.  Name the file (e.g., `VirusBasic`).
+4.  In the Inspector:
+    -   **Enemy Name:** "Virus"
+    -   **Prefab:** Assign your Enemy Prefab (must have `Enemy` script).
+    -   **Health:** 10
+    -   **Speed:** 5
+    -   **Bit Drop:** 5
+    -   **Damage To Player:** 1
 
-### Creating Tower Configurations
-1. Right-click and select `Create -> NeonDefense -> TowerConfig`.
-2. Name the file (e.g., `LaserTower`).
-3. In the Inspector:
-   - Assign the **Prefab** (must have `Tower` script).
-   - Set **Strategy Type** (Laser or Missile).
-   - Set **Range**, **Fire Rate**, and **Cost**.
+### Creating a Wave Configuration
+1.  Right-click and select **Create -> NeonDefense -> WaveConfig**.
+2.  Name the file (e.g., `Wave01`).
+3.  In the Inspector:
+    -   **Enemy Groups:** Click "+" to add a group.
+        -   **Enemy Config:** Drag and drop your `VirusBasic` config.
+        -   **Count:** 10 (number of enemies).
+        -   **Spawn Rate:** 0.5 (seconds between spawns).
+    -   **Time Between Groups:** 2.0 (seconds before next wave if chained).
 
-## 2. Scene Setup
+### Setting up the WaveManager
+1.  Select the `WaveManager` GameObject in your scene.
+2.  In the `Waves` list, add your `Wave01` config.
+3.  Assign your Waypoints to the `Waypoints` list.
 
-1. **Managers:**
-   - Create an empty GameObject named `Managers`.
-   - Add `GameManager`, `WaveManager`, `EconomyManager`, `GridManager`, and `TowerPlacementManager` scripts.
-2. **Pooling:**
-   - Create an empty GameObject named `Pooling`.
-   - Add `ProjectilePool` and `EnemyPool` scripts.
-   - Assign the default Prefabs to the pools in the Inspector.
-3. **WaveManager Setup:**
-   - In the `WaveManager` component, assign your `WaveConfig` assets to the **Waves** list.
-   - Assign the Waypoint Transforms (path for enemies) to the **Waypoints** list.
-4. **TowerPlacementManager Setup:**
-   - Assign the **Default Tower Config** (e.g., your `LaserTower` config).
-   - Ensure `Placement Layer` is set to the layer used for the ground/grid.
+## 2. GitHub Secrets for DevOps
 
-## 3. GitHub Secrets for CI/CD
+To enable the automated build and release pipeline (`deploy.yml`), you must add the following Secrets to your GitHub repository:
 
-To enable the automated build and release pipeline, go to your GitHub Repository -> **Settings** -> **Secrets and variables** -> **Actions** and add the following repository secrets:
+1.  Go to **Settings -> Secrets and variables -> Actions**.
+2.  Click **New repository secret**.
 
-| Secret Name | Description |
-| :--- | :--- |
-| `UNITY_LICENSE` | The content of your Unity License file (`.ulf`). You can get this by activating a license manually or using game-ci docs. |
-| `UNITY_EMAIL` | The email address associated with your Unity ID. |
-| `UNITY_PASSWORD` | The password for your Unity ID. |
+### Required Secrets:
 
-**Note:** The build workflow (`deploy.yml`) will trigger automatically when you push a tag starting with `v` (e.g., `git tag v1.0 && git push origin v1.0`).
+*   `UNITY_LICENSE`:
+    *   This is the XML content of your Unity License file (`.ulf`).
+    *   To get this, you need to activate your license via command line or use the [GameCI documentation](https://game.ci/docs/github/activation) to generate it.
+    *   *Note:* Use a Personal License if you don't have Pro.
+
+*   `UNITY_EMAIL`:
+    *   The email address associated with your Unity ID.
+
+*   `UNITY_PASSWORD`:
+    *   The password for your Unity ID.
+
+### Workflow Trigger
+The build pipeline only runs when you push a tag starting with `v`.
+Example:
+```bash
+git tag v1.0
+git push origin v1.0
+```
