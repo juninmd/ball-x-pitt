@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build for ${{ matrix.targetPlatform }}
@@ -31,6 +34,8 @@ jobs:
             Library-${{ matrix.targetPlatform }}-
             Library-
 
+      # Build Step using game-ci
+      # Handles license activation automatically via environment variables
       - name: Build project
         uses: game-ci/unity-builder@v4
         env:
@@ -50,8 +55,6 @@ jobs:
     name: Create Release
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Download Windows Artifact
         uses: actions/download-artifact@v4
@@ -78,3 +81,5 @@ jobs:
             Windows.zip
             WebGL.zip
           generate_release_notes: true
+          draft: false
+          prerelease: false

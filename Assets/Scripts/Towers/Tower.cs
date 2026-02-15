@@ -59,6 +59,7 @@ namespace NeonDefense.Towers
                 case AttackStrategyType.Missile:
                     attackStrategy = new MissileAttackStrategy();
                     break;
+                // Add more strategies as needed
                 default:
                     Debug.LogWarning($"Unknown strategy type: {config.strategyType}. Defaulting to Laser.");
                     attackStrategy = new LaserAttackStrategy();
