@@ -25,6 +25,9 @@ namespace NeonDefense.Managers
         [Tooltip("Automatically start the first wave on play.")]
         [SerializeField] private bool autoStart = false;
 
+        [Tooltip("Time to wait between waves (if not defined in WaveConfig).")]
+        [SerializeField] private float timeBetweenWaves = 5f;
+
         private int currentWaveIndex = 0;
         private bool isSpawning = false;
         private int activeEnemies = 0;
@@ -79,9 +82,9 @@ namespace NeonDefense.Managers
                 currentWaveIndex++;
                 if (currentWaveIndex < waves.Count)
                 {
-                    // Wait for delay defined in the previous wave config (or fixed delay)
-                    float delay = waves[currentWaveIndex - 1].timeBetweenGroups;
-                    StartCoroutine(WaitAndStartNextWave(delay));
+                    // Use WaveConfig's timeBetweenGroups as delay between waves if desired,
+                    // or use a dedicated timeBetweenWaves. Here we use the manager's setting.
+                    StartCoroutine(WaitAndStartNextWave(timeBetweenWaves));
                 }
                 else
                 {
@@ -121,6 +124,7 @@ namespace NeonDefense.Managers
             isSpawning = true;
             activeEnemies = 0;
 
+            // Calculate total enemies for UI or logic if needed
             int totalEnemiesInWave = 0;
             if (waveConfig.enemyGroups != null)
             {
@@ -132,13 +136,20 @@ namespace NeonDefense.Managers
 
             if (waveConfig.enemyGroups != null)
             {
-                foreach (var group in waveConfig.enemyGroups)
+                for (int i = 0; i < waveConfig.enemyGroups.Count; i++)
                 {
-                    for (int i = 0; i < group.count; i++)
+                    var group = waveConfig.enemyGroups[i];
+                    for (int j = 0; j < group.count; j++)
                     {
                         activeEnemies++;
                         SpawnEnemy(group.enemyConfig);
                         yield return new WaitForSeconds(group.spawnRate);
+                    }
+
+                    // Wait between groups (if there are more groups)
+                    if (i < waveConfig.enemyGroups.Count - 1)
+                    {
+                        yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
                     }
                 }
             }
