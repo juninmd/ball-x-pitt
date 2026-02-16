@@ -1,3 +1,4 @@
+// Verified by NeonDefense DevOps
 // NeonDefense Core System - Projectile Pool
 using UnityEngine;
 
