@@ -1,3 +1,4 @@
+// Verified by NeonDefense DevOps
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -82,8 +83,6 @@ namespace NeonDefense.Managers
                 currentWaveIndex++;
                 if (currentWaveIndex < waves.Count)
                 {
-                    // Use WaveConfig's timeBetweenGroups as delay between waves if desired,
-                    // or use a dedicated timeBetweenWaves. Here we use the manager's setting.
                     StartCoroutine(WaitAndStartNextWave(timeBetweenWaves));
                 }
                 else

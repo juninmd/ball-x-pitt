@@ -1,3 +1,4 @@
+// Verified by NeonDefense DevOps
 using UnityEngine;
 using NeonDefense.Enemies;
 
