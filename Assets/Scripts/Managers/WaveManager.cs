@@ -48,13 +48,13 @@ namespace NeonDefense.Managers
         private void OnEnable()
         {
             GameEvents.OnEnemyKilled += HandleEnemyRemoved;
-            GameEvents.OnEnemyReachedGoal += HandleEnemyRemoved;
+            GameEvents.OnEnemyReachedGoal += HandleEnemyReachedGoal;
         }
 
         private void OnDisable()
         {
             GameEvents.OnEnemyKilled -= HandleEnemyRemoved;
-            GameEvents.OnEnemyReachedGoal -= HandleEnemyRemoved;
+            GameEvents.OnEnemyReachedGoal -= HandleEnemyReachedGoal;
         }
 
         private void Start()
@@ -66,6 +66,12 @@ namespace NeonDefense.Managers
         }
 
         private void HandleEnemyRemoved(Enemy enemy, int value)
+        {
+            activeEnemies--;
+            CheckWaveCompletion();
+        }
+
+        private void HandleEnemyReachedGoal(Enemy enemy, int damage)
         {
             activeEnemies--;
             CheckWaveCompletion();
