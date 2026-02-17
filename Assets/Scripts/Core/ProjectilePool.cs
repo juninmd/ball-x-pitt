@@ -1,5 +1,4 @@
 // Verified by NeonDefense DevOps
-// NeonDefense Core System - Projectile Pool
 using UnityEngine;
 
 namespace NeonDefense.Core
@@ -25,7 +24,6 @@ namespace NeonDefense.Core
             Instance = this;
 
             // Initialize the pool from the base class
-            // Base Awake usually handles initialization if 'prefab' is set in Inspector
             base.Awake();
         }
     }
