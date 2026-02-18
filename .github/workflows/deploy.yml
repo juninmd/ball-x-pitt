@@ -37,6 +37,7 @@ jobs:
 
       # Build Step using game-ci
       # Handles license activation automatically via environment variables
+      # Ensure Secrets are configured in Repo Settings (UNITY_LICENSE, UNITY_EMAIL, UNITY_PASSWORD)
       - name: Build project
         uses: game-ci/unity-builder@v4
         env:

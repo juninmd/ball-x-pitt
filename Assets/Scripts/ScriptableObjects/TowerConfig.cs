@@ -27,8 +27,11 @@ namespace NeonDefense.ScriptableObjects
         public Projectile projectilePrefab;
 
         [Header("Combat Stats")]
+        [Range(1f, 50f)]
         public float range;
+        [Range(0.1f, 10f)]
         public float fireRate;
+        [Range(1f, 1000f)]
         public float damage;
 
         [Header("Behavior")]

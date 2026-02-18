@@ -28,9 +28,11 @@ namespace NeonDefense.ScriptableObjects
         public float speed = 5f;
 
         [Tooltip("Currency awarded to player on death (Bits).")]
+        [Range(1, 1000)]
         public int bitDrop = 10;
 
         [Tooltip("Damage dealt to player/core upon reaching the goal.")]
+        [Range(1, 1000)]
         public int damageToPlayer = 1;
     }
 }
