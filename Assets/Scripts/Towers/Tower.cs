@@ -10,6 +10,7 @@ namespace NeonDefense.Towers
     /// <summary>
     /// Base class for all towers. Handles targeting logic and delegates attack execution to an IAttackStrategy.
     /// Follows the Strategy Pattern.
+    /// Strategy Pattern Implementation: Delegates attack to injected IAttackStrategy.
     /// </summary>
     public class Tower : MonoBehaviour
     {

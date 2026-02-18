@@ -11,6 +11,13 @@ namespace NeonDefense.Managers
     /// <summary>
     /// Manages the spawning of enemy waves based on WaveConfig ScriptableObjects.
     /// Handles GameEvents for wave start and end.
+    ///
+    /// Logic Flow:
+    /// 1. StartWave() -> SpawnWave(config)
+    /// 2. Loops through EnemyGroups in config.
+    /// 3. Spawns enemies with a delay (spawnRate) between each.
+    /// 4. Waits for timeBetweenGroups before next group.
+    /// 5. Waits for all enemies to die or reach goal before ending wave.
     /// </summary>
     public class WaveManager : MonoBehaviour
     {

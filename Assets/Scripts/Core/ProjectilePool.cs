@@ -6,6 +6,7 @@ namespace NeonDefense.Core
     /// <summary>
     /// Singleton Object Pool for Projectiles.
     /// Manages reusable projectile instances to avoid GC.
+    /// Implements Object Pooling for GC Optimization.
     /// </summary>
     [DisallowMultipleComponent]
     public class ProjectilePool : ObjectPool<Projectile>
