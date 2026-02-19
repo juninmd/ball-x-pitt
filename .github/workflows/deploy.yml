@@ -1,4 +1,7 @@
-# Verified by NeonDefense DevOps
+# DevOps Workflow for NeonDefense
+# Triggers on tags starting with 'v' (e.g., v1.0, v1.1)
+# Builds for Windows 64-bit and WebGL
+# Creates a GitHub Release with zipped artifacts
 name: Deploy
 
 on:
@@ -35,9 +38,13 @@ jobs:
             Library-${{ matrix.targetPlatform }}-
             Library-
 
-      # Build Step using game-ci
-      # Handles license activation automatically via environment variables
-      # Ensure Secrets are configured in Repo Settings (UNITY_LICENSE, UNITY_EMAIL, UNITY_PASSWORD)
+      # Build Step using game-ci/unity-builder
+      # License Treatment:
+      # The builder automatically activates Unity using the provided environment variables.
+      # Required Secrets:
+      # - UNITY_LICENSE: Content of the .ulf file (Recommended for stability)
+      # OR
+      # - UNITY_EMAIL & UNITY_PASSWORD: For manual activation (Less stable on CI)
       - name: Build project
         uses: game-ci/unity-builder@v4
         env:

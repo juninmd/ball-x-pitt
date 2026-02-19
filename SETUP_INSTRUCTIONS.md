@@ -1,48 +1,48 @@
-# NeonDefense Setup Instructions
+# Instruções de Configuração do NeonDefense
 
-## 1. Configuring ScriptableObjects for the First Wave
+## 1. Configurando a Primeira Onda (ScriptableObjects)
 
-Follow these steps to set up your first wave of enemies in the Unity Editor:
+Siga estes passos no Editor da Unity para criar e configurar sua primeira onda de inimigos:
 
-### Step A: Create Enemy Config
-1. In the Project window, navigate to `Assets/Scripts/ScriptableObjects/` (or your preferred data folder).
-2. Right-click and select **Create -> NeonDefense -> EnemyConfig**.
-3. Name the file `BasicEnemy`.
-4. In the Inspector:
+### Passo A: Criar Configuração do Inimigo (EnemyConfig)
+1. Na janela **Project**, navegue para `Assets/Scripts/ScriptableObjects/`.
+2. Clique com o botão direito e selecione **Create -> NeonDefense -> EnemyConfig**.
+3. Nomeie o arquivo como `BasicVirus`.
+4. No Inspector, configure:
    - **Enemy Name**: "Virus V1"
-   - **Prefab**: Drag your Enemy prefab (must have `Enemy` script attached).
+   - **Prefab**: Arraste seu prefab de Inimigo (deve ter o script `Enemy` anexado).
    - **Health**: 10
    - **Speed**: 3
-   - **Bit Drop**: 5
-   - **Damage To Player**: 1
+   - **Bit Drop**: 5 (Dinheiro ganho ao matar)
+   - **Damage To Player**: 1 (Dano ao Core)
 
-### Step B: Create Wave Config
-1. Right-click and select **Create -> NeonDefense -> WaveConfig**.
-2. Name the file `Wave_01`.
-3. In the Inspector:
-   - **Time Between Groups**: 2 (seconds).
-   - **Enemy Groups**: Click "+" to add a group.
-     - **Enemy Config**: Drag `BasicEnemy` here.
-     - **Count**: 5 (number of enemies).
-     - **Spawn Rate**: 1 (seconds between each enemy spawn).
+### Passo B: Criar Configuração da Onda (WaveConfig)
+1. Clique com o botão direito e selecione **Create -> NeonDefense -> WaveConfig**.
+2. Nomeie o arquivo como `Wave_01`.
+3. No Inspector, configure:
+   - **Time Between Groups**: 2 (Segundos entre grupos de inimigos).
+   - **Enemy Groups**: Clique no "+" para adicionar um grupo.
+     - **Enemy Config**: Arraste o `BasicVirus` criado acima.
+     - **Count**: 5 (Quantidade de inimigos).
+     - **Spawn Rate**: 1 (Segundos entre cada spawn).
 
-### Step C: Configure WaveManager
-1. Select the `WaveManager` GameObject in your scene.
-2. Locate the `WaveManager` script component.
-3. **Waves**: Set size to 1 and drag `Wave_01` into the element slot.
-4. **Waypoints**: Drag your scene waypoints (Transforms) into this list in order (Start -> End).
-5. **Auto Start**: Check this if you want the wave to start immediately on Play.
+### Passo C: Configurar o WaveManager
+1. Selecione o GameObject `WaveManager` na sua cena.
+2. Localize o componente `WaveManager`.
+3. **Waves**: Defina o tamanho da lista como 1 e arraste o `Wave_01` para o slot.
+4. **Waypoints**: Arraste os Transforms dos seus waypoints da cena para esta lista, na ordem correta (Start -> End).
+5. **Auto Start**: Marque esta opção se quiser que a onda comece automaticamente ao dar Play.
 
 ---
 
-## 2. GitHub Secrets for DevOps
+## 2. Segredos do GitHub (DevOps)
 
-To enable the automated build and release pipeline, add the following Secrets to your GitHub repository settings (`Settings -> Secrets and variables -> Actions`):
+Para habilitar o pipeline de CI/CD automatizado, adicione os seguintes Segredos nas configurações do seu repositório (`Settings -> Secrets and variables -> Actions`):
 
-| Secret Name | Description |
+| Nome do Segredo | Descrição |
 | :--- | :--- |
-| `UNITY_LICENSE` | **Recommended.** The content of your `Unity_v20xx.x.ulf` license file. <br>To get this: Run `ulf-extract` or activate manually locally and copy the content of `C:\ProgramData\Unity\Unity_vX.X.ulf` (Windows) or `/Library/Application Support/Unity/Unity_vX.X.ulf` (Mac). |
-| `UNITY_EMAIL` | The email address associated with your Unity ID. |
-| `UNITY_PASSWORD` | The password for your Unity ID. |
+| `UNITY_LICENSE` | **Recomendado.** O conteúdo do seu arquivo de licença `.ulf`. <br>Isso garante maior estabilidade no build. Se fornecido, o builder o usará. |
+| `UNITY_EMAIL` | O endereço de e-mail associado à sua Unity ID. |
+| `UNITY_PASSWORD` | A senha da sua Unity ID. |
 
-> **Note:** Ideally, use `UNITY_LICENSE` for stability. If you provide `UNITY_LICENSE`, the builder will use it. If not, it will try to activate using Email/Password (which may require 2FA handling or fail more often).
+> **Nota:** Se você não fornecer o `UNITY_LICENSE`, o sistema tentará ativar via Email/Senha, o que pode falhar se houver autenticação de dois fatores (2FA) ou limitações de licença. A licença via arquivo (`.ulf`) é a prática recomendada para DevOps profissional.

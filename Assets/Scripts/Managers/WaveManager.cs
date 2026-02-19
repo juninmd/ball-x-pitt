@@ -1,4 +1,3 @@
-// Verified by NeonDefense DevOps
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,13 +10,7 @@ namespace NeonDefense.Managers
     /// <summary>
     /// Manages the spawning of enemy waves based on WaveConfig ScriptableObjects.
     /// Handles GameEvents for wave start and end.
-    ///
-    /// Logic Flow:
-    /// 1. StartWave() -> SpawnWave(config)
-    /// 2. Loops through EnemyGroups in config.
-    /// 3. Spawns enemies with a delay (spawnRate) between each.
-    /// 4. Waits for timeBetweenGroups before next group.
-    /// 5. Waits for all enemies to die or reach goal before ending wave.
+    /// Implements the Wave Spawning Logic requirement.
     /// </summary>
     public class WaveManager : MonoBehaviour
     {
@@ -84,11 +77,18 @@ namespace NeonDefense.Managers
             CheckWaveCompletion();
         }
 
+        /// <summary>
+        /// Checks if the current wave is complete (no active enemies and spawning finished).
+        /// Triggers OnWaveEnd if true.
+        /// </summary>
         private void CheckWaveCompletion()
         {
             // Only end wave if spawning is finished and no enemies remain
             if (!isSpawning && activeEnemies <= 0)
             {
+                // Ensure count doesn't go negative due to race conditions
+                activeEnemies = 0;
+
                 Debug.Log($"Wave {currentWaveIndex + 1} Cleared!");
                 GameEvents.OnWaveEnd?.Invoke();
 
@@ -122,6 +122,10 @@ namespace NeonDefense.Managers
             if (currentWaveIndex < waves.Count)
             {
                 StartCoroutine(SpawnWave(waves[currentWaveIndex]));
+            }
+            else
+            {
+                Debug.Log("No more waves to spawn.");
             }
         }
 
@@ -168,7 +172,7 @@ namespace NeonDefense.Managers
 
             isSpawning = false;
 
-            // Check immediately in case all enemies died during spawn
+            // Check immediately in case all enemies died during spawn (unlikely but possible)
             CheckWaveCompletion();
         }
 

@@ -1,4 +1,3 @@
-// Verified by NeonDefense DevOps
 using UnityEngine;
 using NeonDefense.Enemies;
 
@@ -7,6 +6,7 @@ namespace NeonDefense.ScriptableObjects
     /// <summary>
     /// Configuration data for an Enemy type.
     /// Stores base attributes like Health, Speed, and Rewards.
+    /// Allows designers to tweak values without touching code.
     /// </summary>
     [CreateAssetMenu(fileName = "NewEnemyConfig", menuName = "NeonDefense/EnemyConfig")]
     public class EnemyConfig : ScriptableObject

@@ -2,10 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using NeonDefense.Core;
 using NeonDefense.ScriptableObjects;
-using NeonDefense.Managers; // For EnemyPool access if needed
 
 namespace NeonDefense.Enemies
 {
+    /// <summary>
+    /// Base class for all enemies. Handles movement along waypoints and health management.
+    /// Interacts with EnemyPool for recycling.
+    /// </summary>
     public class Enemy : MonoBehaviour
     {
         private float health;
@@ -31,6 +34,7 @@ namespace NeonDefense.Enemies
             if (waypoints != null && waypoints.Count > 0)
             {
                 transform.position = waypoints[0].position;
+                // If path has at least 2 points, target index 1. Else stay at 0 (or target 0 if only 1).
                 this.waypointIndex = (waypoints.Count > 1) ? 1 : 0;
             }
             else
@@ -56,6 +60,7 @@ namespace NeonDefense.Enemies
 
             if (Vector3.Distance(transform.position, targetWaypoint.position) <= distance)
             {
+                // Snap to waypoint
                 transform.position = targetWaypoint.position;
                 waypointIndex++;
 
@@ -84,24 +89,21 @@ namespace NeonDefense.Enemies
         private void Die()
         {
             isDead = true;
+            // Notify system to award bits
             GameEvents.OnEnemyKilled?.Invoke(this, bitDrop);
-
-            // Return to pool
-            if (EnemyPool.Instance != null)
-            {
-                EnemyPool.Instance.ReturnToPool(this);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            ReturnToPool();
         }
 
         private void ReachGoal()
         {
-            isDead = true; // Technically not dead, but done interacting
+            isDead = true;
+            // Notify system to deduct player health
             GameEvents.OnEnemyReachedGoal?.Invoke(this, damageToPlayer);
+            ReturnToPool();
+        }
 
+        private void ReturnToPool()
+        {
             if (EnemyPool.Instance != null)
             {
                 EnemyPool.Instance.ReturnToPool(this);
