@@ -1,3 +1,4 @@
+// NeonDefense - Wave Manager System
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,7 +11,6 @@ namespace NeonDefense.Managers
     /// <summary>
     /// Manages the spawning of enemy waves based on WaveConfig ScriptableObjects.
     /// Handles GameEvents for wave start and end.
-    /// Implements the Wave Spawning Logic requirement.
     /// </summary>
     public class WaveManager : MonoBehaviour
     {

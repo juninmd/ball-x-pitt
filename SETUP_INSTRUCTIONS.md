@@ -1,48 +1,75 @@
-# Instruções de Configuração do NeonDefense
+# Instruções de Configuração - NeonDefense
 
-## 1. Configurando a Primeira Onda (ScriptableObjects)
+## 1. Configurando ScriptableObjects (Dados de Design)
 
-Siga estes passos no Editor da Unity para criar e configurar sua primeira onda de inimigos:
+O jogo utiliza ScriptableObjects para gerenciar dados de Inimigos, Torres e Ondas. Isso permite que designers ajustem o balanceamento sem modificar o código.
 
-### Passo A: Criar Configuração do Inimigo (EnemyConfig)
-1. Na janela **Project**, navegue para `Assets/Scripts/ScriptableObjects/`.
-2. Clique com o botão direito e selecione **Create -> NeonDefense -> EnemyConfig**.
-3. Nomeie o arquivo como `BasicVirus`.
-4. No Inspector, configure:
-   - **Enemy Name**: "Virus V1"
-   - **Prefab**: Arraste seu prefab de Inimigo (deve ter o script `Enemy` anexado).
-   - **Health**: 10
-   - **Speed**: 3
-   - **Bit Drop**: 5 (Dinheiro ganho ao matar)
-   - **Damage To Player**: 1 (Dano ao Core)
+### Criar Configurações de Inimigo (EnemyConfig)
+1.  Na janela de Projeto da Unity, navegue até `Assets/Scripts/ScriptableObjects/` (ou qualquer pasta de sua preferência).
+2.  Clique com o botão direito -> **Create** -> **NeonDefense** -> **EnemyConfig**.
+3.  Nomeie o arquivo (ex: `FastVirus`, `TankVirus`).
+4.  No Inspector, defina os valores:
+    *   **Health:** Vida do inimigo (ex: 50).
+    *   **Speed:** Velocidade de movimento (ex: 5).
+    *   **Bit Drop:** Recompensa em Bits ao morrer (ex: 10).
+    *   **Prefab:** Arraste o Prefab do seu Inimigo aqui.
 
-### Passo B: Criar Configuração da Onda (WaveConfig)
-1. Clique com o botão direito e selecione **Create -> NeonDefense -> WaveConfig**.
-2. Nomeie o arquivo como `Wave_01`.
-3. No Inspector, configure:
-   - **Time Between Groups**: 2 (Segundos entre grupos de inimigos).
-   - **Enemy Groups**: Clique no "+" para adicionar um grupo.
-     - **Enemy Config**: Arraste o `BasicVirus` criado acima.
-     - **Count**: 5 (Quantidade de inimigos).
-     - **Spawn Rate**: 1 (Segundos entre cada spawn).
+### Criar Configurações de Torre (TowerConfig)
+1.  Clique com o botão direito -> **Create** -> **NeonDefense** -> **TowerConfig**.
+2.  Nomeie o arquivo (ex: `LaserTower`, `MissileTower`).
+3.  No Inspector, defina os valores:
+    *   **Range:** Alcance do ataque (ex: 10).
+    *   **Fire Rate:** Ataques por segundo (ex: 2).
+    *   **Strategy Type:** Selecione o tipo de ataque (`Laser`, `Missile`, etc.).
+    *   **Projectile Prefab:** Obrigatório se usar a estratégia `Missile`.
 
-### Passo C: Configurar o WaveManager
-1. Selecione o GameObject `WaveManager` na sua cena.
-2. Localize o componente `WaveManager`.
-3. **Waves**: Defina o tamanho da lista como 1 e arraste o `Wave_01` para o slot.
-4. **Waypoints**: Arraste os Transforms dos seus waypoints da cena para esta lista, na ordem correta (Start -> End).
-5. **Auto Start**: Marque esta opção se quiser que a onda comece automaticamente ao dar Play.
+### Criar Configurações de Onda (WaveConfig)
+1.  Clique com o botão direito -> **Create** -> **NeonDefense** -> **WaveConfig**.
+2.  Nomeie o arquivo (ex: `Wave1`, `Wave2`).
+3.  No Inspector, adicione elementos à lista **Enemy Groups**:
+    *   **Enemy Config:** Arraste um `EnemyConfig` que você criou.
+    *   **Count:** Quantidade de inimigos deste tipo.
+    *   **Spawn Rate:** Tempo de espera entre cada spawn.
+4.  Defina **Time Between Groups** (atraso antes do próximo grupo começar).
+
+### Atribuindo à Cena
+1.  Selecione o GameObject **WaveManager** na sua cena.
+2.  Localize a lista `Waves` no Inspector.
+3.  Arraste e solte seus assets de `WaveConfig` nesta lista, na ordem em que deseja que apareçam.
 
 ---
 
-## 2. Segredos do GitHub (DevOps)
+## 2. Configuração do GitHub Actions (CI/CD)
 
-Para habilitar o pipeline de CI/CD automatizado, adicione os seguintes Segredos nas configurações do seu repositório (`Settings -> Secrets and variables -> Actions`):
+Para habilitar builds e releases automatizados, você deve configurar **Secrets** nas configurações do seu repositório GitHub.
 
-| Nome do Segredo | Descrição |
-| :--- | :--- |
-| `UNITY_LICENSE` | **Recomendado.** O conteúdo do seu arquivo de licença `.ulf`. <br>Isso garante maior estabilidade no build. Se fornecido, o builder o usará. |
-| `UNITY_EMAIL` | O endereço de e-mail associado à sua Unity ID. |
-| `UNITY_PASSWORD` | A senha da sua Unity ID. |
+### Secrets Necessários
+Vá para **Settings** -> **Secrets and variables** -> **Actions** -> **New repository secret**.
 
-> **Nota:** Se você não fornecer o `UNITY_LICENSE`, o sistema tentará ativar via Email/Senha, o que pode falhar se houver autenticação de dois fatores (2FA) ou limitações de licença. A licença via arquivo (`.ulf`) é a prática recomendada para DevOps profissional.
+Adicione os seguintes segredos:
+
+1.  **`UNITY_LICENSE`**
+    *   **Descrição:** O conteúdo do seu arquivo de Licença da Unity (`.ulf`).
+    *   **Como obter:**
+        *   Localize seu arquivo `.ulf` na sua máquina local (ex: `C:\ProgramData\Unity\Unity_v6.x.x.ulf` ou `~/.local/share/unity3d/Unity/Unity_v6.x.x.ulf`).
+        *   Abra com um editor de texto.
+        *   Copie todo o conteúdo XML.
+        *   Cole no valor do secret.
+
+2.  **`UNITY_EMAIL`** *(Opcional se usar License File, mas recomendado como fallback)*
+    *   **Descrição:** O endereço de e-mail associado ao seu Unity ID.
+
+3.  **`UNITY_PASSWORD`** *(Opcional se usar License File, mas recomendado como fallback)*
+    *   **Descrição:** A senha do seu Unity ID.
+
+### Disparando um Build
+O workflow está configurado para rodar **APENAS** quando você criar uma tag começando com `v`.
+
+1.  Faça o commit das suas alterações.
+2.  Crie uma tag: `git tag v1.0`
+3.  Envie a tag: `git push origin v1.0`
+
+O GitHub Actions irá automaticamente:
+1.  Compilar para Windows (64-bit) e WebGL.
+2.  Criar uma Release no GitHub.
+3.  Fazer upload dos builds zipados como artefatos.

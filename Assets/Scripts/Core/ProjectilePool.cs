@@ -1,3 +1,4 @@
+// NeonDefense - Projectile Pooling System
 using UnityEngine;
 
 namespace NeonDefense.Core
@@ -5,7 +6,6 @@ namespace NeonDefense.Core
     /// <summary>
     /// Singleton Object Pool specifically for Projectiles.
     /// Manages reusable projectile instances to avoid Garbage Collection (GC) spikes during intense combat.
-    /// Implements the Object Pooling Pattern requirement.
     /// </summary>
     [DisallowMultipleComponent]
     public class ProjectilePool : ObjectPool<Projectile>
