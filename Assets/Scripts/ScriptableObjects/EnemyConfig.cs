@@ -1,3 +1,4 @@
+// NeonDefense - Data Configuration
 using UnityEngine;
 using NeonDefense.Enemies;
 
