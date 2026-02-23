@@ -12,6 +12,7 @@ O jogo utiliza ScriptableObjects para gerenciar dados de Inimigos, Torres e Onda
     *   **Health:** Vida do inimigo (ex: 50).
     *   **Speed:** Velocidade de movimento (ex: 5).
     *   **Bit Drop:** Recompensa em Bits ao morrer (ex: 10).
+    *   **Damage To Player:** Dano causado ao atingir o objetivo (ex: 1).
     *   **Prefab:** Arraste o Prefab do seu Inimigo aqui.
 
 ### Criar Configurações de Torre (TowerConfig)
@@ -36,6 +37,7 @@ O jogo utiliza ScriptableObjects para gerenciar dados de Inimigos, Torres e Onda
 1.  Selecione o GameObject **WaveManager** na sua cena.
 2.  Localize a lista `Waves` no Inspector.
 3.  Arraste e solte seus assets de `WaveConfig` nesta lista, na ordem em que deseja que apareçam.
+4.  Certifique-se de que a lista `Waypoints` também esteja preenchida com os transforms do caminho.
 
 ---
 
@@ -56,10 +58,10 @@ Adicione os seguintes segredos:
         *   Copie todo o conteúdo XML.
         *   Cole no valor do secret.
 
-2.  **`UNITY_EMAIL`** *(Opcional se usar License File, mas recomendado como fallback)*
+2.  **`UNITY_EMAIL`** *(Recomendado)*
     *   **Descrição:** O endereço de e-mail associado ao seu Unity ID.
 
-3.  **`UNITY_PASSWORD`** *(Opcional se usar License File, mas recomendado como fallback)*
+3.  **`UNITY_PASSWORD`** *(Recomendado)*
     *   **Descrição:** A senha do seu Unity ID.
 
 ### Disparando um Build
@@ -72,4 +74,4 @@ O workflow está configurado para rodar **APENAS** quando você criar uma tag co
 O GitHub Actions irá automaticamente:
 1.  Compilar para Windows (64-bit) e WebGL.
 2.  Criar uma Release no GitHub.
-3.  Fazer upload dos builds zipados como artefatos.
+3.  Fazer upload dos builds zipados como artefatos (`Windows.zip` e `WebGL.zip`).

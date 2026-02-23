@@ -1,13 +1,9 @@
-# DevOps Workflow for NeonDefense
-# Triggers on tags starting with 'v' (e.g., v1.0, v1.1)
-# Builds for Windows 64-bit and WebGL
-# Creates a GitHub Release with zipped artifacts
 name: Deploy
 
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 permissions:
   contents: write
@@ -38,13 +34,6 @@ jobs:
             Library-${{ matrix.targetPlatform }}-
             Library-
 
-      # Build Step using game-ci/unity-builder
-      # License Treatment:
-      # The builder automatically activates Unity using the provided environment variables.
-      # Required Secrets:
-      # - UNITY_LICENSE: Content of the .ulf file (Recommended for stability)
-      # OR
-      # - UNITY_EMAIL & UNITY_PASSWORD: For manual activation (Less stable on CI)
       - name: Build project
         uses: game-ci/unity-builder@v4
         env:
@@ -78,13 +67,17 @@ jobs:
           path: build/WebGL
 
       - name: Zip Windows Build
-        run: zip -r Windows.zip build/Windows
+        run: |
+          cd build/Windows
+          zip -r ../../Windows.zip .
 
       - name: Zip WebGL Build
-        run: zip -r WebGL.zip build/WebGL
+        run: |
+          cd build/WebGL
+          zip -r ../../WebGL.zip .
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             Windows.zip
