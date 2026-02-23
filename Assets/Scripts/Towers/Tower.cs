@@ -23,9 +23,11 @@ namespace NeonDefense.Towers
         [Tooltip("LayerMask to filter enemies during targeting.")]
         [SerializeField] private LayerMask enemyLayer;
 
+        [Header("Debug Info")]
+        [SerializeField] private float fireCountdown = 0f;
+        [SerializeField] private Enemy currentTarget;
+
         private IAttackStrategy attackStrategy;
-        private float fireCountdown = 0f;
-        private Enemy currentTarget;
 
         // Pre-allocated buffer for OverlapSphereNonAlloc to avoid GC allocations during Update
         private readonly Collider[] hitBuffer = new Collider[20];

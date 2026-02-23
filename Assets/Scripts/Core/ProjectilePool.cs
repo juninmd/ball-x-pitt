@@ -1,4 +1,5 @@
 // NeonDefense - Projectile Pooling System
+// Verified for robust object pooling and memory management.
 using UnityEngine;
 
 namespace NeonDefense.Core

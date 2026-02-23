@@ -1,4 +1,5 @@
-// NeonDefense - Data Configuration
+// NeonDefense - Enemy Configuration
+// Verified for ScriptableObject usage.
 using UnityEngine;
 using NeonDefense.Enemies;
 

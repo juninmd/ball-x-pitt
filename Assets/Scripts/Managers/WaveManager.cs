@@ -29,9 +29,10 @@ namespace NeonDefense.Managers
         [Tooltip("Time to wait between waves (if not defined in WaveConfig).")]
         [SerializeField] private float timeBetweenWaves = 5f;
 
-        private int currentWaveIndex = 0;
-        private bool isSpawning = false;
-        private int activeEnemies = 0;
+        [Header("Debug Info")]
+        [SerializeField] private int currentWaveIndex = 0;
+        [SerializeField] private bool isSpawning = false;
+        [SerializeField] private int activeEnemies = 0;
 
         private void Awake()
         {
