@@ -1,3 +1,4 @@
+// NeonDefense Solution v1.0
 // NeonDefense - Projectile Pooling System
 // Verified for robust object pooling and memory management.
 using UnityEngine;

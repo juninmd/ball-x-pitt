@@ -1,3 +1,4 @@
+// NeonDefense Solution v1.0
 // NeonDefense - Enemy Configuration
 // Verified for ScriptableObject usage.
 using UnityEngine;
