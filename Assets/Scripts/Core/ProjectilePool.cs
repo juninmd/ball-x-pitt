@@ -1,14 +1,7 @@
-// NeonDefense Solution v1.0
-// NeonDefense - Projectile Pooling System
-// Verified for robust object pooling and memory management.
 using UnityEngine;
 
 namespace NeonDefense.Core
 {
-    /// <summary>
-    /// Singleton Object Pool specifically for Projectiles.
-    /// Manages reusable projectile instances to avoid Garbage Collection (GC) spikes during intense combat.
-    /// </summary>
     [DisallowMultipleComponent]
     public class ProjectilePool : ObjectPool<Projectile>
     {
@@ -16,7 +9,6 @@ namespace NeonDefense.Core
 
         protected override void Awake()
         {
-            // Ensure Singleton pattern
             if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
@@ -24,8 +16,6 @@ namespace NeonDefense.Core
             }
 
             Instance = this;
-
-            // Initialize the pool from the base class (pre-warms the pool)
             base.Awake();
         }
     }
