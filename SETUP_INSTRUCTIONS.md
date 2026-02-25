@@ -1,77 +1,67 @@
 # Instruções de Configuração - NeonDefense
 
-## 1. Configurando ScriptableObjects (Dados de Design)
+## 1. Configuração dos ScriptableObjects (Unity Editor)
 
-O jogo utiliza ScriptableObjects para gerenciar dados de Inimigos, Torres e Ondas. Isso permite que designers ajustem o balanceamento sem modificar o código.
+Para criar a primeira onda de inimigos, siga estes passos no Editor da Unity:
 
-### Criar Configurações de Inimigo (EnemyConfig)
-1.  Na janela de Projeto da Unity, navegue até `Assets/Scripts/ScriptableObjects/` (ou qualquer pasta de sua preferência).
-2.  Clique com o botão direito -> **Create** -> **NeonDefense** -> **EnemyConfig**.
-3.  Nomeie o arquivo (ex: `FastVirus`, `TankVirus`).
-4.  No Inspector, defina os valores:
-    *   **Health:** Vida do inimigo (ex: 50).
-    *   **Speed:** Velocidade de movimento (ex: 5).
-    *   **Bit Drop:** Recompensa em Bits ao morrer (ex: 10).
-    *   **Damage To Player:** Dano causado ao atingir o objetivo (ex: 1).
-    *   **Prefab:** Arraste o Prefab do seu Inimigo aqui.
+### Passo A: Criar Configuração de Inimigo
+1. Na janela **Project**, clique com o botão direito em uma pasta (ex: `Assets/Data/Enemies`).
+2. Selecione: `Create` -> `NeonDefense` -> `EnemyConfig`.
+3. Nomeie o arquivo (ex: `VirusTypeA`).
+4. No Inspector, configure:
+   - **Prefab**: Arraste o prefab do inimigo.
+   - **Health**: Vida do inimigo (ex: 100).
+   - **Speed**: Velocidade (ex: 3).
+   - **Bit Drop**: Dinheiro ganho ao matar (ex: 15).
+   - **Damage To Player**: Dano ao Core (ex: 1).
 
-### Criar Configurações de Torre (TowerConfig)
-1.  Clique com o botão direito -> **Create** -> **NeonDefense** -> **TowerConfig**.
-2.  Nomeie o arquivo (ex: `LaserTower`, `MissileTower`).
-3.  No Inspector, defina os valores:
-    *   **Range:** Alcance do ataque (ex: 10).
-    *   **Fire Rate:** Ataques por segundo (ex: 2).
-    *   **Strategy Type:** Selecione o tipo de ataque (`Laser`, `Missile`, etc.).
-    *   **Projectile Prefab:** Obrigatório se usar a estratégia `Missile`.
+### Passo B: Criar Configuração de Torre (Opcional)
+1. Clique com o botão direito -> `Create` -> `NeonDefense` -> `TowerConfig`.
+2. Configure **Range**, **FireRate**, **Damage** e escolha o **Strategy Type** (Laser, Missile, etc).
 
-### Criar Configurações de Onda (WaveConfig)
-1.  Clique com o botão direito -> **Create** -> **NeonDefense** -> **WaveConfig**.
-2.  Nomeie o arquivo (ex: `Wave1`, `Wave2`).
-3.  No Inspector, adicione elementos à lista **Enemy Groups**:
-    *   **Enemy Config:** Arraste um `EnemyConfig` que você criou.
-    *   **Count:** Quantidade de inimigos deste tipo.
-    *   **Spawn Rate:** Tempo de espera entre cada spawn.
-4.  Defina **Time Between Groups** (atraso antes do próximo grupo começar).
+### Passo C: Criar Configuração da Wave
+1. Clique com o botão direito -> `Create` -> `NeonDefense` -> `WaveConfig`.
+2. No Inspector, localize a lista **Enemy Groups**.
+3. Adicione um novo elemento à lista:
+   - **Enemy Config**: Arraste o arquivo `VirusTypeA` que você criou.
+   - **Count**: Quantidade de inimigos (ex: 10).
+   - **Spawn Rate**: Tempo entre cada inimigo deste grupo (ex: 0.5).
+4. Defina **Time Between Groups** se houver mais de um grupo na mesma onda.
 
-### Atribuindo à Cena
-1.  Selecione o GameObject **WaveManager** na sua cena.
-2.  Localize a lista `Waves` no Inspector.
-3.  Arraste e solte seus assets de `WaveConfig` nesta lista, na ordem em que deseja que apareçam.
-4.  Certifique-se de que a lista `Waypoints` também esteja preenchida com os transforms do caminho.
+### Passo D: Configurar o WaveManager
+1. Selecione o objeto **GameManager** (ou onde o script `WaveManager` estiver).
+2. Na lista **Waves**, arraste o arquivo `WaveConfig` que você criou.
+3. Configure os **Waypoints** (pontos por onde os inimigos passarão).
+4. Marque **Auto Start** se desejar que comece automaticamente.
 
 ---
 
-## 2. Configuração do GitHub Actions (CI/CD)
+## 2. Segredos do GitHub (DevOps)
 
-Para habilitar builds e releases automatizados, você deve configurar **Secrets** nas configurações do seu repositório GitHub.
+Para que o pipeline de CI/CD (`.github/workflows/deploy.yml`) funcione, você precisa adicionar os seguintes **Secrets** no repositório do GitHub (`Settings` -> `Secrets and variables` -> `Actions`):
 
-### Secrets Necessários
-Vá para **Settings** -> **Secrets and variables** -> **Actions** -> **New repository secret**.
+| Nome da Secret | Descrição |
+| :--- | :--- |
+| `UNITY_LICENSE` | O conteúdo do arquivo de licença da Unity (`.ulf`). *Recomendado para Unity Personal/Plus/Pro.* |
+| `UNITY_EMAIL` | O email da sua conta Unity ID. |
+| `UNITY_PASSWORD` | A senha da sua conta Unity ID. |
 
-Adicione os seguintes segredos:
+> **Nota:** Se usar apenas `UNITY_LICENSE` (arquivo de ativação manual), o email e senha podem não ser estritamente necessários dependendo da versão do `game-ci`, mas é boa prática mantê-los se o método de ativação falhar.
 
-1.  **`UNITY_LICENSE`**
-    *   **Descrição:** O conteúdo do seu arquivo de Licença da Unity (`.ulf`).
-    *   **Como obter:**
-        *   Localize seu arquivo `.ulf` na sua máquina local (ex: `C:\ProgramData\Unity\Unity_v6.x.x.ulf` ou `~/.local/share/unity3d/Unity/Unity_v6.x.x.ulf`).
-        *   Abra com um editor de texto.
-        *   Copie todo o conteúdo XML.
-        *   Cole no valor do secret.
+### Como gerar o UNITY_LICENSE:
+1. Use o [Unity License Activation Tool](https://game.ci/docs/github/activation) ou rode um comando docker localmente para extrair o `.ulf`.
+2. Copie todo o conteúdo do XML gerado para a secret `UNITY_LICENSE`.
 
-2.  **`UNITY_EMAIL`** *(Recomendado)*
-    *   **Descrição:** O endereço de e-mail associado ao seu Unity ID.
+---
 
-3.  **`UNITY_PASSWORD`** *(Recomendado)*
-    *   **Descrição:** A senha do seu Unity ID.
+## 3. Como Gerar uma Release
 
-### Disparando um Build
-O workflow está configurado para rodar **APENAS** quando você criar uma tag começando com `v`.
+O sistema está configurado para rodar apenas quando você cria uma **Tag** de versão.
 
-1.  Faça o commit das suas alterações.
-2.  Crie uma tag: `git tag v1.0`
-3.  Envie a tag: `git push origin v1.0`
-
-O GitHub Actions irá automaticamente:
-1.  Compilar para Windows (64-bit) e WebGL.
-2.  Criar uma Release no GitHub.
-3.  Fazer upload dos builds zipados como artefatos (`Windows.zip` e `WebGL.zip`).
+1. No terminal git:
+   ```bash
+   git tag v1.0
+   git push origin v1.0
+   ```
+2. Vá para a aba **Actions** no GitHub. Você verá o workflow `Deploy` iniciar.
+3. Ao final, uma nova **Release** será criada com os arquivos `Windows.zip` e `WebGL.zip` anexados.

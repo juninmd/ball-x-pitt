@@ -1,5 +1,3 @@
-// NeonDefense Solution v1.0
-// NeonDefense - Wave Manager System
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -49,155 +47,103 @@ namespace NeonDefense.Managers
 
         private void OnEnable()
         {
-            GameEvents.OnEnemyKilled += HandleEnemyRemoved;
-            GameEvents.OnEnemyReachedGoal += HandleEnemyReachedGoal;
+            GameEvents.OnEnemyKilled += OnEnemyRemoved;
+            GameEvents.OnEnemyReachedGoal += OnEnemyReached;
         }
 
         private void OnDisable()
         {
-            GameEvents.OnEnemyKilled -= HandleEnemyRemoved;
-            GameEvents.OnEnemyReachedGoal -= HandleEnemyReachedGoal;
+            GameEvents.OnEnemyKilled -= OnEnemyRemoved;
+            GameEvents.OnEnemyReachedGoal -= OnEnemyReached;
         }
 
         private void Start()
         {
             if (autoStart)
             {
-                StartCoroutine(StartGameRoutine());
+                StartCoroutine(StartGame());
             }
         }
 
-        private void HandleEnemyRemoved(Enemy enemy, int value)
+        private void OnEnemyRemoved(Enemy e, int v)
         {
             activeEnemies--;
-            CheckWaveCompletion();
+            CheckWaveEnd();
         }
 
-        private void HandleEnemyReachedGoal(Enemy enemy, int damage)
+        private void OnEnemyReached(Enemy e, int d)
         {
             activeEnemies--;
-            CheckWaveCompletion();
+            CheckWaveEnd();
         }
 
-        /// <summary>
-        /// Checks if the current wave is complete (no active enemies and spawning finished).
-        /// Triggers OnWaveEnd if true.
-        /// </summary>
-        private void CheckWaveCompletion()
+        private void CheckWaveEnd()
         {
-            // Only end wave if spawning is finished and no enemies remain
             if (!isSpawning && activeEnemies <= 0)
             {
-                // Ensure count doesn't go negative due to race conditions
                 activeEnemies = 0;
-
-                Debug.Log($"Wave {currentWaveIndex + 1} Cleared!");
                 GameEvents.OnWaveEnd?.Invoke();
-
-                // Prepare for next wave logic
                 currentWaveIndex++;
+
                 if (currentWaveIndex < waves.Count)
                 {
-                    StartCoroutine(WaitAndStartNextWave(timeBetweenWaves));
+                    StartCoroutine(NextWaveRoutine());
                 }
                 else
                 {
-                    Debug.Log("All waves completed! Victory!");
-                    // Trigger generic victory event or UI here
+                    Debug.Log("Victory! All waves cleared.");
                 }
             }
         }
 
-        private IEnumerator WaitAndStartNextWave(float delay)
+        private IEnumerator NextWaveRoutine()
         {
-            yield return new WaitForSeconds(delay);
+            yield return new WaitForSeconds(timeBetweenWaves);
             StartNextWave();
         }
 
-        /// <summary>
-        /// Starts the next wave if one is available and not currently spawning.
-        /// </summary>
+        private IEnumerator StartGame()
+        {
+            yield return new WaitForSeconds(2f);
+            StartNextWave();
+        }
+
         public void StartNextWave()
         {
-            if (isSpawning) return;
-
-            if (currentWaveIndex < waves.Count)
-            {
-                StartCoroutine(SpawnWave(waves[currentWaveIndex]));
-            }
-            else
-            {
-                Debug.Log("No more waves to spawn.");
-            }
+            if (isSpawning || currentWaveIndex >= waves.Count) return;
+            StartCoroutine(SpawnWave(waves[currentWaveIndex]));
         }
 
-        private IEnumerator StartGameRoutine()
-        {
-            yield return new WaitForSeconds(2f); // Initial warm-up
-            StartNextWave();
-        }
-
-        private IEnumerator SpawnWave(WaveConfig waveConfig)
+        private IEnumerator SpawnWave(WaveConfig config)
         {
             isSpawning = true;
-            activeEnemies = 0;
-
-            // Calculate total enemies for UI or logic if needed
-            int totalEnemiesInWave = 0;
-            if (waveConfig.enemyGroups != null)
-            {
-                foreach (var group in waveConfig.enemyGroups) totalEnemiesInWave += group.count;
-            }
-
-            Debug.Log($"Starting Wave {currentWaveIndex + 1} with {totalEnemiesInWave} enemies.");
             GameEvents.OnWaveStart?.Invoke(currentWaveIndex + 1);
 
-            if (waveConfig.enemyGroups != null)
+            foreach (var group in config.enemyGroups)
             {
-                for (int i = 0; i < waveConfig.enemyGroups.Count; i++)
+                for (int i = 0; i < group.count; i++)
                 {
-                    var group = waveConfig.enemyGroups[i];
-                    for (int j = 0; j < group.count; j++)
-                    {
-                        activeEnemies++;
-                        SpawnEnemy(group.enemyConfig);
-                        yield return new WaitForSeconds(group.spawnRate);
-                    }
-
-                    // Wait between groups (if there are more groups)
-                    if (i < waveConfig.enemyGroups.Count - 1)
-                    {
-                        yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
-                    }
+                    SpawnEnemy(group.enemyConfig);
+                    yield return new WaitForSeconds(group.spawnRate);
                 }
+                yield return new WaitForSeconds(config.timeBetweenGroups);
             }
 
             isSpawning = false;
-
-            // Check immediately in case all enemies died during spawn (unlikely but possible)
-            CheckWaveCompletion();
+            CheckWaveEnd();
         }
 
         private void SpawnEnemy(EnemyConfig config)
         {
             if (EnemyPool.Instance == null)
             {
-                Debug.LogError("EnemyPool is missing from the scene!");
-                activeEnemies--;
+                Debug.LogError("EnemyPool instance is null!");
                 return;
             }
 
-            // Get enemy from pool
+            activeEnemies++;
             Enemy enemy = EnemyPool.Instance.Get(config.prefab);
-
-            if (enemy != null)
-            {
-                enemy.Initialize(config, waypoints);
-            }
-            else
-            {
-                activeEnemies--;
-            }
+            enemy.Initialize(config, waypoints);
         }
     }
 }
