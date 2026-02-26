@@ -3,6 +3,10 @@ using NeonDefense.Enemies;
 
 namespace NeonDefense.ScriptableObjects
 {
+    /// <summary>
+    /// Configuration data for an Enemy type.
+    /// Defines base stats like health, speed, and rewards.
+    /// </summary>
     [CreateAssetMenu(fileName = "NewEnemyConfig", menuName = "NeonDefense/EnemyConfig")]
     public class EnemyConfig : ScriptableObject
     {
@@ -10,7 +14,7 @@ namespace NeonDefense.ScriptableObjects
         [Tooltip("The name of the enemy type.")]
         public string enemyName;
 
-        [Tooltip("The prefab to spawn for this enemy.")]
+        [Tooltip("The prefab to spawn for this enemy. Must have an Enemy component.")]
         public Enemy prefab;
 
         [Header("Stats")]
@@ -22,6 +26,7 @@ namespace NeonDefense.ScriptableObjects
         [Range(0.1f, 50f)]
         public float speed = 5f;
 
+        [Header("Economy & Gameplay")]
         [Tooltip("Currency awarded to player on death (Bits).")]
         [Range(1, 1000)]
         public int bitDrop = 10;

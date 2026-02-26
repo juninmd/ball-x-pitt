@@ -1,10 +1,12 @@
 name: Deploy
 
+# Trigger the workflow only when a tag starting with 'v' is pushed (e.g., v1.0, v1.0.1)
 on:
   push:
     tags:
       - "v*"
 
+# Grant permissions to create releases
 permissions:
   contents: write
 
@@ -34,6 +36,10 @@ jobs:
             Library-${{ matrix.targetPlatform }}-
             Library-
 
+      # License Activation:
+      # The game-ci/unity-builder action automatically handles license activation using the provided environment variables.
+      # UNITY_LICENSE: The content of the .ulf file (XML).
+      # UNITY_EMAIL / UNITY_PASSWORD: Credentials for Unity ID (fallback/verification).
       - name: Build project
         uses: game-ci/unity-builder@v4
         env:
