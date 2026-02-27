@@ -1,96 +1,151 @@
-name: Deploy
+name: Deploy NeonDefense
 
-# Trigger the workflow only when a tag starting with 'v' is pushed (e.g., v1.0, v1.0.1)
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
-# Grant permissions to create releases
 permissions:
   contents: write
 
+env:
+  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+  UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+  UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+
 jobs:
-  build:
-    name: Build for ${{ matrix.targetPlatform }}
+  buildWindows:
+    name: Build for Windows
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        targetPlatform:
-          - StandaloneWindows64
-          - WebGL
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Create LFS file list
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+
+      - name: Restore LFS cache
+        uses: actions/cache@v3
+        id: lfs-cache
         with:
-          fetch-depth: 0
-          lfs: true
+          path: .git/lfs/objects
+          key: ${{ runner.os }}-lfs-${{ hashFiles('.lfs-assets-id') }}
+          restore-keys: |
+            ${{ runner.os }}-lfs-
+
+      - name: Git LFS Pull
+        run: git lfs pull
 
       - name: Cache Library
-        uses: actions/cache@v4
+        uses: actions/cache@v3
         with:
           path: Library
-          key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
-            Library-${{ matrix.targetPlatform }}-
             Library-
 
-      # License Activation:
-      # The game-ci/unity-builder action automatically handles license activation using the provided environment variables.
-      # UNITY_LICENSE: The content of the .ulf file (XML).
-      # UNITY_EMAIL / UNITY_PASSWORD: Credentials for Unity ID (fallback/verification).
-      - name: Build project
+      - name: Build Windows 64-bit
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          targetPlatform: ${{ matrix.targetPlatform }}
+          targetPlatform: StandaloneWindows64
+          buildName: NeonDefense-Windows
 
-      - name: Upload artifact
+      - name: Zip Build
+        run: |
+          cd build/StandaloneWindows64
+          zip -r ../../NeonDefense-Windows.zip .
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Build-${{ matrix.targetPlatform }}
-          path: build/${{ matrix.targetPlatform }}
+          name: NeonDefense-Windows
+          path: NeonDefense-Windows.zip
+
+  buildWebGL:
+    name: Build for WebGL
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create LFS file list
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+
+      - name: Restore LFS cache
+        uses: actions/cache@v3
+        id: lfs-cache
+        with:
+          path: .git/lfs/objects
+          key: ${{ runner.os }}-lfs-${{ hashFiles('.lfs-assets-id') }}
+          restore-keys: |
+            ${{ runner.os }}-lfs-
+
+      - name: Git LFS Pull
+        run: git lfs pull
+
+      - name: Cache Library
+        uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-
+
+      - name: Build WebGL
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: WebGL
+          buildName: NeonDefense-WebGL
+
+      - name: Zip Build
+        run: |
+          cd build/WebGL
+          zip -r ../../NeonDefense-WebGL.zip .
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeonDefense-WebGL
+          path: NeonDefense-WebGL.zip
 
   release:
     name: Create Release
-    needs: build
     runs-on: ubuntu-latest
+    needs: [buildWindows, buildWebGL]
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Download Windows Artifact
         uses: actions/download-artifact@v4
         with:
-          name: Build-StandaloneWindows64
-          path: build/Windows
+          name: NeonDefense-Windows
 
       - name: Download WebGL Artifact
         uses: actions/download-artifact@v4
         with:
-          name: Build-WebGL
-          path: build/WebGL
+          name: NeonDefense-WebGL
 
-      - name: Zip Windows Build
-        run: |
-          cd build/Windows
-          zip -r ../../Windows.zip .
-
-      - name: Zip WebGL Build
-        run: |
-          cd build/WebGL
-          zip -r ../../WebGL.zip .
+      - name: Generate Changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          body: ${{ steps.changelog.outputs.changelog }}
           files: |
-            Windows.zip
-            WebGL.zip
-          generate_release_notes: true
-          draft: false
-          prerelease: false
+            NeonDefense-Windows.zip
+            NeonDefense-WebGL.zip

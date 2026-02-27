@@ -1,71 +1,72 @@
-# NeonDefense Project Instructions
+# NeonDefense - Instruções de Configuração
 
-## 1. Unity Project Setup (ScriptableObjects)
+Este documento guia você na configuração inicial do projeto e do pipeline de CI/CD.
 
-To configure the game data, you need to create ScriptableObject assets in the Project window.
+## 1. Configuração dos ScriptableObjects (Unity Editor)
 
-### Creating Enemy Configs
-1. Right-click in the Project window: `Create -> NeonDefense -> EnemyConfig`.
-2. Name the file (e.g., `BasicVirus`).
-3. Set the attributes:
-   - **Name**: "Virus Alpha"
-   - **Health**: 100
-   - **Speed**: 5
-   - **Bit Drop**: 10
-   - **Prefab**: Assign your Enemy prefab (must have `Enemy` script attached).
+Para criar a primeira onda de inimigos, siga estes passos no Unity Editor:
 
-### Creating Tower Configs
-1. Right-click: `Create -> NeonDefense -> TowerConfig`.
-2. Name the file (e.g., `LaserTurret`).
-3. Set attributes:
-   - **Cost**: 100
-   - **Range**: 10
-   - **Fire Rate**: 2 (shots per second)
-   - **Strategy Type**: Select `Laser` or `Missile`.
-   - **Prefab**: The tower model prefab.
-   - **Projectile Prefab**: (Optional) Assign if using Missile strategy.
+### A. Criar Configuração de Inimigo (EnemyConfig)
+1.  Na janela `Project`, clique com o botão direito na pasta `Assets/Data/Enemies` (crie se não existir).
+2.  Selecione **Create -> NeonDefense -> EnemyConfig**.
+3.  Nomeie o arquivo (ex: `BasicVirus`).
+4.  No `Inspector`, configure:
+    *   **Enemy Name:** "Basic Virus"
+    *   **Prefab:** Arraste o prefab do seu inimigo (deve ter o script `Enemy`).
+    *   **Health:** 20
+    *   **Speed:** 3
+    *   **Bit Drop:** 5
+    *   **Damage To Player:** 1
 
-### Creating Wave Configs
-1. Right-click: `Create -> NeonDefense -> WaveConfig`.
-2. Name the file (e.g., `Wave01`).
-3. In **Enemy Groups**, add a new element:
-   - **Enemy Config**: Drag your `BasicVirus` asset here.
-   - **Count**: 10
-   - **Spawn Rate**: 1 (second delay between spawns).
+### B. Criar Configuração de Torre (TowerConfig)
+1.  Clique com o botão direito na pasta `Assets/Data/Towers`.
+2.  Selecione **Create -> NeonDefense -> TowerConfig**.
+3.  Nomeie o arquivo (ex: `LaserTower`).
+4.  No `Inspector`, configure:
+    *   **Tower Name:** "Laser Sentinel"
+    *   **Cost:** 50
+    *   **Prefab:** Arraste o prefab da torre.
+    *   **Range:** 10
+    *   **Fire Rate:** 1
+    *   **Damage:** 5
+    *   **Strategy Type:** Laser
 
-### Scene Setup
-1. Create an empty GameObject named `WaveManager`.
-   - Attach `WaveManager` script.
-   - Assign your `WaveConfig` assets to the **Waves** list.
-   - Assign Waypoints (Transformers representing the path).
-   - Create a child object with `EnemyPool` script (or attach `EnemyPool` to the manager) and assign it to the `Enemy Pool` field.
-2. Create an empty GameObject named `EconomyManager`.
-   - Attach `EconomyManager` script.
-   - Set starting bits.
+### C. Criar Configuração da Onda (WaveConfig)
+1.  Clique com o botão direito na pasta `Assets/Data/Waves`.
+2.  Selecione **Create -> NeonDefense -> WaveConfig**.
+3.  Nomeie o arquivo (ex: `Wave01`).
+4.  No `Inspector`, encontre a lista **Enemy Groups**:
+    *   Clique em `+` para adicionar um grupo.
+    *   **Enemy Config:** Arraste o `BasicVirus` criado acima.
+    *   **Count:** 10 (número de inimigos neste grupo).
+    *   **Spawn Rate:** 1.5 (segundos entre cada inimigo).
+5.  **Time Between Groups:** 2 (segundos antes do próximo grupo, se houver).
 
-## 2. DevOps & GitHub Actions
+### D. Configurar o WaveManager na Cena
+1.  Selecione o objeto `WaveManager` na hierarquia da cena.
+2.  No componente `WaveManager`:
+    *   **Waves:** Adicione o `Wave01` à lista.
+    *   **Waypoints:** Arraste os Transforms dos waypoints do mapa em ordem (o primeiro é o spawn, o último é o destino).
+    *   **Auto Start:** Marque se quiser que comece automaticamente.
 
-To enable automated builds (Windows & WebGL) and Releases:
+---
 
-### Required GitHub Secrets
-Go to your repository **Settings -> Secrets and variables -> Actions** and add:
+## 2. Configuração do GitHub Actions (CI/CD)
 
-1. `UNITY_LICENSE`
-   - The content of your Unity License file (`.ulf`).
-   - If using a Personal license, you may need to acquire this via the `game-ci` activation steps locally or use their documentation to export it.
-2. `UNITY_EMAIL`
-   - Your Unity account email.
-3. `UNITY_PASSWORD`
-   - Your Unity account password.
+Para que o build automático funcione, você precisa adicionar as seguintes **Secrets** no repositório do GitHub (`Settings -> Secrets and variables -> Actions`):
 
-### Triggering a Build
-The pipeline runs **only** when you push a tag starting with `v`.
+| Secret Name | Descrição | Como obter |
+| :--- | :--- | :--- |
+| `UNITY_LICENSE` | Conteúdo do arquivo `.ulf` da licença Unity. | [Instruções GameCI](https://game.ci/docs/github/activation) |
+| `UNITY_EMAIL` | Email da sua conta Unity. | Sua conta Unity ID. |
+| `UNITY_PASSWORD` | Senha da sua conta Unity. | Sua conta Unity ID. |
 
+### Como Disparar um Release
+O pipeline de deploy só é ativado quando você cria uma **Tag** que começa com `v`.
+
+Exemplo via terminal:
 ```bash
-git add .
-git commit -m "feat: Ready for release"
-git tag v1.0
-git push origin v1.0
+git tag v1.0.0
+git push origin v1.0.0
 ```
-
-Check the **Actions** tab in GitHub to see the build progress.
+Isso iniciará o workflow que compila para Windows e WebGL e cria uma Release no GitHub.
