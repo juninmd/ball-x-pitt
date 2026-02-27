@@ -122,6 +122,8 @@ namespace NeonDefense.Towers
             {
                 if (hitBuffer[i].TryGetComponent<Enemy>(out var enemy))
                 {
+                    if (!enemy.gameObject.activeInHierarchy) continue;
+
                     float distance = Vector3.Distance(transform.position, enemy.transform.position);
                     if (distance < shortestDistance)
                     {
