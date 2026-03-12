@@ -1,45 +1,42 @@
-# NeonDefense
+# 🏀 Ball-x-Pitt (Unity Edition)
 
-A Cyberpunk Tower Defense game developed in Unity, focusing on clean architecture, design patterns, and robust DevOps practices.
+[![Unity Status](https://img.shields.io/badge/Unity-6000.x-blue.svg?logo=unity)]()
+[![Status: Active](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🏗️ Architecture & Clean Code
+> A modern, physics-driven sports game built with Unity, featuring high-fidelity ball mechanics and "Antigravity" engineering standards.
 
-This project adheres to **SOLID principles** and isolates Data logic from View logic.
+## ✨ Features
 
-### Core Systems
-- **Managers:** Centralized control via `GameManager` (State), `WaveManager` (Spawning), and `EconomyManager` (Currency).
-- **Event-Driven:** Uses a lightweight Event Bus (`GameEvents.cs`) to decouple systems. For example, `OnEnemyKilled` triggers economy updates without direct dependencies.
+- **Advanced Physics**: Realistic ball interactions and collision detection powered by Unity Physics.
+- **Micro-interactions**: Fluid HUD and menu animations for an immersive player experience.
+- **Cross-Platform**: Optimized for both PC and mobile deployment.
+- **Antigravity Verification**: Built-in scripts for scene and asset integrity validation.
 
-### Design Patterns
-1.  **Object Pooling:** Essential for performance. `ProjectilePool` and `EnemyPool` manage reusable instances to minimize Garbage Collection.
-2.  **Factory Method:** `TowerFactory` handles the instantiation of towers and injection of strategies.
-3.  **Strategy Pattern:** `IAttackStrategy` defines attack behaviors (Laser, Missile), allowing towers to switch logic at runtime or configuration.
-4.  **ScriptableObjects:** Used extensively for data configuration (`EnemyConfig`, `TowerConfig`, `WaveConfig`).
+## 🛠️ Tech Stack
 
-## 🚀 DevOps (GitHub Actions)
+- **Game Engine**: Unity 6000+
+- **Scripting**: C# (Strictly typed)
+- **UI Framework**: Unity UI + LeanTween
+- **VFX**: Particle System + Shader Graph
 
-The project includes a production-ready CI/CD pipeline in `.github/workflows/deploy.yml`.
+## 🚀 Getting Started
 
-- **Trigger:** Builds are triggered **only** on tags starting with `v*` (e.g., `v1.0`).
-- **Targets:** Builds for **Windows 64-bit** and **WebGL**.
-- **License Handling:** Automatically activates Unity Pro/Plus license via GitHub Secrets.
-- **Automated Release:** Creates a GitHub Release with changelogs and attaches zipped artifacts for both platforms.
+```bash
+# Clone the repository
+git clone --depth 1 git@github.com:juninmd/ball-x-pitt.git
 
-## 🛠️ Setup & Configuration
+# Open the project in Unity Hub
+# Import required Packages (Settings > Package Manager)
+```
 
-For detailed instructions on how to configure Waves, Enemies, and Towers in the Unity Editor, please refer to [SETUP.md](SETUP.md).
+## 🛡️ Antigravity Protocol (Unity)
 
-### Quick Start
-1.  Open the project in Unity.
-2.  Navigate to `Assets/Scripts/ScriptableObjects/` to create new configurations.
-3.  Assign configurations to the `WaveManager` in the scene.
-4.  Press Play!
+This project adheres to the **Antigravity** engineering standards:
+- **Modular C# Scripts**: Separation of concerns between `Controller`, `View`, and `Physics`.
+- **Zero Allocations**: Memory-efficient scripting to prevent GC spikes during gameplay.
+- **Scriptable Objects**: Data-driven architecture for levels and player stats.
 
-## 📂 Project Structure
+---
 
-- `Assets/Scripts/Core`: Fundamental systems (Pooling, Events).
-- `Assets/Scripts/Managers`: Game state and logic controllers.
-- `Assets/Scripts/ScriptableObjects`: Data definitions.
-- `Assets/Scripts/Strategies`: Attack logic implementations.
-- `Assets/Scripts/Towers`: Tower components and factory.
-- `Assets/Scripts/Enemies`: Enemy AI and movement.
+*"Physics is the only law we can't break."*
