@@ -1,13 +1,16 @@
-name: Deploy Unity Project 🚀
+name: Deploy Release
 
 on:
   push:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
-  build:
-    name: Build for ${{ matrix.targetPlatform }} 🎮
+  buildForPlatforms:
+    name: Build for ${{ matrix.targetPlatform }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -16,12 +19,13 @@ jobs:
           - StandaloneWindows64
           - WebGL
     steps:
-      - name: Checkout Repository 🛒
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           lfs: true
 
-      - name: Cache Unity Library 🗄️
+      - name: Cache
         uses: actions/cache@v3
         with:
           path: Library
@@ -30,7 +34,7 @@ jobs:
             Library-${{ matrix.targetPlatform }}-
             Library-
 
-      - name: Run Unity Build 🏗️
+      - name: Build Project
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -38,45 +42,36 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
+          buildName: NeonDefense-${{ matrix.targetPlatform }}
 
-      - name: Upload Build Artifact 📤
+      - name: Zip Artifacts
+        run: |
+          cd build/${{ matrix.targetPlatform }}
+          zip -r ../../NeonDefense-${{ matrix.targetPlatform }}.zip .
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Build-${{ matrix.targetPlatform }}
-          path: build/${{ matrix.targetPlatform }}
+          name: NeonDefense-${{ matrix.targetPlatform }}
+          path: NeonDefense-${{ matrix.targetPlatform }}.zip
 
   release:
-    name: Create GitHub Release 📦
-    needs: build
+    name: Create Release
+    needs: buildForPlatforms
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: Checkout Repository 🛒
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download Windows Build 📥
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: Build-StandaloneWindows64
-          path: build/StandaloneWindows64
+          path: artifacts
 
-      - name: Download WebGL Build 📥
-        uses: actions/download-artifact@v4
-        with:
-          name: Build-WebGL
-          path: build/WebGL
-
-      - name: Zip Builds 🗜️
-        run: |
-          cd build
-          zip -r NeonDefense-Windows64.zip StandaloneWindows64/
-          zip -r NeonDefense-WebGL.zip WebGL/
-
-      - name: Create Release 🚀
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           files: |
-            build/NeonDefense-Windows64.zip
-            build/NeonDefense-WebGL.zip
+            artifacts/NeonDefense-StandaloneWindows64/NeonDefense-StandaloneWindows64.zip
+            artifacts/NeonDefense-WebGL/NeonDefense-WebGL.zip
