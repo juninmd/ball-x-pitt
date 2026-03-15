@@ -62,10 +62,22 @@ namespace NeonDefense.Managers
 
             if (!isSpawning && activeEnemies == 0)
             {
-                GameEvents.OnWaveEnd?.Invoke();
-                currentWaveIndex++;
+                CheckWaveEndAndTriggerEvent();
+                UpdateWaveIndexAndScheduleNext();
+            }
+        }
 
-                if (currentWaveIndex < waves.Count) StartCoroutine(NextWaveRoutine());
+        private void CheckWaveEndAndTriggerEvent()
+        {
+            GameEvents.OnWaveEnd?.Invoke();
+        }
+
+        private void UpdateWaveIndexAndScheduleNext()
+        {
+            currentWaveIndex++;
+            if (currentWaveIndex < waves.Count)
+            {
+                StartCoroutine(NextWaveRoutine());
             }
         }
 
@@ -92,6 +104,14 @@ namespace NeonDefense.Managers
             isSpawning = true;
             GameEvents.OnWaveStart?.Invoke(currentWaveIndex + 1);
 
+            yield return StartCoroutine(SpawnWaveWithGroups(config));
+
+            isSpawning = false;
+            CheckWaveEnd();
+        }
+
+        private IEnumerator SpawnWaveWithGroups(WaveConfig config)
+        {
             foreach (var group in config.enemyGroups)
             {
                 for (int i = 0; i < group.count; i++)
@@ -102,9 +122,6 @@ namespace NeonDefense.Managers
                 if (config.timeBetweenGroups > 0)
                     yield return new WaitForSeconds(config.timeBetweenGroups);
             }
-
-            isSpawning = false;
-            CheckWaveEnd();
         }
 
         private void SpawnEnemy(EnemyConfig config)
