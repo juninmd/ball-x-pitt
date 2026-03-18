@@ -1,72 +1,50 @@
-# NeonDefense - Instruções de Configuração
+# NeonDefense - Guia de Configuração e DevOps
 
-Este documento guia você na configuração inicial do projeto e do pipeline de CI/CD.
+Este documento cobre as instruções para configurar o projeto na Unity e no GitHub de acordo com os requisitos.
 
-## 1. Configuração dos ScriptableObjects (Unity Editor)
+## 1. Configurando ScriptableObjects no Editor para a Primeira Onda
 
-Para criar a primeira onda de inimigos, siga estes passos no Unity Editor:
+O sistema foi arquitetado de modo que os dados de "Ondas" e "Inimigos" não estão rígidos em código. Eles usam *ScriptableObjects*, o que permite a um Game Designer criar centenas de fases sem encostar no código fonte.
 
-### A. Criar Configuração de Inimigo (EnemyConfig)
-1.  Na janela `Project`, clique com o botão direito na pasta `Assets/Data/Enemies` (crie se não existir).
-2.  Selecione **Create -> NeonDefense -> EnemyConfig**.
-3.  Nomeie o arquivo (ex: `BasicVirus`).
-4.  No `Inspector`, configure:
-    *   **Enemy Name:** "Basic Virus"
-    *   **Prefab:** Arraste o prefab do seu inimigo (deve ter o script `Enemy`).
-    *   **Health:** 20
-    *   **Speed:** 3
-    *   **Bit Drop:** 5
-    *   **Damage To Player:** 1
+### Passos de criação:
+1. **Crie um EnemyConfig (O Vírus)**
+   - No Unity Editor, clique com o botão direito na aba *Project*.
+   - Selecione `Create > NeonDefense > Enemy Config`.
+   - Nomeie como `BasicVirus`.
+   - No *Inspector*:
+     - Arraste o prefab do seu inimigo para o campo `Prefab`.
+     - Defina os atributos: `Health = 100`, `Speed = 5`, `Bit Drop = 10`, `Damage To Player = 1`.
+2. **Crie o WaveConfig (A Onda)**
+   - Novamente na aba *Project*, clique com o botão direito.
+   - Selecione `Create > NeonDefense > Wave Config`.
+   - Nomeie como `Wave_01`.
+   - No *Inspector*:
+     - Em `Enemy Groups`, adicione um novo elemento à lista.
+     - Arraste o seu `BasicVirus` (criado acima) para o campo `Enemy Config`.
+     - Defina a contagem (`Count = 10`) e a taxa de spawn (`Spawn Rate = 1` - 1 por segundo).
+     - Se quiser que essa onda tenha dois tipos de vírus juntos, adicione mais um item à lista `Enemy Groups`.
+3. **Configure o WaveManager na Cena**
+   - Crie um GameObject vazio na cena chamado `Managers`.
+   - Adicione o componente `WaveManager`.
+   - Na lista `Waves` no Inspector, adicione o `Wave_01` que você acabou de criar.
+   - Ative a flag `Auto Start` caso queira que inicie a onda automaticamente ao dar "Play".
 
-### B. Criar Configuração de Torre (TowerConfig)
-1.  Clique com o botão direito na pasta `Assets/Data/Towers`.
-2.  Selecione **Create -> NeonDefense -> TowerConfig**.
-3.  Nomeie o arquivo (ex: `LaserTower`).
-4.  No `Inspector`, configure:
-    *   **Tower Name:** "Laser Sentinel"
-    *   **Cost:** 50
-    *   **Prefab:** Arraste o prefab da torre.
-    *   **Range:** 10
-    *   **Fire Rate:** 1
-    *   **Damage:** 5
-    *   **Strategy Type:** Laser
+## 2. Configurando Segredos do GitHub (CI/CD)
 
-### C. Criar Configuração da Onda (WaveConfig)
-1.  Clique com o botão direito na pasta `Assets/Data/Waves`.
-2.  Selecione **Create -> NeonDefense -> WaveConfig**.
-3.  Nomeie o arquivo (ex: `Wave01`).
-4.  No `Inspector`, encontre a lista **Enemy Groups**:
-    *   Clique em `+` para adicionar um grupo.
-    *   **Enemy Config:** Arraste o `BasicVirus` criado acima.
-    *   **Count:** 10 (número de inimigos neste grupo).
-    *   **Spawn Rate:** 1.5 (segundos entre cada inimigo).
-5.  **Time Between Groups:** 2 (segundos antes do próximo grupo, se houver).
+O arquivo `.github/workflows/deploy.yml` fará o build automático (WebGL e Windows 64) toda vez que uma tag `v*` (ex: `v1.0.0`) for publicada no GitHub e vai criar uma Release no repositório.
 
-### D. Configurar o WaveManager na Cena
-1.  Selecione o objeto `WaveManager` na hierarquia da cena.
-2.  No componente `WaveManager`:
-    *   **Waves:** Adicione o `Wave01` à lista.
-    *   **Waypoints:** Arraste os Transforms dos waypoints do mapa em ordem (o primeiro é o spawn, o último é o destino).
-    *   **Auto Start:** Marque se quiser que comece automaticamente.
+Porém, como a Unity exige uma licença válida para rodar compilação por linha de comando (`game-ci`), você precisará adicionar os seguintes **Secrets** no seu repositório do GitHub.
 
----
+Para adicionar, vá em: `Settings > Secrets and variables > Actions > New repository secret`.
 
-## 2. Configuração do GitHub Actions (CI/CD)
+Adicione os três secrets exatos abaixo:
 
-Para que o build automático funcione, você precisa adicionar as seguintes **Secrets** no repositório do GitHub (`Settings -> Secrets and variables -> Actions`):
+| Nome do Secret | O que colocar |
+| :--- | :--- |
+| `UNITY_EMAIL` | O e-mail da sua conta da Unity (ex: seuemail@gmail.com). |
+| `UNITY_PASSWORD` | A senha da sua conta da Unity. |
+| `UNITY_LICENSE` | O arquivo de licença `.ulf` gerado (Veja abaixo como gerar). |
 
-| Secret Name | Descrição | Como obter |
-| :--- | :--- | :--- |
-| `UNITY_LICENSE` | Conteúdo do arquivo `.ulf` da licença Unity. | [Instruções GameCI](https://game.ci/docs/github/activation) |
-| `UNITY_EMAIL` | Email da sua conta Unity. | Sua conta Unity ID. |
-| `UNITY_PASSWORD` | Senha da sua conta Unity. | Sua conta Unity ID. |
-
-### Como Disparar um Release
-O pipeline de deploy só é ativado quando você cria uma **Tag** que começa com `v`.
-
-Exemplo via terminal:
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-Isso iniciará o workflow que compila para Windows e WebGL e cria uma Release no GitHub.
+**Nota sobre a Licença (`UNITY_LICENSE`):**
+A versão Personal da Unity necessita que você ative uma licença temporária para o servidor CI. Para gerar isso facilmente:
+1. Recomendamos seguir a documentação do `game-ci` na seção de [Activation](https://game.ci/docs/github/activation) onde mostram como extrair o seu `.ulf` no seu computador local e colar o conteúdo XML dentro desse Secret.
