@@ -1,4 +1,4 @@
-name: Deploy Release
+name: Deploy NeonDefense
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  buildForPlatforms:
+  build:
     name: Build for ${{ matrix.targetPlatform }}
     runs-on: ubuntu-latest
     strategy:
@@ -18,15 +18,15 @@ jobs:
         targetPlatform:
           - StandaloneWindows64
           - WebGL
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           lfs: true
 
-      - name: Cache
-        uses: actions/cache@v3
+      - name: Cache Unity Library
+        uses: actions/cache@v4
         with:
           path: Library
           key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
@@ -34,7 +34,7 @@ jobs:
             Library-${{ matrix.targetPlatform }}-
             Library-
 
-      - name: Build Project
+      - name: Run Unity Build
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -42,36 +42,39 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
-          buildName: NeonDefense-${{ matrix.targetPlatform }}
+          buildName: NeonDefense
+          versioning: Tag
 
-      - name: Zip Artifacts
-        run: |
-          cd build/${{ matrix.targetPlatform }}
-          zip -r ../../NeonDefense-${{ matrix.targetPlatform }}.zip .
+      - name: Zip Windows Artifacts
+        if: matrix.targetPlatform == 'StandaloneWindows64'
+        run: zip -r NeonDefense-Windows64.zip build/StandaloneWindows64
 
-      - name: Upload Artifact
+      - name: Zip WebGL Artifacts
+        if: matrix.targetPlatform == 'WebGL'
+        run: zip -r NeonDefense-WebGL.zip build/WebGL
+
+      - name: Upload Artifacts to Workflow
         uses: actions/upload-artifact@v4
         with:
-          name: NeonDefense-${{ matrix.targetPlatform }}
-          path: NeonDefense-${{ matrix.targetPlatform }}.zip
+          name: Build-${{ matrix.targetPlatform }}
+          path: NeonDefense-*.zip
 
   release:
-    name: Create Release
-    needs: buildForPlatforms
+    name: Create GitHub Release
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Download all artifacts
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          path: artifacts/
 
-      - name: Create GitHub Release
+      - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           files: |
-            artifacts/NeonDefense-StandaloneWindows64/NeonDefense-StandaloneWindows64.zip
-            artifacts/NeonDefense-WebGL/NeonDefense-WebGL.zip
+            artifacts/**/*.zip
