@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-        /// <summary>
-        /// Starts the next wave if one is available and not currently spawning.
-        /// </summary>
-        public void StartNextWave()
-        {
-            if (isSpawning) return;
 
             if (currentWaveIndex < waves.Count)
             {
@@ -340,7 +334,7 @@ namespace NeonDefense.Core
     /// Implements the Object Pooling Pattern requirement.
     /// </summary>
     [DisallowMultipleComponent]
-    public class ProjectilePool : ObjectPool<Projectile>
+            if (nearestEnemy != null)
     {
         public static ProjectilePool Instance { get; private set; }
 
@@ -528,3 +522,6 @@ jobs:
 | `UNITY_LICENSE` | Conteúdo do arquivo `.ulf` (Recomendado). |
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
