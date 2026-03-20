@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-                    Debug.Log("All waves completed! Victory!");
-                    // Trigger generic victory event or UI here
-                }
-            }
-        }
-
         private IEnumerator WaitAndStartNextWave(float delay)
         {
             yield return new WaitForSeconds(delay);
@@ -340,7 +334,7 @@ namespace NeonDefense.Towers
 }
 ```
 
-### ProjectilePool.cs
+            if (nearestEnemy != null)
 ```csharp
 using UnityEngine;
 
@@ -530,10 +524,10 @@ jobs:
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 ### Configuração da Onda (WaveConfig)
 1. Clique com o botão direito -> **Create -> NeonDefense -> WaveConfig**.
-2. Adicione grupos de inimigos usando o `BasicVirus` criado acima.
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
 
 ### Segredos do GitHub (Secrets)
-No seu repositório GitHub, vá em **Settings -> Secrets and variables -> Actions** e adicione:
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
 | Nome | Descrição |
 | :--- | :--- |
