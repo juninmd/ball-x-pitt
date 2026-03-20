@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-
-        /// <summary>
-        /// Checks if the current wave is complete (no active enemies and spawning finished).
-        /// Triggers OnWaveEnd if true.
-        /// </summary>
-        private void CheckWaveCompletion()
         {
             // Only end wave if spawning is finished and no enemies remain
             if (!isSpawning && activeEnemies <= 0)
@@ -340,7 +334,7 @@ namespace NeonDefense.Towers
             }
             else
             {
-                currentTarget = null;
+            if (nearestEnemy != null)
             }
         }
 
@@ -530,10 +524,10 @@ jobs:
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         with:
           files: |
-            Windows.zip
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
             WebGL.zip
           generate_release_notes: true
           draft: false
