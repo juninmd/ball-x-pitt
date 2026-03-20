@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-                if (currentWaveIndex < waves.Count)
-                {
-                    StartCoroutine(WaitAndStartNextWave(timeBetweenWaves));
-                }
-                else
-                {
                     Debug.Log("All waves completed! Victory!");
                     // Trigger generic victory event or UI here
                 }
@@ -340,7 +334,7 @@ namespace NeonDefense.Towers
             {
                 Gizmos.color = Color.cyan;
                 Gizmos.DrawWireSphere(transform.position, config.range);
-            }
+            if (nearestEnemy != null)
         }
     }
 }
@@ -530,10 +524,10 @@ jobs:
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 4. Configure no Inspector:
    - **Prefab**: Arraste seu prefab de Inimigo.
-   - **Health**: 10
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
    - **Speed**: 3
    - **Bit Drop**: 5
-
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 ### Configuração da Onda (WaveConfig)
 1. Clique com o botão direito -> **Create -> NeonDefense -> WaveConfig**.
 2. Adicione grupos de inimigos usando o `BasicVirus` criado acima.
