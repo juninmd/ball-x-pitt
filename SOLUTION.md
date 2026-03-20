@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-        }
-    }
-}
-```
-
-### Tower.cs
 ```csharp
 using UnityEngine;
 using NeonDefense.Core;
@@ -340,7 +334,7 @@ permissions:
 
 jobs:
   build:
-    name: Build for ${{ matrix.targetPlatform }}
+            if (nearestEnemy != null)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -445,6 +439,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
