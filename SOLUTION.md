@@ -79,12 +79,6 @@ namespace NeonDefense.Managers
             CheckWaveCompletion();
         }
                     }
-
-                    // Wait between groups (if there are more groups)
-                    if (i < waveConfig.enemyGroups.Count - 1)
-                    {
-                        yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
-                    }
                 }
             }
 
@@ -340,7 +334,7 @@ namespace NeonDefense.ScriptableObjects
         [Tooltip("Health points of the enemy.")]
         [Range(1f, 10000f)]
         public float health = 10f;
-
+            if (nearestEnemy != null)
         [Tooltip("Movement speed in units per second.")]
         [Range(0.1f, 50f)]
         public float speed = 5f;
@@ -481,6 +475,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
