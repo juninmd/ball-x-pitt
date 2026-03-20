@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-
-            if (currentWaveIndex < waves.Count)
-            {
-                StartCoroutine(SpawnWave(waves[currentWaveIndex]));
-            }
-            else
             {
                 Debug.Log("No more waves to spawn.");
             }
@@ -340,7 +334,7 @@ namespace NeonDefense.Core
 
         protected override void Awake()
         {
-            // Ensure Singleton pattern
+            if (nearestEnemy != null)
             if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
@@ -523,5 +517,7 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
