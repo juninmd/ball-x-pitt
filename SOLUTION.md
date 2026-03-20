@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-        {
-            // Only end wave if spawning is finished and no enemies remain
-            if (!isSpawning && activeEnemies <= 0)
-            {
-                // Ensure count doesn't go negative due to race conditions
-                activeEnemies = 0;
 
                 Debug.Log($"Wave {currentWaveIndex + 1} Cleared!");
                 GameEvents.OnWaveEnd?.Invoke();
@@ -340,7 +334,7 @@ namespace NeonDefense.Towers
 
         private void Attack()
         {
-            if (attackStrategy != null && currentTarget != null)
+            if (nearestEnemy != null)
             {
                 attackStrategy.Attack(currentTarget, firePoint, config);
             }
@@ -530,10 +524,10 @@ jobs:
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
             WebGL.zip
           generate_release_notes: true
-          draft: false
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
           prerelease: false
 ```
-
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 ## 3. Instruções de Configuração
 
 ### Configuração do ScriptableObject (EnemyConfig)
