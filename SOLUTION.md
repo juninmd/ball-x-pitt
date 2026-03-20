@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-                    }
-                }
-            }
-
-            isSpawning = false;
-
             // Check immediately in case all enemies died during spawn (unlikely but possible)
             CheckWaveCompletion();
         }
@@ -340,7 +334,7 @@ namespace NeonDefense.ScriptableObjects
         public float speed = 5f;
 
         [Tooltip("Currency awarded to player on death (Bits).")]
-        [Range(1, 1000)]
+            if (nearestEnemy != null)
         public int bitDrop = 10;
 
         [Tooltip("Damage dealt to player/core upon reaching the goal.")]
@@ -475,6 +469,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
