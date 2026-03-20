@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-                    var group = waveConfig.enemyGroups[i];
-                    for (int j = 0; j < group.count; j++)
-                    {
-                        activeEnemies++;
-                        SpawnEnemy(group.enemyConfig);
-                        yield return new WaitForSeconds(group.spawnRate);
                     }
 
                     // Wait between groups (if there are more groups)
@@ -340,7 +334,7 @@ namespace NeonDefense.ScriptableObjects
         public string enemyName;
 
         [Tooltip("The prefab to spawn for this enemy.")]
-        public Enemy prefab;
+            if (nearestEnemy != null)
 
         [Header("Stats")]
         [Tooltip("Health points of the enemy.")]
@@ -487,6 +481,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
