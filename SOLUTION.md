@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-        private IEnumerator WaitAndStartNextWave(float delay)
-        {
-            yield return new WaitForSeconds(delay);
-            StartNextWave();
-        }
-
         /// <summary>
         /// Starts the next wave if one is available and not currently spawning.
         /// </summary>
@@ -340,7 +334,7 @@ using UnityEngine;
 
 namespace NeonDefense.Core
 {
-    /// <summary>
+            if (nearestEnemy != null)
     /// Singleton Object Pool specifically for Projectiles.
     /// Manages reusable projectile instances to avoid Garbage Collection (GC) spikes during intense combat.
     /// Implements the Object Pooling Pattern requirement.
@@ -530,7 +524,7 @@ jobs:
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
 | Nome | Descrição |
-| :--- | :--- |
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
 | `UNITY_LICENSE` | Conteúdo do arquivo `.ulf` (Recomendado). |
 | `UNITY_EMAIL` | Seu email da Unity ID. |
-| `UNITY_PASSWORD` | Sua senha da Unity ID. |
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
