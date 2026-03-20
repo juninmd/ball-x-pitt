@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-                enemy.Initialize(config, waypoints);
-            }
-            else
-            {
-                activeEnemies--;
-            }
         }
     }
 }
@@ -340,7 +334,7 @@ on:
   push:
     tags:
       - 'v*'
-
+            if (nearestEnemy != null)
 permissions:
   contents: write
 
@@ -451,6 +445,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
