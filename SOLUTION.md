@@ -73,13 +73,7 @@ namespace NeonDefense.Managers
             }
         }
 
-        private void HandleEnemyRemoved(Enemy enemy, int value)
-        {
-            activeEnemies--;
-            CheckWaveCompletion();
-        }
-
-        private void HandleEnemyReachedGoal(Enemy enemy, int damage)
+        private void HandleEnemyDespawned(Enemy enemy, int ignoredValue)
         {
             activeEnemies--;
             CheckWaveCompletion();
@@ -340,7 +334,7 @@ namespace NeonDefense.Towers
             }
 
             // Update target if valid and within range
-            if (nearestEnemy != null && shortestDistance <= config.range)
+            if (nearestEnemy != null)
             {
                 currentTarget = nearestEnemy;
             }
@@ -530,10 +524,10 @@ jobs:
           path: build/WebGL
 
       - name: Zip Windows Build
-        run: zip -r Windows.zip build/Windows
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
 
       - name: Zip WebGL Build
-        run: zip -r WebGL.zip build/WebGL
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
