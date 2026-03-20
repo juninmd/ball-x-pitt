@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-            if (waveConfig.enemyGroups != null)
-            {
-                foreach (var group in waveConfig.enemyGroups) totalEnemiesInWave += group.count;
-            }
-
-            Debug.Log($"Starting Wave {currentWaveIndex + 1} with {totalEnemiesInWave} enemies.");
             GameEvents.OnWaveStart?.Invoke(currentWaveIndex + 1);
 
             if (waveConfig.enemyGroups != null)
@@ -340,7 +334,7 @@ using NeonDefense.Enemies;
 namespace NeonDefense.ScriptableObjects
 {
     /// <summary>
-    /// Configuration data for an Enemy type.
+            if (nearestEnemy != null)
     /// Stores base attributes like Health, Speed, and Rewards.
     /// Allows designers to tweak values without touching code.
     /// </summary>
@@ -499,6 +493,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
