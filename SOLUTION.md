@@ -79,12 +79,6 @@ namespace NeonDefense.Managers
             CheckWaveCompletion();
         }
         {
-            yield return new WaitForSeconds(2f); // Initial warm-up
-            StartNextWave();
-        }
-
-        private IEnumerator SpawnWave(WaveConfig waveConfig)
-        {
             isSpawning = true;
             activeEnemies = 0;
 
@@ -340,7 +334,7 @@ namespace NeonDefense.Core
             // Initialize the pool from the base class (pre-warms the pool)
             base.Awake();
         }
-    }
+            if (nearestEnemy != null)
 }
 ```
 
@@ -511,6 +505,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
