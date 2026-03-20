@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-            // Check immediately in case all enemies died during spawn (unlikely but possible)
-            CheckWaveCompletion();
-        }
-
-        private void SpawnEnemy(EnemyConfig config)
-        {
             if (EnemyPool.Instance == null)
             {
                 Debug.LogError("EnemyPool is missing from the scene!");
@@ -340,7 +334,7 @@ namespace NeonDefense.ScriptableObjects
         [Tooltip("Damage dealt to player/core upon reaching the goal.")]
         [Range(1, 1000)]
         public int damageToPlayer = 1;
-    }
+            if (nearestEnemy != null)
 }
 ```
 
@@ -469,6 +463,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
