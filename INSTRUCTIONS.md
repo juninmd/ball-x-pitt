@@ -66,6 +66,7 @@ O pipeline de deploy só é ativado quando você cria uma **Tag** que começa co
 
 Exemplo via terminal:
 ```bash
+git push
 git tag v1.0.0
 git push origin v1.0.0
 ```
