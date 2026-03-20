@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-            GameEvents.OnWaveStart?.Invoke(currentWaveIndex + 1);
-
-            if (waveConfig.enemyGroups != null)
-            {
-                for (int i = 0; i < waveConfig.enemyGroups.Count; i++)
-                {
                     var group = waveConfig.enemyGroups[i];
                     for (int j = 0; j < group.count; j++)
                     {
@@ -340,7 +334,7 @@ namespace NeonDefense.ScriptableObjects
     /// </summary>
     [CreateAssetMenu(fileName = "NewEnemyConfig", menuName = "NeonDefense/EnemyConfig")]
     public class EnemyConfig : ScriptableObject
-    {
+            if (nearestEnemy != null)
         [Header("General")]
         [Tooltip("The name of the enemy type.")]
         public string enemyName;
@@ -493,6 +487,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
