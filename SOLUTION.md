@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-        {
-            isSpawning = true;
-            activeEnemies = 0;
-
-            // Calculate total enemies for UI or logic if needed
-            int totalEnemiesInWave = 0;
             if (waveConfig.enemyGroups != null)
             {
                 foreach (var group in waveConfig.enemyGroups) totalEnemiesInWave += group.count;
@@ -340,7 +334,7 @@ namespace NeonDefense.Core
 
 ### EnemyConfig.cs
 ```csharp
-using UnityEngine;
+            if (nearestEnemy != null)
 using NeonDefense.Enemies;
 
 namespace NeonDefense.ScriptableObjects
@@ -505,6 +499,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
