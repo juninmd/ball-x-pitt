@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-
-                Debug.Log($"Wave {currentWaveIndex + 1} Cleared!");
-                GameEvents.OnWaveEnd?.Invoke();
-
-                // Prepare for next wave logic
-                currentWaveIndex++;
                 if (currentWaveIndex < waves.Count)
                 {
                     StartCoroutine(WaitAndStartNextWave(timeBetweenWaves));
@@ -340,7 +334,7 @@ namespace NeonDefense.Towers
             }
         }
 
-        private void OnDrawGizmosSelected()
+            if (nearestEnemy != null)
         {
             if (config != null)
             {
@@ -530,10 +524,10 @@ jobs:
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 ## 3. Instruções de Configuração
 
-### Configuração do ScriptableObject (EnemyConfig)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
 1. Na janela Project, vá para `Assets/Scripts/ScriptableObjects/`.
 2. Clique com o botão direito -> **Create -> NeonDefense -> EnemyConfig**.
-3. Nomeie como `BasicVirus`.
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 4. Configure no Inspector:
    - **Prefab**: Arraste seu prefab de Inimigo.
    - **Health**: 10
