@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-
-            // Get enemy from pool
-            Enemy enemy = EnemyPool.Instance.Get(config.prefab);
-
-            if (enemy != null)
-            {
                 enemy.Initialize(config, waypoints);
             }
             else
@@ -340,7 +334,7 @@ namespace NeonDefense.ScriptableObjects
 # Triggers on tags starting with 'v' (e.g., v1.0, v1.1)
 # Builds for Windows 64-bit and WebGL
 # Creates a GitHub Release with zipped artifacts
-name: Deploy
+            if (nearestEnemy != null)
 
 on:
   push:
@@ -457,6 +451,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
