@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-            if (EnemyPool.Instance == null)
-            {
-                Debug.LogError("EnemyPool is missing from the scene!");
-                activeEnemies--;
-                return;
-            }
 
             // Get enemy from pool
             Enemy enemy = EnemyPool.Instance.Get(config.prefab);
@@ -340,7 +334,7 @@ namespace NeonDefense.ScriptableObjects
 
 ## 2. Workflow (GitHub Actions)
 
-### .github/workflows/deploy.yml
+            if (nearestEnemy != null)
 ```yaml
 # DevOps Workflow for NeonDefense
 # Triggers on tags starting with 'v' (e.g., v1.0, v1.1)
@@ -463,6 +457,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
