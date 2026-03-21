@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-            if (config != null && attackStrategy == null)
-            {
-                InitializeStrategyFromConfig();
-            }
-
-            if (firePoint == null)
             {
                 firePoint = transform;
             }
@@ -340,7 +334,7 @@ jobs:
       - name: Download Windows Artifact
         uses: actions/download-artifact@v4
         with:
-          name: Build-StandaloneWindows64
+            if (nearestEnemy != null)
           path: build/Windows
 
       - name: Download WebGL Artifact
@@ -391,6 +385,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
