@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-        private void UpdateTarget()
-        {
-            // Efficiency: Search for enemies within range using a non-allocating Physics call
-            // Clears previous buffer content implicitly by overwriting with new count
-            int count = Physics.OverlapSphereNonAlloc(transform.position, config.range, hitBuffer, enemyLayer);
-
             float shortestDistance = Mathf.Infinity;
             Enemy nearestEnemy = null;
 
@@ -339,6 +333,8 @@ jobs:
 
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
