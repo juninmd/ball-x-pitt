@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-```csharp
-using UnityEngine;
-using NeonDefense.Core;
-using NeonDefense.Enemies;
-using NeonDefense.ScriptableObjects;
-using NeonDefense.Strategies;
 
 namespace NeonDefense.Towers
 {
@@ -340,7 +334,7 @@ jobs:
       fail-fast: false
       matrix:
         targetPlatform:
-          - StandaloneWindows64
+            if (nearestEnemy != null)
           - WebGL
     steps:
       - name: Checkout repository
@@ -439,6 +433,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
