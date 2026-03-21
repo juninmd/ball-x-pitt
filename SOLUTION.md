@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-        /// Creates the appropriate strategy based on the TowerConfig enum.
-        /// Acts as a local factory if the Strategy wasn't injected.
-        /// </summary>
-        private void InitializeStrategyFromConfig()
-        {
-            switch (config.strategyType)
             {
                 case AttackStrategyType.Laser:
                     attackStrategy = new LaserAttackStrategy();
@@ -340,7 +334,7 @@ jobs:
       - name: Zip Windows Build
         run: (cd build/Windows && zip -r ../../Windows.zip .)
 
-      - name: Zip WebGL Build
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
       - name: Create Release
@@ -379,6 +373,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
