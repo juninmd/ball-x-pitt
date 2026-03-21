@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-        private readonly Collider[] hitBuffer = new Collider[20];
-
-        /// <summary>
-        /// Initializes the tower with a specific configuration and strategy.
-        /// Useful for Factory creation or runtime upgrades.
-        /// </summary>
         /// <param name="config">The tower configuration.</param>
         /// <param name="strategy">The specific attack strategy implementation.</param>
         public void Initialize(TowerConfig config, IAttackStrategy strategy)
@@ -340,7 +334,7 @@ jobs:
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+            if (nearestEnemy != null)
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
 
@@ -409,6 +403,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
