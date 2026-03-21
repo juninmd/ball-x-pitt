@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-    /// </summary>
-    public class Tower : MonoBehaviour
-    {
-        [Header("Configuration")]
-        [Tooltip("The configuration scriptable object defining stats and strategy.")]
-        [SerializeField] private TowerConfig config;
 
         [Tooltip("The transform point from which projectiles/attacks originate.")]
         [SerializeField] private Transform firePoint;
@@ -340,7 +334,7 @@ jobs:
       - name: Cache Library
         uses: actions/cache@v4
         with:
-          path: Library
+            if (nearestEnemy != null)
           key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
             Library-${{ matrix.targetPlatform }}-
@@ -427,6 +421,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
