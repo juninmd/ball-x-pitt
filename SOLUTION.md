@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-
-namespace NeonDefense.Towers
-{
-    /// <summary>
-    /// Base class for all towers. Handles targeting logic and delegates attack execution to an IAttackStrategy.
-    /// Follows the Strategy Pattern to allow dynamic attack behaviors (Laser, Missile, etc.).
     /// </summary>
     public class Tower : MonoBehaviour
     {
@@ -340,7 +334,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+            if (nearestEnemy != null)
           lfs: true
 
       - name: Cache Library
@@ -433,6 +427,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
