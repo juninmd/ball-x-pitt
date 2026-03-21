@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-                {
-                    Attack();
-                    fireCountdown = 1f / config.fireRate;
-                }
-            }
-
             fireCountdown -= Time.deltaTime;
         }
 
@@ -340,7 +334,7 @@ jobs:
 1. Clique com o botão direito -> **Create -> NeonDefense -> WaveConfig**.
         run: (cd build/Windows && zip -r ../../Windows.zip .)
 
-### Segredos do GitHub (Secrets)
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
 | Nome | Descrição |
@@ -349,6 +343,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
