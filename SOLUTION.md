@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-                    break;
-                // Extend with more cases as needed
-                default:
-                    Debug.LogWarning($"Unknown strategy type: {config.strategyType}. Defaulting to Laser.");
-                    attackStrategy = new LaserAttackStrategy();
-                    break;
             }
         }
 
@@ -340,7 +334,7 @@ jobs:
           generate_release_notes: true
         run: (cd build/Windows && zip -r ../../Windows.zip .)
           prerelease: false
-```
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 ## 3. Instruções de Configuração
 
@@ -367,6 +361,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
