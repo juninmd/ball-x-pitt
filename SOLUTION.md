@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-            }
-        }
-
-        private void Update()
-        {
-            if (config == null) return;
 
             UpdateTarget();
 
@@ -340,7 +334,7 @@ jobs:
 
         run: (cd build/Windows && zip -r ../../Windows.zip .)
 1. Na janela Project, vá para `Assets/Scripts/ScriptableObjects/`.
-2. Clique com o botão direito -> **Create -> NeonDefense -> EnemyConfig**.
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 4. Configure no Inspector:
    - **Prefab**: Arraste seu prefab de Inimigo.
@@ -361,6 +355,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
