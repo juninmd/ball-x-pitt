@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-
-            UpdateTarget();
-
-            if (currentTarget != null)
-            {
-                if (fireCountdown <= 0f)
                 {
                     Attack();
                     fireCountdown = 1f / config.fireRate;
@@ -340,7 +334,7 @@ jobs:
    - **Prefab**: Arraste seu prefab de Inimigo.
         run: (cd build/Windows && zip -r ../../Windows.zip .)
    - **Speed**: 3
-   - **Bit Drop**: 5
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 ### Configuração da Onda (WaveConfig)
 1. Clique com o botão direito -> **Create -> NeonDefense -> WaveConfig**.
@@ -355,6 +349,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
