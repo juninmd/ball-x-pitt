@@ -79,12 +79,6 @@ namespace NeonDefense.Managers
             CheckWaveCompletion();
         }
 
-        [Tooltip("The transform point from which projectiles/attacks originate.")]
-        [SerializeField] private Transform firePoint;
-
-        [Tooltip("LayerMask to filter enemies during targeting.")]
-        [SerializeField] private LayerMask enemyLayer;
-
         private IAttackStrategy attackStrategy;
         private float fireCountdown = 0f;
         private Enemy currentTarget;
@@ -340,7 +334,7 @@ jobs:
             Library-${{ matrix.targetPlatform }}-
             Library-
 
-      # Build Step using game-ci/unity-builder
+            if (nearestEnemy != null)
       # License Treatment:
       # The builder automatically activates Unity using the provided environment variables.
       # Required Secrets:
@@ -421,6 +415,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
