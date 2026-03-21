@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-            {
-                firePoint = transform;
-            }
-        }
-
-        /// <summary>
         /// Creates the appropriate strategy based on the TowerConfig enum.
         /// Acts as a local factory if the Strategy wasn't injected.
         /// </summary>
@@ -340,7 +334,7 @@ jobs:
       - name: Download WebGL Artifact
         uses: actions/download-artifact@v4
         with:
-          name: Build-WebGL
+            if (nearestEnemy != null)
           path: build/WebGL
 
       - name: Zip Windows Build
@@ -385,6 +379,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
