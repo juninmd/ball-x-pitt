@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-            {
-                case AttackStrategyType.Laser:
-                    attackStrategy = new LaserAttackStrategy();
-                    break;
-                case AttackStrategyType.Missile:
-                    attackStrategy = new MissileAttackStrategy();
                     break;
                 // Extend with more cases as needed
                 default:
@@ -340,7 +334,7 @@ jobs:
       - name: Create Release
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         with:
-          files: |
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
             WebGL.zip
           generate_release_notes: true
@@ -373,6 +367,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
