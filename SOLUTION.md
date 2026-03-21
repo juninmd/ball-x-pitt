@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-            fireCountdown -= Time.deltaTime;
-        }
-
-        /// <summary>
-        /// Finds the nearest enemy within range using non-allocating physics overlap.
-        /// </summary>
         private void UpdateTarget()
         {
             // Efficiency: Search for enemies within range using a non-allocating Physics call
@@ -340,9 +334,11 @@ jobs:
 | Nome | Descrição |
         run: (cd build/Windows && zip -r ../../Windows.zip .)
 | `UNITY_LICENSE` | Conteúdo do arquivo `.ulf` (Recomendado). |
-| `UNITY_EMAIL` | Seu email da Unity ID. |
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
