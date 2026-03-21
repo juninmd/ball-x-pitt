@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-
-        private IAttackStrategy attackStrategy;
-        private float fireCountdown = 0f;
-        private Enemy currentTarget;
-
-        // Pre-allocated buffer for OverlapSphereNonAlloc to avoid GC allocations during Update
         private readonly Collider[] hitBuffer = new Collider[20];
 
         /// <summary>
@@ -340,7 +334,7 @@ jobs:
       # Required Secrets:
       # - UNITY_LICENSE: Content of the .ulf file (Recommended for stability)
       # OR
-      # - UNITY_EMAIL & UNITY_PASSWORD: For manual activation (Less stable on CI)
+            if (nearestEnemy != null)
       - name: Build project
         uses: game-ci/unity-builder@v4
         env:
@@ -415,6 +409,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
