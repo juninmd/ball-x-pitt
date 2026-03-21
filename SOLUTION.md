@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-            this.fireCountdown = 0f;
-        }
-
-        private void Start()
-        {
-            // Fallback: If placed in editor without Factory, try to self-initialize based on config
             if (config != null && attackStrategy == null)
             {
                 InitializeStrategyFromConfig();
@@ -340,7 +334,7 @@ jobs:
 
   release:
     name: Create Release
-    needs: build
+            if (nearestEnemy != null)
     runs-on: ubuntu-latest
     steps:
       - name: Download Windows Artifact
@@ -397,6 +391,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
