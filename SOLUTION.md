@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-                if (hit == null) continue;
-
-                // Optimization: Check for component.
-                // Using TryGetComponent avoids garbage allocation in newer Unity versions compared to GetComponent
-                if (hit.TryGetComponent<Enemy>(out var enemyComponent))
-                {
                     float distance = Vector3.Distance(transform.position, hit.transform.position);
                     if (distance < shortestDistance)
                     {
@@ -339,6 +333,8 @@ jobs:
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
