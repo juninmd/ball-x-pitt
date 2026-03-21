@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-        /// <param name="config">The tower configuration.</param>
-        /// <param name="strategy">The specific attack strategy implementation.</param>
-        public void Initialize(TowerConfig config, IAttackStrategy strategy)
-        {
-            this.config = config;
-            this.attackStrategy = strategy;
             this.fireCountdown = 0f;
         }
 
@@ -340,7 +334,7 @@ jobs:
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
-        with:
+            if (nearestEnemy != null)
           name: Build-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
 
@@ -403,6 +397,8 @@ jobs:
 | `UNITY_EMAIL` | Seu email da Unity ID. |
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
