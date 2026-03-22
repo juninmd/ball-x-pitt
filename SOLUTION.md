@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-        public static ProjectilePool Instance { get; private set; }
-
-        protected override void Awake()
-        {
-            if (nearestEnemy != null)
-            if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
                 return;
@@ -339,6 +333,8 @@ jobs:
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
