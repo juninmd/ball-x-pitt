@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-# DevOps Workflow for NeonDefense
-# Triggers on tags starting with 'v' (e.g., v1.0, v1.1)
-# Builds for Windows 64-bit and WebGL
-# Creates a GitHub Release with zipped artifacts
-            if (nearestEnemy != null)
-
 on:
   push:
     tags:
@@ -295,6 +289,9 @@ jobs:
             if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
             if (nearestEnemy != null)
