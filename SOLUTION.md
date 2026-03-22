@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-
-namespace NeonDefense.ScriptableObjects
-{
-    /// <summary>
-            if (nearestEnemy != null)
-    /// Stores base attributes like Health, Speed, and Rewards.
     /// Allows designers to tweak values without touching code.
     /// </summary>
     [CreateAssetMenu(fileName = "NewEnemyConfig", menuName = "NeonDefense/EnemyConfig")]
@@ -337,3 +331,6 @@ jobs:
             if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
+            if (nearestEnemy != null)
