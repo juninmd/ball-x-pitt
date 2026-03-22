@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-    /// Manages reusable projectile instances to avoid Garbage Collection (GC) spikes during intense combat.
-    /// Implements the Object Pooling Pattern requirement.
-    /// </summary>
-    [DisallowMultipleComponent]
-            if (nearestEnemy != null)
-    {
         public static ProjectilePool Instance { get; private set; }
 
         protected override void Awake()
@@ -339,6 +333,8 @@ jobs:
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
