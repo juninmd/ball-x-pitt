@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-        [Tooltip("The name of the enemy type.")]
-        public string enemyName;
-
-        [Tooltip("The prefab to spawn for this enemy.")]
-            if (nearestEnemy != null)
-
         [Header("Stats")]
         [Tooltip("Health points of the enemy.")]
         [Range(1f, 10000f)]
@@ -325,6 +319,9 @@ jobs:
             if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
             if (nearestEnemy != null)
