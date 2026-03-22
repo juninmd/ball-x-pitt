@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-        [Header("Stats")]
-        [Tooltip("Health points of the enemy.")]
-        [Range(1f, 10000f)]
-        public float health = 10f;
-            if (nearestEnemy != null)
-        [Tooltip("Movement speed in units per second.")]
         [Range(0.1f, 50f)]
         public float speed = 5f;
 
@@ -319,6 +313,9 @@ jobs:
             if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
             if (nearestEnemy != null)
