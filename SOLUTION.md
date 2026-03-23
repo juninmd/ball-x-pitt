@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-          targetPlatform: ${{ matrix.targetPlatform }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-            if (nearestEnemy != null)
-          name: Build-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
 
   release:
@@ -241,6 +235,9 @@ namespace NeonDefense.Managers
             if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
             if (nearestEnemy != null)
