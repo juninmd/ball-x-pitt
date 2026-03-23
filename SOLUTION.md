@@ -79,12 +79,6 @@ namespace NeonDefense.Managers
             CheckWaveCompletion();
         }
 
-| Nome | Descrição |
-        run: (cd build/Windows && zip -r ../../Windows.zip .)
-| `UNITY_LICENSE` | Conteúdo do arquivo `.ulf` (Recomendado). |
-            if (nearestEnemy != null)
-        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
-
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
@@ -181,6 +175,9 @@ namespace NeonDefense.Managers
             if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
             if (nearestEnemy != null)
