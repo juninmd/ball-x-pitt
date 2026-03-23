@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-          path: build/${{ matrix.targetPlatform }}
-
-  release:
-    name: Create Release
-            if (nearestEnemy != null)
-    runs-on: ubuntu-latest
     steps:
       - name: Download Windows Artifact
         uses: actions/download-artifact@v4
@@ -235,6 +229,9 @@ namespace NeonDefense.Managers
             if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
             if (nearestEnemy != null)
