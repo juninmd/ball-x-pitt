@@ -79,12 +79,6 @@ namespace NeonDefense.Managers
             CheckWaveCompletion();
         }
 
-      - name: Zip Windows Build
-        run: (cd build/Windows && zip -r ../../Windows.zip .)
-
-            if (nearestEnemy != null)
-        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
-
       - name: Create Release
         run: (cd build/Windows && zip -r ../../Windows.zip .)
         with:
@@ -217,6 +211,9 @@ namespace NeonDefense.Managers
             if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
             if (nearestEnemy != null)
