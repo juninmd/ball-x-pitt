@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-4. Configure no Inspector:
-   - **Prefab**: Arraste seu prefab de Inimigo.
-        run: (cd build/Windows && zip -r ../../Windows.zip .)
-   - **Speed**: 3
-            if (nearestEnemy != null)
-        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 ### Configuração da Onda (WaveConfig)
 1. Clique com o botão direito -> **Create -> NeonDefense -> WaveConfig**.
         run: (cd build/Windows && zip -r ../../Windows.zip .)
@@ -193,6 +187,9 @@ namespace NeonDefense.Managers
             if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
             if (nearestEnemy != null)
