@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-            WebGL.zip
-          generate_release_notes: true
-        run: (cd build/Windows && zip -r ../../Windows.zip .)
-          prerelease: false
-            if (nearestEnemy != null)
-        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
 ## 3. Instruções de Configuração
 
         run: (cd build/Windows && zip -r ../../Windows.zip .)
@@ -205,6 +199,9 @@ namespace NeonDefense.Managers
             if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
             if (nearestEnemy != null)
