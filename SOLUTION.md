@@ -78,12 +78,6 @@ namespace NeonDefense.Managers
             activeEnemies--;
             CheckWaveCompletion();
         }
-          restore-keys: |
-            Library-${{ matrix.targetPlatform }}-
-            Library-
-
-            if (nearestEnemy != null)
-      # License Treatment:
       # The builder automatically activates Unity using the provided environment variables.
       # Required Secrets:
       # - UNITY_LICENSE: Content of the .ulf file (Recommended for stability)
@@ -259,6 +253,9 @@ namespace NeonDefense.Managers
             if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
+        run: (cd build/WebGL && zip -r ../../WebGL.zip .)
+        run: (cd build/Windows && zip -r ../../Windows.zip .)
+            if (nearestEnemy != null)
         run: (cd build/WebGL && zip -r ../../WebGL.zip .)
         run: (cd build/Windows && zip -r ../../Windows.zip .)
             if (nearestEnemy != null)
