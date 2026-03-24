@@ -158,5 +158,6 @@ git push origin v1.0.0
 git push origin v1.0.0
 git push origin v1.0.0
 git push origin v1.0.0
+git push origin v1.0.0
 ```
 Isso iniciará o workflow que compila para Windows e WebGL e cria uma Release no GitHub.
