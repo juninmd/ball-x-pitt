@@ -1,3 +1,4 @@
+# Generated CI/CD configuration for NeonDefense Deployment via game-ci
 name: Deploy NeonDefense
 
 on:

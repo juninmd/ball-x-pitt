@@ -6,6 +6,10 @@ using NeonDefense.Strategies;
 
 namespace NeonDefense.Towers
 {
+    /// <summary>
+    /// Base class for all towers. Handles targeting logic using Physics.OverlapSphereNonAlloc
+    /// and delegates attack behavior to an injected IAttackStrategy.
+    /// </summary>
     public class Tower : MonoBehaviour
     {
         [SerializeField] private TowerConfig config;

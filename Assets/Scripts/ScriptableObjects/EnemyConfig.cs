@@ -3,6 +3,10 @@ using NeonDefense.Enemies;
 
 namespace NeonDefense.ScriptableObjects
 {
+    /// <summary>
+    /// Configuration data for enemies, defining their stats, drops, and references.
+    /// Used by EnemyFactory/WaveManager to instantiate enemies.
+    /// </summary>
     [CreateAssetMenu(fileName = "NewEnemyConfig", menuName = "NeonDefense/EnemyConfig")]
     public class EnemyConfig : ScriptableObject
     {
