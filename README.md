@@ -1,30 +1,34 @@
-# 🏀 Ball-x-Pitt (Unity Edition)
+# 🤖 NeonDefense (Unity Edition)
 
 [![Unity Status](https://img.shields.io/badge/Unity-6000.x-blue.svg?logo=unity)]()
 [![Status: Active](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> A modern, physics-driven sports game built with Unity, featuring high-fidelity ball mechanics and "Antigravity" engineering standards.
+> A Cyberpunk-themed Tower Defense game built with Unity. Defend the central server (Core) from waves of "virus" enemies using high-tech security towers.
 
 ## ✨ Features
 
-- **Advanced Physics**: Realistic ball interactions and collision detection powered by Unity Physics.
-- **Micro-interactions**: Fluid HUD and menu animations for an immersive player experience.
-- **Cross-Platform**: Optimized for both PC and mobile deployment.
+- **Cyberpunk Aesthetic**: Neon, dark, and high-tech visual style.
+- **Strategic Gameplay**: Place towers strategically on the grid to defend against predefined enemy paths.
+- **Dynamic Towers**: Configure range, fire rate, and strategies via ScriptableObjects.
+- **Cross-Platform**: Optimized for PC (Windows 64-bit) and WebGL deployment.
 - **Antigravity Verification**: Built-in scripts for scene and asset integrity validation.
 
 ## 🛠️ Tech Stack
 
 - **Game Engine**: Unity 6000+
-- **Scripting**: C# (Strictly typed)
-- **UI Framework**: Unity UI + LeanTween
-- **VFX**: Particle System + Shader Graph
+- **Scripting**: C# (Strictly typed, SOLID, Data/View separation)
+- **Architecture**:
+  - **Managers**: GameManager, WaveManager, EconomyManager.
+  - **Event Driven**: Uses C# Actions for decoupled communication.
+  - **Design Patterns**: Object Pooling (Zero GC), Factory Method, Strategy Pattern (Laser, Missile, Slow).
+  - **ScriptableObjects**: Data-driven setup for enemies, towers, and waves.
 
 ## 🚀 Getting Started
 
 ```bash
 # Clone the repository
-git clone --depth 1 git@github.com:juninmd/ball-x-pitt.git
+git clone --depth 1 https://github.com/juninmd/NeonDefense.git
 
 # Open the project in Unity Hub
 # Import required Packages (Settings > Package Manager)
@@ -33,10 +37,10 @@ git clone --depth 1 git@github.com:juninmd/ball-x-pitt.git
 ## 🛡️ Antigravity Protocol (Unity)
 
 This project adheres to the **Antigravity** engineering standards:
-- **Modular C# Scripts**: Separation of concerns between `Controller`, `View`, and `Physics`.
-- **Zero Allocations**: Memory-efficient scripting to prevent GC spikes during gameplay.
-- **Scriptable Objects**: Data-driven architecture for levels and player stats.
+- **Modular C# Scripts**: Separation of concerns between Logic, View, and Data.
+- **Zero Allocations**: Essential Object Pooling for Enemies and Projectiles to prevent GC spikes during gameplay.
+- **Scriptable Objects**: Data-driven architecture for enemies, towers and wave management.
 
 ---
 
-*"Physics is the only law we can't break."*
+*"The best offense is a good neon defense."*

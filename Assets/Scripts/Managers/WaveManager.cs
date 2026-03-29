@@ -7,6 +7,10 @@ using NeonDefense.Enemies;
 
 namespace NeonDefense.Managers
 {
+    /// <summary>
+    /// Manages the spawning of enemy waves and tracks active enemies.
+    /// Handles event-driven communication for wave state changes.
+    /// </summary>
     public class WaveManager : MonoBehaviour
     {
         public static WaveManager Instance { get; private set; }

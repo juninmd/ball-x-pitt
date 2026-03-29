@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace NeonDefense.Core
 {
+    /// <summary>
+    /// Singleton Object Pool for projectiles to prevent memory allocations (Zero GC) during gameplay.
+    /// </summary>
     [DisallowMultipleComponent]
     public class ProjectilePool : ObjectPool<Projectile>
     {
