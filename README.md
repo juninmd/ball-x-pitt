@@ -28,7 +28,7 @@
 
 ```bash
 # Clone the repository
-git clone --depth 1 git@github.com:juninmd/NeonDefense.git
+git clone --depth 1 https://github.com/juninmd/NeonDefense.git
 
 # Open the project in Unity Hub
 # Import required Packages (Settings > Package Manager)
