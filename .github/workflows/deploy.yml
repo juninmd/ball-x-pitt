@@ -1,5 +1,4 @@
-# Generated CI/CD configuration for NeonDefense Deployment via game-ci
-name: Deploy NeonDefense
+name: Deploy Unity Project
 
 on:
   push:
@@ -35,7 +34,7 @@ jobs:
             Library-${{ matrix.targetPlatform }}-
             Library-
 
-      - name: Run Unity Build
+      - name: Build Unity Project
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -46,19 +45,11 @@ jobs:
           buildName: NeonDefense
           versioning: Tag
 
-      - name: Zip Windows Artifacts
-        if: matrix.targetPlatform == 'StandaloneWindows64'
-        run: zip -r NeonDefense-Windows64.zip build/StandaloneWindows64
-
-      - name: Zip WebGL Artifacts
-        if: matrix.targetPlatform == 'WebGL'
-        run: zip -r NeonDefense-WebGL.zip build/WebGL
-
-      - name: Upload Artifacts to Workflow
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: NeonDefense-*.zip
+          path: build/${{ matrix.targetPlatform }}
 
   release:
     name: Create GitHub Release
@@ -68,14 +59,30 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Download Artifacts
+      - name: Download Windows Artifact
         uses: actions/download-artifact@v4
         with:
-          path: artifacts/
+          name: Build-StandaloneWindows64
+          path: builds/Windows
+
+      - name: Download WebGL Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Build-WebGL
+          path: builds/WebGL
+
+      - name: Zip Windows Build
+        run: zip -r NeonDefense-Windows.zip builds/Windows/
+
+      - name: Zip WebGL Build
+        run: zip -r NeonDefense-WebGL.zip builds/WebGL/
 
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           files: |
-            artifacts/**/*.zip
+            NeonDefense-Windows.zip
+            NeonDefense-WebGL.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

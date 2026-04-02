@@ -6,13 +6,13 @@ namespace NeonDefense.ScriptableObjects
     [CreateAssetMenu(fileName = "NewEnemyConfig", menuName = "NeonDefense/Enemy Config", order = 1)]
     public class EnemyConfig : ScriptableObject
     {
-        [Header("General Attributes")]
-        [Tooltip("The prefab that will be instantiated by the pool.")]
+        [Header("Prefabs")]
+        [Tooltip("The Enemy prefab to instantiate. Must contain the Enemy component.")]
         public Enemy prefab;
 
         [Header("Stats")]
-        [Range(1, 10000)]
-        public int health = 100;
+        [Range(1f, 10000f)]
+        public float health = 100f;
 
         [Range(0.1f, 50f)]
         public float speed = 5f;

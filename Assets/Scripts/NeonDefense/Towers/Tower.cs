@@ -1,72 +1,69 @@
-using System.Collections;
 using UnityEngine;
 using NeonDefense.Enemies;
 using NeonDefense.ScriptableObjects;
 using NeonDefense.Strategies;
+using System.Collections;
 
 namespace NeonDefense.Towers
 {
     public class Tower : MonoBehaviour
     {
-        private TowerConfig _config;
-        private IAttackStrategy _attackStrategy;
+        [SerializeField] private Transform firePoint;
+        [SerializeField] private LayerMask enemyLayerMask;
 
-        [SerializeField] private Transform _firePoint;
+        private TowerConfig config;
+        private IAttackStrategy attackStrategy;
+        private Enemy currentTarget;
+        private float fireCountdown = 0f;
 
-        private Enemy _currentTarget;
-        private float _fireTimer = 0f;
+        private Collider[] targetBuffer = new Collider[20];
 
-        private Collider[] _targetBuffer = new Collider[20];
-
-        public void Initialize(IAttackStrategy attackStrategy, TowerConfig config)
+        public void Initialize(TowerConfig towerConfig, IAttackStrategy strategy)
         {
-            _attackStrategy = attackStrategy;
-            _config = config;
+            this.config = towerConfig;
+            this.attackStrategy = strategy;
 
             StartCoroutine(UpdateTarget());
         }
 
-        private void Update()
-        {
-            if (_currentTarget == null || _attackStrategy == null || _config == null)
-            {
-                return;
-            }
-
-            // Look at target
-            Vector3 direction = _currentTarget.transform.position - transform.position;
-            Quaternion lookRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 10f);
-
-            _fireTimer += Time.deltaTime;
-            if (_fireTimer >= 1f / _config.fireRate)
-            {
-                _fireTimer = 0f;
-                _attackStrategy.Attack(_currentTarget, _firePoint, _config);
-            }
-        }
-
         private IEnumerator UpdateTarget()
         {
+            WaitForSeconds wait = new WaitForSeconds(0.2f);
+
             while (true)
             {
-                FindNearestTarget();
-                yield return new WaitForSeconds(0.2f);
+                FindTarget();
+                yield return wait;
             }
         }
 
-        private void FindNearestTarget()
+        private void FindTarget()
         {
-            if (_config == null) return;
+            // Reset current target if it's dead, inactive or out of range
+            if (currentTarget != null)
+            {
+                if (!currentTarget.gameObject.activeInHierarchy ||
+                    Vector3.Distance(transform.position, currentTarget.transform.position) > config.range)
+                {
+                    currentTarget = null;
+                }
+                else
+                {
+                    // Target is still valid
+                    return;
+                }
+            }
 
-            int hits = Physics.OverlapSphereNonAlloc(transform.position, _config.range, _targetBuffer);
+            // Object Pooling / Zero GC specific optimization: Use OverlapSphereNonAlloc
+            int numColliders = Physics.OverlapSphereNonAlloc(transform.position, config.range, targetBuffer, enemyLayerMask);
+
             float shortestDistance = Mathf.Infinity;
             Enemy nearestEnemy = null;
 
-            for (int i = 0; i < hits; i++)
+            for (int i = 0; i < numColliders; i++)
             {
-                Enemy enemy = _targetBuffer[i].GetComponent<Enemy>();
-                if (enemy != null)
+                Enemy enemy = targetBuffer[i].GetComponent<Enemy>();
+                if (enemy != null && enemy.gameObject.activeInHierarchy)
                 {
                     float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
                     if (distanceToEnemy < shortestDistance)
@@ -77,15 +74,33 @@ namespace NeonDefense.Towers
                 }
             }
 
-            _currentTarget = nearestEnemy;
+            currentTarget = nearestEnemy;
+        }
+
+        private void Update()
+        {
+            if (currentTarget == null || config == null || attackStrategy == null) return;
+
+            fireCountdown -= Time.deltaTime;
+
+            if (fireCountdown <= 0f)
+            {
+                Shoot();
+                fireCountdown = 1f / config.fireRate;
+            }
+        }
+
+        private void Shoot()
+        {
+            attackStrategy.Attack(currentTarget, firePoint, config);
         }
 
         private void OnDrawGizmosSelected()
         {
-            if (_config != null)
+            if (config != null)
             {
-                Gizmos.color = Color.cyan;
-                Gizmos.DrawWireSphere(transform.position, _config.range);
+                Gizmos.color = Color.red;
+                Gizmos.DrawWireSphere(transform.position, config.range);
             }
         }
     }
