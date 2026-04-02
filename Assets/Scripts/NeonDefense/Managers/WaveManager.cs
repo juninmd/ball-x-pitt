@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using NeonDefense.Core;
 using NeonDefense.ScriptableObjects;
+using NeonDefense.Core;
 using NeonDefense.Enemies;
 
 namespace NeonDefense.Managers
@@ -10,104 +10,113 @@ namespace NeonDefense.Managers
     public class WaveManager : MonoBehaviour
     {
         [Header("Configuration")]
-        public List<WaveConfig> waves;
-        public float timeBetweenWaves = 5f;
-        public bool autoStart = false;
-        public List<Transform> waypoints;
+        [SerializeField] private List<WaveConfig> waves;
+        [SerializeField] private Transform spawnPoint;
+        [SerializeField] private float timeBetweenWaves = 5f;
+        [SerializeField] private bool autoStart = false;
 
-        [Header("State")]
-        private int _currentWaveIndex = 0;
-        private int _activeEnemies = 0;
-        private bool _isSpawning = false;
+        private int currentWaveIndex = 0;
+        private int activeEnemiesCount = 0;
+        private bool isWaveActive = false;
+        private bool isSpawning = false;
 
         private void OnEnable()
         {
-            GameEvents.OnEnemyKilled += HandleEnemyKilled;
+            GameEvents.OnEnemyKilled += HandleEnemyDestroyed;
             GameEvents.OnEnemyReachedGoal += HandleEnemyReachedGoal;
         }
 
         private void OnDisable()
         {
-            GameEvents.OnEnemyKilled -= HandleEnemyKilled;
+            GameEvents.OnEnemyKilled -= HandleEnemyDestroyed;
             GameEvents.OnEnemyReachedGoal -= HandleEnemyReachedGoal;
         }
 
         private void Start()
         {
-            if (autoStart)
+            if (autoStart && waves != null && waves.Count > 0)
             {
-                StartNextWave();
+                StartWave();
             }
         }
 
-        public void StartNextWave()
+        public void StartWave()
         {
-            if (_currentWaveIndex >= waves.Count || _isSpawning) return;
+            if (isWaveActive || currentWaveIndex >= waves.Count) return;
 
-            GameEvents.OnWaveStart?.Invoke();
-            StartCoroutine(SpawnWave(waves[_currentWaveIndex]));
+            isWaveActive = true;
+            isSpawning = true;
+            activeEnemiesCount = 0;
+            GameEvents.OnWaveStart?.Invoke(currentWaveIndex);
+
+            StartCoroutine(SpawnWave(waves[currentWaveIndex]));
         }
 
-        private IEnumerator SpawnWave(WaveConfig config)
+        private IEnumerator SpawnWave(WaveConfig waveConfig)
         {
-            _isSpawning = true;
-
-            foreach (var group in config.enemyGroups)
+            foreach (var group in waveConfig.enemyGroups)
             {
                 for (int i = 0; i < group.count; i++)
                 {
                     SpawnEnemy(group.enemyConfig);
                     yield return new WaitForSeconds(1f / group.spawnRate);
                 }
-                yield return new WaitForSeconds(config.timeBetweenGroups);
+
+                yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
             }
 
-            _isSpawning = false;
-            CheckWaveEndAndTriggerEvent();
+            isSpawning = false;
+            CheckWaveEndAndTriggerEvent(); // Verificação de segurança pós-spawn
         }
 
         private void SpawnEnemy(EnemyConfig config)
         {
-            Vector3 startPos = waypoints.Count > 0 ? waypoints[0].position : Vector3.zero;
-            Enemy enemy = EnemyPool.Instance.Get(config.prefab, startPos, Quaternion.identity);
+            if (EnemyPool.Instance == null || config == null || config.prefab == null) return;
 
-            // Assume the enemy script manages itself once initialized
-            // enemy.Initialize(config, waypoints);
+            Enemy newEnemy = EnemyPool.Instance.Get(config.prefab, spawnPoint.position, spawnPoint.rotation);
+            newEnemy.config = config; // Initialize enemy with config
+            // Note: Waypoints initialization should happen here or inside Enemy script based on a path manager
 
-            _activeEnemies++;
+            activeEnemiesCount++;
         }
 
-        private void HandleEnemyKilled(Enemy enemy)
+        private void HandleEnemyDestroyed(Enemy enemy)
         {
-            _activeEnemies--;
-            CheckWaveEndAndTriggerEvent();
+            DecreaseActiveEnemyCount();
         }
 
         private void HandleEnemyReachedGoal(Enemy enemy, int damage)
         {
-            _activeEnemies--;
+            DecreaseActiveEnemyCount();
+        }
+
+        private void DecreaseActiveEnemyCount()
+        {
+            activeEnemiesCount--;
             CheckWaveEndAndTriggerEvent();
         }
 
         private void CheckWaveEndAndTriggerEvent()
         {
-            if (_activeEnemies <= 0 && !_isSpawning)
+            if (isWaveActive && !isSpawning && activeEnemiesCount <= 0)
             {
-                GameEvents.OnWaveEnd?.Invoke(_currentWaveIndex);
+                isWaveActive = false;
+                GameEvents.OnWaveEnd?.Invoke(currentWaveIndex);
                 UpdateWaveIndexAndScheduleNext();
             }
         }
 
         private void UpdateWaveIndexAndScheduleNext()
         {
-            _currentWaveIndex++;
-            if (_currentWaveIndex < waves.Count)
+            currentWaveIndex++;
+            if (currentWaveIndex < waves.Count)
             {
-                Invoke(nameof(StartNextWave), timeBetweenWaves);
+                Invoke(nameof(StartWave), timeBetweenWaves);
             }
             else
             {
-                Debug.Log("Todas as ondas finalizadas!");
+                // All waves completed - Trigger Win State (managed by GameManager typically)
+                Debug.Log("All Waves Completed!");
             }
         }
     }
