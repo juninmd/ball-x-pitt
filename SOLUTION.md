@@ -1,45 +1,258 @@
-# NeonDefense - Solução
+# NeonDefense - Tower Defense Cyberpunk
 
-Este arquivo contém o código fonte e instruções de configuração para o projeto NeonDefense.
+Aqui estão os artefatos solicitados para o seu jogo Tower Defense, seguindo as diretrizes de Clean Code, SOLID e os Design Patterns exigidos (Object Pooling, Factory, Strategy).
 
 ## 1. Scripts Core
 
-### WaveManager.cs
+### `WaveManager.cs` (Controle de Ondas)
+Gerencia o fluxo de ondas, spawn de inimigos e se comunica via Eventos (C# Actions).
+
 ```csharp
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using NeonDefense.Core;
 using NeonDefense.ScriptableObjects;
+using NeonDefense.Core;
 using NeonDefense.Enemies;
 
 namespace NeonDefense.Managers
 {
-    /// <summary>
-    /// Manages the spawning of enemy waves based on WaveConfig ScriptableObjects.
-    /// Handles GameEvents for wave start and end.
-    /// Implements the Wave Spawning Logic requirement.
-    /// </summary>
     public class WaveManager : MonoBehaviour
     {
-        public static WaveManager Instance { get; private set; }
-
         [Header("Configuration")]
-        [Tooltip("List of Wave Configurations to spawn in order.")]
         [SerializeField] private List<WaveConfig> waves;
-
-        [Tooltip("Waypoints for enemies to follow. First waypoint is spawn point.")]
-        [SerializeField] private List<Transform> waypoints;
-
-        [Tooltip("Automatically start the first wave on play.")]
+        [SerializeField] private Transform spawnPoint;
+        [SerializeField] private float timeBetweenWaves = 5f;
         [SerializeField] private bool autoStart = false;
 
-        [Tooltip("Time to wait between waves (if not defined in WaveConfig).")]
-        [SerializeField] private float timeBetweenWaves = 5f;
-
         private int currentWaveIndex = 0;
+        private int activeEnemiesCount = 0;
+        private bool isWaveActive = false;
         private bool isSpawning = false;
-        private int activeEnemies = 0;
+
+        private void OnEnable()
+        {
+            GameEvents.OnEnemyKilled += HandleEnemyDestroyed;
+            GameEvents.OnEnemyReachedGoal += HandleEnemyReachedGoal;
+        }
+
+        private void OnDisable()
+        {
+            GameEvents.OnEnemyKilled -= HandleEnemyDestroyed;
+            GameEvents.OnEnemyReachedGoal -= HandleEnemyReachedGoal;
+        }
+
+        private void Start()
+        {
+            if (autoStart && waves != null && waves.Count > 0)
+            {
+                StartWave();
+            }
+        }
+
+        public void StartWave()
+        {
+            if (isWaveActive || currentWaveIndex >= waves.Count) return;
+
+            isWaveActive = true;
+            isSpawning = true;
+            activeEnemiesCount = 0;
+            GameEvents.OnWaveStart?.Invoke(currentWaveIndex);
+
+            StartCoroutine(SpawnWave(waves[currentWaveIndex]));
+        }
+
+        private IEnumerator SpawnWave(WaveConfig waveConfig)
+        {
+            foreach (var group in waveConfig.enemyGroups)
+            {
+                for (int i = 0; i < group.count; i++)
+                {
+                    SpawnEnemy(group.enemyConfig);
+                    yield return new WaitForSeconds(1f / group.spawnRate);
+                }
+
+                yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
+            }
+
+            isSpawning = false;
+            CheckWaveEndAndTriggerEvent();
+        }
+
+        private void SpawnEnemy(EnemyConfig config)
+        {
+            if (EnemyPool.Instance == null || config == null || config.prefab == null) return;
+
+            Enemy newEnemy = EnemyPool.Instance.Get(config.prefab, spawnPoint.position, spawnPoint.rotation);
+            newEnemy.config = config;
+
+            activeEnemiesCount++;
+        }
+
+        private void HandleEnemyDestroyed(Enemy enemy)
+        {
+            DecreaseActiveEnemyCount();
+        }
+
+        private void HandleEnemyReachedGoal(Enemy enemy, int damage)
+        {
+            DecreaseActiveEnemyCount();
+        }
+
+        private void DecreaseActiveEnemyCount()
+        {
+            activeEnemiesCount--;
+            CheckWaveEndAndTriggerEvent();
+        }
+
+        private void CheckWaveEndAndTriggerEvent()
+        {
+            if (isWaveActive && !isSpawning && activeEnemiesCount <= 0)
+            {
+                isWaveActive = false;
+                GameEvents.OnWaveEnd?.Invoke(currentWaveIndex);
+                UpdateWaveIndexAndScheduleNext();
+            }
+        }
+
+        private void UpdateWaveIndexAndScheduleNext()
+        {
+            currentWaveIndex++;
+            if (currentWaveIndex < waves.Count)
+            {
+                Invoke(nameof(StartWave), timeBetweenWaves);
+            }
+            else
+            {
+                Debug.Log("All Waves Completed!");
+            }
+        }
+    }
+}
+```
+
+### `Tower.cs` (Base da Torre)
+A base da torre utiliza o **Strategy Pattern** para delegar o comportamento de ataque (`IAttackStrategy`). A busca por alvos utiliza `Physics.OverlapSphereNonAlloc` para garantir Zero GC (sem alocações durante a gameplay) e é executada através de uma Coroutine a cada 0.2s para poupar CPU.
+
+```csharp
+using UnityEngine;
+using NeonDefense.Enemies;
+using NeonDefense.ScriptableObjects;
+using NeonDefense.Strategies;
+using System.Collections;
+
+namespace NeonDefense.Towers
+{
+    public class Tower : MonoBehaviour
+    {
+        [SerializeField] private Transform firePoint;
+        [SerializeField] private LayerMask enemyLayerMask;
+
+        private TowerConfig config;
+        private IAttackStrategy attackStrategy;
+        private Enemy currentTarget;
+        private float fireCountdown = 0f;
+
+        private Collider[] targetBuffer = new Collider[20];
+
+        public void Initialize(TowerConfig towerConfig, IAttackStrategy strategy)
+        {
+            this.config = towerConfig;
+            this.attackStrategy = strategy;
+
+            StartCoroutine(UpdateTarget());
+        }
+
+        private IEnumerator UpdateTarget()
+        {
+            WaitForSeconds wait = new WaitForSeconds(0.2f);
+
+            while (true)
+            {
+                FindTarget();
+                yield return wait;
+            }
+        }
+
+        private void FindTarget()
+        {
+            if (currentTarget != null)
+            {
+                if (!currentTarget.gameObject.activeInHierarchy ||
+                    Vector3.Distance(transform.position, currentTarget.transform.position) > config.range)
+                {
+                    currentTarget = null;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            int numColliders = Physics.OverlapSphereNonAlloc(transform.position, config.range, targetBuffer, enemyLayerMask);
+
+            float shortestDistance = Mathf.Infinity;
+            Enemy nearestEnemy = null;
+
+            for (int i = 0; i < numColliders; i++)
+            {
+                Enemy enemy = targetBuffer[i].GetComponent<Enemy>();
+                if (enemy != null && enemy.gameObject.activeInHierarchy)
+                {
+                    float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
+                    if (distanceToEnemy < shortestDistance)
+                    {
+                        shortestDistance = distanceToEnemy;
+                        nearestEnemy = enemy;
+                    }
+                }
+            }
+
+            currentTarget = nearestEnemy;
+        }
+
+        private void Update()
+        {
+            if (currentTarget == null || config == null || attackStrategy == null) return;
+
+            fireCountdown -= Time.deltaTime;
+
+            if (fireCountdown <= 0f)
+            {
+                Shoot();
+                fireCountdown = 1f / config.fireRate;
+            }
+        }
+
+        private void Shoot()
+        {
+            attackStrategy.Attack(currentTarget, firePoint, config);
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (config != null)
+            {
+                Gizmos.color = Color.red;
+                Gizmos.DrawWireSphere(transform.position, config.range);
+            }
+        }
+    }
+}
+```
+
+### `ProjectilePool.cs` (Object Pooling)
+Implementação de um Pool Global de projéteis para evitar GC via instanciação e destruição dinâmica. (Herda de `ObjectPool<T>`).
+
+```csharp
+using UnityEngine;
+
+namespace NeonDefense.Core
+{
+    [DisallowMultipleComponent]
+    public class ProjectilePool : ObjectPool<Projectile>
+    {
+        public static ProjectilePool Instance { get; private set; }
 
         private void Awake()
         {
@@ -52,409 +265,50 @@ namespace NeonDefense.Managers
                 Destroy(gameObject);
             }
         }
-
-        private void OnEnable()
-        {
-            GameEvents.OnEnemyKilled += HandleEnemyRemoved;
-            GameEvents.OnEnemyReachedGoal += HandleEnemyReachedGoal;
-        }
-
-        private void OnDisable()
-        {
-            GameEvents.OnEnemyKilled -= HandleEnemyRemoved;
-            GameEvents.OnEnemyReachedGoal -= HandleEnemyReachedGoal;
-        }
-
-        private void Start()
-        {
-            if (autoStart)
-            {
-                StartCoroutine(StartGameRoutine());
-            }
-        }
-
-        private void HandleEnemyRemoved(Enemy enemy, int value)
-        {
-            activeEnemies--;
-            CheckWaveCompletion();
-        }
-
-        private void HandleEnemyReachedGoal(Enemy enemy, int damage)
-        {
-            activeEnemies--;
-            CheckWaveCompletion();
-        }
-
-        /// <summary>
-        /// Checks if the current wave is complete (no active enemies and spawning finished).
-        /// Triggers OnWaveEnd if true.
-        /// </summary>
-        private void CheckWaveCompletion()
-        {
-            // Only end wave if spawning is finished and no enemies remain
-            if (!isSpawning && activeEnemies <= 0)
-            {
-                // Ensure count doesn't go negative due to race conditions
-                activeEnemies = 0;
-
-                Debug.Log($"Wave {currentWaveIndex + 1} Cleared!");
-                GameEvents.OnWaveEnd?.Invoke();
-
-                // Prepare for next wave logic
-                currentWaveIndex++;
-                if (currentWaveIndex < waves.Count)
-                {
-                    StartCoroutine(WaitAndStartNextWave(timeBetweenWaves));
-                }
-                else
-                {
-                    Debug.Log("All waves completed! Victory!");
-                    // Trigger generic victory event or UI here
-                }
-            }
-        }
-
-        private IEnumerator WaitAndStartNextWave(float delay)
-        {
-            yield return new WaitForSeconds(delay);
-            StartNextWave();
-        }
-
-        /// <summary>
-        /// Starts the next wave if one is available and not currently spawning.
-        /// </summary>
-        public void StartNextWave()
-        {
-            if (isSpawning) return;
-
-            if (currentWaveIndex < waves.Count)
-            {
-                StartCoroutine(SpawnWave(waves[currentWaveIndex]));
-            }
-            else
-            {
-                Debug.Log("No more waves to spawn.");
-            }
-        }
-
-        private IEnumerator StartGameRoutine()
-        {
-            yield return new WaitForSeconds(2f); // Initial warm-up
-            StartNextWave();
-        }
-
-        private IEnumerator SpawnWave(WaveConfig waveConfig)
-        {
-            isSpawning = true;
-            activeEnemies = 0;
-
-            // Calculate total enemies for UI or logic if needed
-            int totalEnemiesInWave = 0;
-            if (waveConfig.enemyGroups != null)
-            {
-                foreach (var group in waveConfig.enemyGroups) totalEnemiesInWave += group.count;
-            }
-
-            Debug.Log($"Starting Wave {currentWaveIndex + 1} with {totalEnemiesInWave} enemies.");
-            GameEvents.OnWaveStart?.Invoke(currentWaveIndex + 1);
-
-            if (waveConfig.enemyGroups != null)
-            {
-                for (int i = 0; i < waveConfig.enemyGroups.Count; i++)
-                {
-                    var group = waveConfig.enemyGroups[i];
-                    for (int j = 0; j < group.count; j++)
-                    {
-                        activeEnemies++;
-                        SpawnEnemy(group.enemyConfig);
-                        yield return new WaitForSeconds(group.spawnRate);
-                    }
-
-                    // Wait between groups (if there are more groups)
-                    if (i < waveConfig.enemyGroups.Count - 1)
-                    {
-                        yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
-                    }
-                }
-            }
-
-            isSpawning = false;
-
-            // Check immediately in case all enemies died during spawn (unlikely but possible)
-            CheckWaveCompletion();
-        }
-
-        private void SpawnEnemy(EnemyConfig config)
-        {
-            if (EnemyPool.Instance == null)
-            {
-                Debug.LogError("EnemyPool is missing from the scene!");
-                activeEnemies--;
-                return;
-            }
-
-            // Get enemy from pool
-            Enemy enemy = EnemyPool.Instance.Get(config.prefab);
-
-            if (enemy != null)
-            {
-                enemy.Initialize(config, waypoints);
-            }
-            else
-            {
-                activeEnemies--;
-            }
-        }
     }
 }
 ```
 
-### Tower.cs
-```csharp
-using UnityEngine;
-using NeonDefense.Core;
-using NeonDefense.Enemies;
-using NeonDefense.ScriptableObjects;
-using NeonDefense.Strategies;
+### `EnemyConfig.cs` (ScriptableObject)
+Define os dados e configuração de cada Inimigo de forma separada da lógica. Restrições via `[Range]` facilitam o trabalho do Game Designer.
 
-namespace NeonDefense.Towers
-{
-    /// <summary>
-    /// Base class for all towers. Handles targeting logic and delegates attack execution to an IAttackStrategy.
-    /// Follows the Strategy Pattern to allow dynamic attack behaviors (Laser, Missile, etc.).
-    /// </summary>
-    public class Tower : MonoBehaviour
-    {
-        [Header("Configuration")]
-        [Tooltip("The configuration scriptable object defining stats and strategy.")]
-        [SerializeField] private TowerConfig config;
-
-        [Tooltip("The transform point from which projectiles/attacks originate.")]
-        [SerializeField] private Transform firePoint;
-
-        [Tooltip("LayerMask to filter enemies during targeting.")]
-        [SerializeField] private LayerMask enemyLayer;
-
-        private IAttackStrategy attackStrategy;
-        private float fireCountdown = 0f;
-        private Enemy currentTarget;
-
-        // Pre-allocated buffer for OverlapSphereNonAlloc to avoid GC allocations during Update
-        private readonly Collider[] hitBuffer = new Collider[20];
-
-        /// <summary>
-        /// Initializes the tower with a specific configuration and strategy.
-        /// Useful for Factory creation or runtime upgrades.
-        /// </summary>
-        /// <param name="config">The tower configuration.</param>
-        /// <param name="strategy">The specific attack strategy implementation.</param>
-        public void Initialize(TowerConfig config, IAttackStrategy strategy)
-        {
-            this.config = config;
-            this.attackStrategy = strategy;
-            this.fireCountdown = 0f;
-        }
-
-        private void Start()
-        {
-            // Fallback: If placed in editor without Factory, try to self-initialize based on config
-            if (config != null && attackStrategy == null)
-            {
-                InitializeStrategyFromConfig();
-            }
-
-            if (firePoint == null)
-            {
-                firePoint = transform;
-            }
-        }
-
-        /// <summary>
-        /// Creates the appropriate strategy based on the TowerConfig enum.
-        /// Acts as a local factory if the Strategy wasn't injected.
-        /// </summary>
-        private void InitializeStrategyFromConfig()
-        {
-            switch (config.strategyType)
-            {
-                case AttackStrategyType.Laser:
-                    attackStrategy = new LaserAttackStrategy();
-                    break;
-                case AttackStrategyType.Missile:
-                    attackStrategy = new MissileAttackStrategy();
-                    break;
-                // Extend with more cases as needed
-                default:
-                    Debug.LogWarning($"Unknown strategy type: {config.strategyType}. Defaulting to Laser.");
-                    attackStrategy = new LaserAttackStrategy();
-                    break;
-            }
-        }
-
-        private void Update()
-        {
-            if (config == null) return;
-
-            UpdateTarget();
-
-            if (currentTarget != null)
-            {
-                if (fireCountdown <= 0f)
-                {
-                    Attack();
-                    fireCountdown = 1f / config.fireRate;
-                }
-            }
-
-            fireCountdown -= Time.deltaTime;
-        }
-
-        /// <summary>
-        /// Finds the nearest enemy within range using non-allocating physics overlap.
-        /// </summary>
-        private void UpdateTarget()
-        {
-            // Efficiency: Search for enemies within range using a non-allocating Physics call
-            // Clears previous buffer content implicitly by overwriting with new count
-            int count = Physics.OverlapSphereNonAlloc(transform.position, config.range, hitBuffer, enemyLayer);
-
-            float shortestDistance = Mathf.Infinity;
-            Enemy nearestEnemy = null;
-
-            for (int i = 0; i < count; i++)
-            {
-                Collider hit = hitBuffer[i];
-                if (hit == null) continue;
-
-                // Optimization: Check for component.
-                // Using TryGetComponent avoids garbage allocation in newer Unity versions compared to GetComponent
-                if (hit.TryGetComponent<Enemy>(out var enemyComponent))
-                {
-                    float distance = Vector3.Distance(transform.position, hit.transform.position);
-                    if (distance < shortestDistance)
-                    {
-                        shortestDistance = distance;
-                        nearestEnemy = enemyComponent;
-                    }
-                }
-            }
-
-            // Update target if valid and within range
-            if (nearestEnemy != null && shortestDistance <= config.range)
-            {
-                currentTarget = nearestEnemy;
-            }
-            else
-            {
-                currentTarget = null;
-            }
-        }
-
-        private void Attack()
-        {
-            if (attackStrategy != null && currentTarget != null)
-            {
-                attackStrategy.Attack(currentTarget, firePoint, config);
-            }
-        }
-
-        private void OnDrawGizmosSelected()
-        {
-            if (config != null)
-            {
-                Gizmos.color = Color.cyan;
-                Gizmos.DrawWireSphere(transform.position, config.range);
-            }
-        }
-    }
-}
-```
-
-### ProjectilePool.cs
-```csharp
-using UnityEngine;
-
-namespace NeonDefense.Core
-{
-    /// <summary>
-    /// Singleton Object Pool specifically for Projectiles.
-    /// Manages reusable projectile instances to avoid Garbage Collection (GC) spikes during intense combat.
-    /// Implements the Object Pooling Pattern requirement.
-    /// </summary>
-    [DisallowMultipleComponent]
-    public class ProjectilePool : ObjectPool<Projectile>
-    {
-        public static ProjectilePool Instance { get; private set; }
-
-        protected override void Awake()
-        {
-            // Ensure Singleton pattern
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
-            Instance = this;
-
-            // Initialize the pool from the base class (pre-warms the pool)
-            base.Awake();
-        }
-    }
-}
-```
-
-### EnemyConfig.cs
 ```csharp
 using UnityEngine;
 using NeonDefense.Enemies;
 
 namespace NeonDefense.ScriptableObjects
 {
-    /// <summary>
-    /// Configuration data for an Enemy type.
-    /// Stores base attributes like Health, Speed, and Rewards.
-    /// Allows designers to tweak values without touching code.
-    /// </summary>
-    [CreateAssetMenu(fileName = "NewEnemyConfig", menuName = "NeonDefense/EnemyConfig")]
+    [CreateAssetMenu(fileName = "NewEnemyConfig", menuName = "NeonDefense/Enemy Config", order = 1)]
     public class EnemyConfig : ScriptableObject
     {
-        [Header("General")]
-        [Tooltip("The name of the enemy type.")]
-        public string enemyName;
-
-        [Tooltip("The prefab to spawn for this enemy.")]
+        [Header("Prefabs")]
+        [Tooltip("The Enemy prefab to instantiate. Must contain the Enemy component.")]
         public Enemy prefab;
 
         [Header("Stats")]
-        [Tooltip("Health points of the enemy.")]
         [Range(1f, 10000f)]
-        public float health = 10f;
+        public float health = 100f;
 
-        [Tooltip("Movement speed in units per second.")]
         [Range(0.1f, 50f)]
         public float speed = 5f;
 
-        [Tooltip("Currency awarded to player on death (Bits).")]
         [Range(1, 1000)]
         public int bitDrop = 10;
 
-        [Tooltip("Damage dealt to player/core upon reaching the goal.")]
         [Range(1, 1000)]
         public int damageToPlayer = 1;
     }
 }
 ```
 
-## 2. Workflow (GitHub Actions)
+---
 
-### .github/workflows/deploy.yml
+## 2. Workflow CI/CD (`.github/workflows/deploy.yml`)
+
+Este arquivo automatiza o build para Windows 64 e WebGL, rodando **apenas** quando uma Tag de versão (`v*`) é criada e também cria uma Release do GitHub.
+
 ```yaml
-# DevOps Workflow for NeonDefense
-# Triggers on tags starting with 'v' (e.g., v1.0, v1.1)
-# Builds for Windows 64-bit and WebGL
-# Creates a GitHub Release with zipped artifacts
-name: Deploy
+name: Deploy Unity Project
 
 on:
   push:
@@ -474,14 +328,14 @@ jobs:
         targetPlatform:
           - StandaloneWindows64
           - WebGL
+
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           lfs: true
 
-      - name: Cache Library
+      - name: Cache Unity Library
         uses: actions/cache@v4
         with:
           path: Library
@@ -490,14 +344,7 @@ jobs:
             Library-${{ matrix.targetPlatform }}-
             Library-
 
-      # Build Step using game-ci/unity-builder
-      # License Treatment:
-      # The builder automatically activates Unity using the provided environment variables.
-      # Required Secrets:
-      # - UNITY_LICENSE: Content of the .ulf file (Recommended for stability)
-      # OR
-      # - UNITY_EMAIL & UNITY_PASSWORD: For manual activation (Less stable on CI)
-      - name: Build project
+      - name: Build Unity Project
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -505,68 +352,77 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
+          buildName: NeonDefense
+          versioning: Tag
 
-      - name: Upload artifact
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
 
   release:
-    name: Create Release
+    name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
       - name: Download Windows Artifact
         uses: actions/download-artifact@v4
         with:
           name: Build-StandaloneWindows64
-          path: build/Windows
+          path: builds/Windows
 
       - name: Download WebGL Artifact
         uses: actions/download-artifact@v4
         with:
           name: Build-WebGL
-          path: build/WebGL
+          path: builds/WebGL
 
       - name: Zip Windows Build
-        run: zip -r Windows.zip build/Windows
+        run: zip -r NeonDefense-Windows.zip builds/Windows/
 
       - name: Zip WebGL Build
-        run: zip -r WebGL.zip build/WebGL
+        run: zip -r NeonDefense-WebGL.zip builds/WebGL/
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v2
         with:
-          files: |
-            Windows.zip
-            WebGL.zip
           generate_release_notes: true
-          draft: false
-          prerelease: false
+          files: |
+            NeonDefense-Windows.zip
+            NeonDefense-WebGL.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-## 3. Instruções de Configuração
+---
 
-### Configuração do ScriptableObject (EnemyConfig)
-1. Na janela Project, vá para `Assets/Scripts/ScriptableObjects/`.
-2. Clique com o botão direito -> **Create -> NeonDefense -> EnemyConfig**.
-3. Nomeie como `BasicVirus`.
-4. Configure no Inspector:
-   - **Prefab**: Arraste seu prefab de Inimigo.
-   - **Health**: 10
-   - **Speed**: 3
-   - **Bit Drop**: 5
+## 3. Instruções
 
-### Configuração da Onda (WaveConfig)
-1. Clique com o botão direito -> **Create -> NeonDefense -> WaveConfig**.
-2. Adicione grupos de inimigos usando o `BasicVirus` criado acima.
+### Como configurar os ScriptableObjects no Editor para criar a primeira onda:
 
-### Segredos do GitHub (Secrets)
-No seu repositório GitHub, vá em **Settings -> Secrets and variables -> Actions** e adicione:
+1. **Criando o Inimigo (Vírus):**
+   - Na janela **Project**, clique com o botão direito e navegue até `Create > NeonDefense > Enemy Config`.
+   - Dê um nome ao arquivo, como `BasicVirus`.
+   - Selecione-o e, no **Inspector**, arraste o Prefab do seu inimigo para o campo `Prefab`. Ajuste os atributos como preferir (ex: Vida = 100, Speed = 5).
 
-| Nome | Descrição |
-| :--- | :--- |
-| `UNITY_LICENSE` | Conteúdo do arquivo `.ulf` (Recomendado). |
-| `UNITY_EMAIL` | Seu email da Unity ID. |
-| `UNITY_PASSWORD` | Sua senha da Unity ID. |
+2. **Criando a Onda:**
+   - Clique novamente com o botão direito na aba **Project**, e vá em `Create > NeonDefense > Wave Config`.
+   - Dê o nome de `Wave_01`.
+   - No **Inspector**, no array `Enemy Groups`, adicione um novo elemento.
+   - Arraste o `BasicVirus` para o campo `Enemy Config` deste elemento. Configure `Count` para o número de inimigos (ex: 10) e `Spawn Rate` para a taxa de aparição por segundo.
+
+3. **Configurando a Cena:**
+   - Selecione o GameObject que contém o seu componente `WaveManager` (geralmente um objeto vazio chamado `GameManagers`).
+   - No Inspector, no array `Waves`, arraste a `Wave_01` criada.
+   - Ative `Auto Start` caso queira que a onda inicie automaticamente.
+
+### Lista Exata dos Secrets para Adicionar no GitHub:
+Vá em **Settings > Secrets and variables > Actions > New repository secret** e adicione os 3 secrets a seguir:
+
+- **`UNITY_EMAIL`**: O e-mail da sua conta Unity (ex: email@exemplo.com).
+- **`UNITY_PASSWORD`**: A senha da sua conta Unity.
+- **`UNITY_LICENSE`**: O conteúdo do arquivo de licença `.ulf` gerado (para Personal, é necessário extrair a licença usando o Unity Hub local ou seguindo a documentação do Game-CI em [Activation](https://game-ci/docs/github/activation) e colar o conteúdo XML diretamente neste Secret).
