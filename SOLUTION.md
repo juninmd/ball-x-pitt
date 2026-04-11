@@ -69,7 +69,7 @@ namespace NeonDefense.Managers
                 for (int i = 0; i < group.count; i++)
                 {
                     SpawnEnemy(group.enemyConfig);
-                    yield return new WaitForSeconds(1f / group.spawnRate);
+                    yield return new WaitForSeconds(group.spawnRate > 0 ? 1f / group.spawnRate : 1f);
                 }
 
                 yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
@@ -179,7 +179,7 @@ namespace NeonDefense.Towers
             if (currentTarget != null)
             {
                 if (!currentTarget.gameObject.activeInHierarchy ||
-                    Vector3.Distance(transform.position, currentTarget.transform.position) > config.range)
+                    (transform.position - currentTarget.transform.position).sqrMagnitude > config.range * config.range)
                 {
                     currentTarget = null;
                 }
@@ -191,18 +191,18 @@ namespace NeonDefense.Towers
 
             int numColliders = Physics.OverlapSphereNonAlloc(transform.position, config.range, targetBuffer, enemyLayerMask);
 
-            float shortestDistance = Mathf.Infinity;
+            float shortestDistanceSqr = Mathf.Infinity;
             Enemy nearestEnemy = null;
 
             for (int i = 0; i < numColliders; i++)
             {
-                Enemy enemy = targetBuffer[i].GetComponent<Enemy>();
+                Enemy enemy = targetBuffer[i].GetComponentInParent<Enemy>();
                 if (enemy != null && enemy.gameObject.activeInHierarchy)
-                {
-                    float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
-                    if (distanceToEnemy < shortestDistance)
-                    {
-                        shortestDistance = distanceToEnemy;
+                { 
+                    float distanceSqr = (transform.position - enemy.transform.position).sqrMagnitude;
+                    if (distanceSqr < shortestDistanceSqr)
+                    { 
+                        shortestDistanceSqr = distanceSqr;
                         nearestEnemy = enemy;
                     }
                 }
@@ -220,7 +220,7 @@ namespace NeonDefense.Towers
             if (fireCountdown <= 0f)
             {
                 Shoot();
-                fireCountdown = 1f / config.fireRate;
+                fireCountdown = config.fireRate > 0 ? 1f / config.fireRate : 1f;
             }
         }
 
@@ -254,11 +254,12 @@ namespace NeonDefense.Core
     {
         public static ProjectilePool Instance { get; private set; }
 
-        private void Awake()
+        protected override void Awake()
         {
             if (Instance == null)
             {
                 Instance = this;
+                base.Awake();
             }
             else
             {
