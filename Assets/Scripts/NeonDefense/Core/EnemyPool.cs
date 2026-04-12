@@ -3,21 +3,20 @@ using NeonDefense.Enemies;
 
 namespace NeonDefense.Core
 {
-    [DisallowMultipleComponent]
     public class EnemyPool : ObjectPool<Enemy>
     {
         public static EnemyPool Instance { get; private set; }
 
-        private void Awake()
+        protected override void Awake()
         {
-            if (Instance == null)
-            {
-                Instance = this;
-            }
-            else
+            if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
+                return;
             }
+
+            Instance = this;
+            base.Awake();
         }
     }
 }

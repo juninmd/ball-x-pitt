@@ -1,107 +1,103 @@
 using UnityEngine;
+using NeonDefense.Core;
 using NeonDefense.Enemies;
 using NeonDefense.ScriptableObjects;
 using NeonDefense.Strategies;
-using System.Collections;
 
 namespace NeonDefense.Towers
 {
+    /// <summary>
+    /// Base class for all towers. Handles targeting logic using Physics.OverlapSphereNonAlloc
+    /// and delegates attack behavior to an injected IAttackStrategy.
+    /// </summary>
     public class Tower : MonoBehaviour
     {
+        [SerializeField] private TowerConfig config;
         [SerializeField] private Transform firePoint;
-        [SerializeField] private LayerMask enemyLayerMask;
+        [SerializeField] private LayerMask enemyLayer;
 
-        private TowerConfig config;
-        private IAttackStrategy attackStrategy;
-        private Enemy currentTarget;
         private float fireCountdown = 0f;
+        private Enemy currentTarget;
+        private IAttackStrategy attackStrategy;
+        private readonly Collider[] hitBuffer = new Collider[20];
 
-        private Collider[] targetBuffer = new Collider[20];
+        private const float TARGET_UPDATE_INTERVAL = 0.2f;
+        private float targetUpdateTimer = 0f;
 
-        public void Initialize(TowerConfig towerConfig, IAttackStrategy strategy)
+        public void Initialize(TowerConfig config, IAttackStrategy strategy)
         {
-            this.config = towerConfig;
+            this.config = config;
             this.attackStrategy = strategy;
-
-            StartCoroutine(UpdateTarget());
         }
 
-        private IEnumerator UpdateTarget()
+        private void Start()
         {
-            WaitForSeconds wait = new WaitForSeconds(0.2f);
+            if (firePoint == null) firePoint = transform;
 
-            while (true)
+            // Instancia a estratégia (Poderia vir de uma TowerFactory)
+            if (config != null && attackStrategy == null)
             {
-                FindTarget();
-                yield return wait;
-            }
-        }
-
-        private void FindTarget()
-        {
-            // Reset current target if it's dead, inactive or out of range
-            if (currentTarget != null)
-            {
-                if (!currentTarget.gameObject.activeInHierarchy ||
-                    Vector3.Distance(transform.position, currentTarget.transform.position) > config.range)
+                switch (config.strategyType)
                 {
-                    currentTarget = null;
-                }
-                else
-                {
-                    // Target is still valid
-                    return;
+                    case AttackStrategyType.Laser: attackStrategy = new LaserAttackStrategy(); break;
+                    case AttackStrategyType.Missile: attackStrategy = new MissileAttackStrategy(); break;
+                    default: attackStrategy = new LaserAttackStrategy(); break;
                 }
             }
-
-            // Object Pooling / Zero GC specific optimization: Use OverlapSphereNonAlloc
-            int numColliders = Physics.OverlapSphereNonAlloc(transform.position, config.range, targetBuffer, enemyLayerMask);
-
-            float shortestDistance = Mathf.Infinity;
-            Enemy nearestEnemy = null;
-
-            for (int i = 0; i < numColliders; i++)
-            {
-                Enemy enemy = targetBuffer[i].GetComponent<Enemy>();
-                if (enemy != null && enemy.gameObject.activeInHierarchy)
-                {
-                    float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
-                    if (distanceToEnemy < shortestDistance)
-                    {
-                        shortestDistance = distanceToEnemy;
-                        nearestEnemy = enemy;
-                    }
-                }
-            }
-
-            currentTarget = nearestEnemy;
         }
 
         private void Update()
         {
-            if (currentTarget == null || config == null || attackStrategy == null) return;
+            if (config == null) return;
+
+            targetUpdateTimer -= Time.deltaTime;
+            if (targetUpdateTimer <= 0f)
+            {
+                UpdateTarget();
+                targetUpdateTimer = TARGET_UPDATE_INTERVAL;
+            }
+
+            if (currentTarget != null)
+            {
+                if (!IsTargetValid())
+                {
+                    currentTarget = null;
+                }
+                else if (fireCountdown <= 0f)
+                {
+                    attackStrategy?.Attack(currentTarget, firePoint, config);
+                    fireCountdown = 1f / config.fireRate;
+                }
+            }
 
             fireCountdown -= Time.deltaTime;
-
-            if (fireCountdown <= 0f)
-            {
-                Shoot();
-                fireCountdown = 1f / config.fireRate;
-            }
         }
 
-        private void Shoot()
+        private bool IsTargetValid()
         {
-            attackStrategy.Attack(currentTarget, firePoint, config);
+            if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy) return false;
+            return Vector3.Distance(transform.position, currentTarget.transform.position) <= config.range + 0.5f;
         }
 
-        private void OnDrawGizmosSelected()
+        private void UpdateTarget()
         {
-            if (config != null)
+            int count = Physics.OverlapSphereNonAlloc(transform.position, config.range, hitBuffer, enemyLayer);
+            float shortestDistance = Mathf.Infinity;
+            Enemy nearestEnemy = null;
+
+            for (int i = 0; i < count; i++)
             {
-                Gizmos.color = Color.red;
-                Gizmos.DrawWireSphere(transform.position, config.range);
+                if (hitBuffer[i].TryGetComponent<Enemy>(out var enemy) && enemy.gameObject.activeInHierarchy)
+                {
+                    float distance = Vector3.Distance(transform.position, enemy.transform.position);
+                    if (distance < shortestDistance)
+                    {
+                        shortestDistance = distance;
+                        nearestEnemy = enemy;
+                    }
+                }
             }
+            currentTarget = (nearestEnemy != null && shortestDistance <= config.range) ? nearestEnemy : null;
         }
     }
 }
