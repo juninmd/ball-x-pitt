@@ -1,43 +1,27 @@
-// NeonDefense Core System
 using UnityEngine;
-using NeonDefense.Enemies;
 
 namespace NeonDefense.Core
 {
-    /// <summary>
-    /// Handles projectile movement and collision logic.
-    /// </summary>
     public class Projectile : MonoBehaviour
     {
-        [SerializeField] private float speed = 20f;
-        [SerializeField] private float lifetime = 5f;
+        private Projectile prefabSource;
+        private Enemies.Enemy target;
+        private int damage;
+        private float speed = 20f;
 
-        private float damage;
-        private Enemy target;
         private float lifeTimer;
+        private float maxLifetime = 5f;
 
-        /// <summary>
-        /// Initializes the projectile.
-        /// </summary>
-        /// <param name="target">The enemy to chase.</param>
-        /// <param name="damage">Damage to deal on hit.</param>
-        public void Initialize(Enemy target, float damage)
+        public void Initialize(Enemies.Enemy target, int damage, Projectile sourcePrefab)
         {
             this.target = target;
             this.damage = damage;
-            this.lifeTimer = lifetime;
+            this.prefabSource = sourcePrefab;
+            this.lifeTimer = 0f;
         }
 
         private void Update()
         {
-            // Handle lifetime
-            lifeTimer -= Time.deltaTime;
-            if (lifeTimer <= 0)
-            {
-                ReturnToPool();
-                return;
-            }
-
             if (target == null || !target.gameObject.activeInHierarchy)
             {
                 ReturnToPool();
@@ -45,15 +29,17 @@ namespace NeonDefense.Core
             }
 
             Vector3 direction = (target.transform.position - transform.position).normalized;
-            float distanceThisFrame = speed * Time.deltaTime;
+            transform.position += direction * speed * Time.deltaTime;
 
-            if (Vector3.Distance(transform.position, target.transform.position) <= distanceThisFrame)
+            if (Vector3.Distance(transform.position, target.transform.position) < 0.2f)
             {
                 HitTarget();
             }
-            else
+
+            lifeTimer += Time.deltaTime;
+            if (lifeTimer >= maxLifetime)
             {
-                transform.Translate(direction * distanceThisFrame, Space.World);
+                ReturnToPool();
             }
         }
 
@@ -68,13 +54,13 @@ namespace NeonDefense.Core
 
         private void ReturnToPool()
         {
-            if (ProjectilePool.Instance != null)
+            if (ProjectilePool.Instance != null && prefabSource != null)
             {
-                ProjectilePool.Instance.ReturnToPool(this);
+                ProjectilePool.Instance.ReturnToPool(this, prefabSource);
             }
             else
             {
-                Destroy(gameObject);
+                gameObject.SetActive(false);
             }
         }
     }

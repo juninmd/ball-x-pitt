@@ -1,22 +1,22 @@
 using UnityEngine;
-using NeonDefense.Enemies;
 
 namespace NeonDefense.Core
 {
-    public class EnemyPool : ObjectPool<Enemy>
+    [DisallowMultipleComponent]
+    public class EnemyPool : ObjectPool<Enemies.Enemy>
     {
         public static EnemyPool Instance { get; private set; }
 
-        protected override void Awake()
+        private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+            else
             {
                 Destroy(gameObject);
-                return;
             }
-
-            Instance = this;
-            base.Awake();
         }
     }
 }

@@ -1,4 +1,4 @@
-name: Build and Release
+name: Deploy
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          lfs: true
+          fetch-depth: 0
 
       - name: Cache Unity Library
         uses: actions/cache@v4
@@ -28,12 +28,8 @@ jobs:
           key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
             Library-${{ matrix.targetPlatform }}-
-            Library-
 
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@v1.3.1
-
-      - name: Build Unity Project
+      - name: Build Project
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -41,27 +37,19 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
+          buildName: NeonDefense-${{ matrix.targetPlatform }}
+          buildsPath: build
 
-      - name: Archive WebGL Build
-        if: matrix.targetPlatform == 'WebGL'
+      - name: Zip Build Artifacts
         run: |
-          cd build/WebGL
-          zip -r ../../NeonDefense-WebGL.zip .
-          cd ../..
+          cd build/${{ matrix.targetPlatform }}
+          zip -r ../../NeonDefense-${{ matrix.targetPlatform }}.zip .
 
-      - name: Archive Windows Build
-        if: matrix.targetPlatform == 'StandaloneWindows64'
-        run: |
-          cd build/StandaloneWindows64
-          zip -r ../../NeonDefense-Windows64.zip .
-          cd ../..
-
-      - name: Upload Artifacts
+      - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: NeonDefense-*.zip
-          retention-days: 7
+          path: NeonDefense-${{ matrix.targetPlatform }}.zip
 
   release:
     name: Create GitHub Release
@@ -70,25 +58,15 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Download Windows Artifact
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: Build-StandaloneWindows64
-
-      - name: Download WebGL Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: Build-WebGL
+          path: artifacts
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          files: artifacts/**/*.zip
           generate_release_notes: true
-          files: |
-            NeonDefense-Windows64.zip
-            NeonDefense-WebGL.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
