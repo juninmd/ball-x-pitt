@@ -3,38 +3,24 @@ using NeonDefense.Core;
 
 namespace NeonDefense.ScriptableObjects
 {
-    /// <summary>
-    /// Defines the attack behavior type for a tower.
-    /// </summary>
-    public enum AttackStrategyType
-    {
-        Laser,
-        Missile,
-        Slow
-    }
+    public enum AttackStrategyType { Laser, Missile, Slow }
 
-    /// <summary>
-    /// Configuration data for a Tower type.
-    /// </summary>
-    [CreateAssetMenu(fileName = "NewTowerConfig", menuName = "NeonDefense/TowerConfig")]
+    [CreateAssetMenu(fileName = "NewTowerConfig", menuName = "NeonDefense/Tower Config")]
     public class TowerConfig : ScriptableObject
     {
-        [Header("General")]
-        public string towerName;
-        public int cost;
-        public GameObject prefab;
-        [Tooltip("Prefab for the projectile (required for Missile strategy).")]
+        public Towers.Tower prefab;
         public Projectile projectilePrefab;
+        public AttackStrategyType strategyType = AttackStrategyType.Laser;
 
-        [Header("Combat Stats")]
-        [Range(1f, 50f)]
-        public float range;
+        [Range(1, 50)]
+        public float range = 5f;
+
         [Range(0.1f, 10f)]
-        public float fireRate;
-        [Range(1f, 1000f)]
-        public float damage;
+        public float fireRate = 1f;
 
-        [Header("Behavior")]
-        public AttackStrategyType strategyType;
+        [Range(1, 1000)]
+        public int damage = 10;
+
+        public int cost = 50;
     }
 }

@@ -1,24 +1,20 @@
-// NeonDefense Core System
 using System;
-using NeonDefense.Enemies;
 
 namespace NeonDefense.Core
 {
     public static class GameEvents
     {
-        // Event triggered when an enemy is killed. Passes the Enemy instance and the bit reward.
-        public static Action<Enemy, int> OnEnemyKilled;
+        // Evento disparado quando o inimigo morre (ex: para dar bits ao jogador)
+        public static Action<Enemies.Enemy> OnEnemyKilled;
 
-        // Event triggered when an enemy reaches the goal (Core). Passes damage amount.
-        public static Action<Enemy, int> OnEnemyReachedGoal;
+        // Evento disparado quando o inimigo atinge o Core (passando o inimigo e o dano)
+        public static Action<Enemies.Enemy, int> OnEnemyReachedGoal;
 
-        // Event triggered when a wave starts. Passes wave index.
+        // Evento disparado no início e fim das waves
         public static Action<int> OnWaveStart;
+        public static Action<int> OnWaveEnd;
 
-        // Event triggered when a wave is cleared.
-        public static Action OnWaveEnd;
-
-        // Event triggered when player health reaches 0.
+        // Evento de Game Over
         public static Action OnGameOver;
     }
 }
