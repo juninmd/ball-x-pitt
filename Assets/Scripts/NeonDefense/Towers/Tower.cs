@@ -1,103 +1,109 @@
+using System.Collections;
 using UnityEngine;
-using NeonDefense.Core;
 using NeonDefense.Enemies;
 using NeonDefense.ScriptableObjects;
 using NeonDefense.Strategies;
 
 namespace NeonDefense.Towers
 {
-    /// <summary>
-    /// Base class for all towers. Handles targeting logic using Physics.OverlapSphereNonAlloc
-    /// and delegates attack behavior to an injected IAttackStrategy.
-    /// </summary>
     public class Tower : MonoBehaviour
     {
-        [SerializeField] private TowerConfig config;
+        private TowerConfig config;
+        private IAttackStrategy attackStrategy;
+
         [SerializeField] private Transform firePoint;
         [SerializeField] private LayerMask enemyLayer;
 
-        private float fireCountdown = 0f;
         private Enemy currentTarget;
-        private IAttackStrategy attackStrategy;
-        private readonly Collider[] hitBuffer = new Collider[20];
+        private float fireCooldown;
+        private Collider[] hitColliders = new Collider[20];
 
-        private const float TARGET_UPDATE_INTERVAL = 0.2f;
-        private float targetUpdateTimer = 0f;
-
-        public void Initialize(TowerConfig config, IAttackStrategy strategy)
+        public void Initialize(TowerConfig towerConfig, IAttackStrategy strategy)
         {
-            this.config = config;
             this.attackStrategy = strategy;
+            this.config = towerConfig;
+            StartCoroutine(UpdateTarget());
         }
 
         private void Start()
         {
-            if (firePoint == null) firePoint = transform;
-
-            // Instancia a estratégia (Poderia vir de uma TowerFactory)
-            if (config != null && attackStrategy == null)
+            // Optional fallback if not initialized by a factory
+            if (attackStrategy == null && config != null)
             {
-                switch (config.strategyType)
+                switch (config.attackStrategyType)
                 {
-                    case AttackStrategyType.Laser: attackStrategy = new LaserAttackStrategy(); break;
-                    case AttackStrategyType.Missile: attackStrategy = new MissileAttackStrategy(); break;
-                    default: attackStrategy = new LaserAttackStrategy(); break;
+                    case AttackStrategyType.Laser:
+                        attackStrategy = new LaserAttackStrategy();
+                        break;
+                    case AttackStrategyType.Missile:
+                        attackStrategy = new MissileAttackStrategy();
+                        break;
                 }
+                StartCoroutine(UpdateTarget());
             }
         }
 
         private void Update()
         {
-            if (config == null) return;
-
-            targetUpdateTimer -= Time.deltaTime;
-            if (targetUpdateTimer <= 0f)
+            if (fireCooldown > 0f)
             {
-                UpdateTarget();
-                targetUpdateTimer = TARGET_UPDATE_INTERVAL;
+                fireCooldown -= Time.deltaTime;
             }
 
-            if (currentTarget != null)
+            if (currentTarget != null && fireCooldown <= 0f && attackStrategy != null)
             {
-                if (!IsTargetValid())
-                {
-                    currentTarget = null;
-                }
-                else if (fireCountdown <= 0f)
-                {
-                    attackStrategy?.Attack(currentTarget, firePoint, config);
-                    fireCountdown = 1f / config.fireRate;
-                }
+                attackStrategy.Attack(currentTarget, firePoint, config);
+                fireCooldown = 1f / config.fireRate;
+            }
+        }
+
+        private IEnumerator UpdateTarget()
+        {
+            while (true)
+            {
+                FindTarget();
+                yield return new WaitForSeconds(0.2f); // Optimized target acquisition
+            }
+        }
+
+        private void FindTarget()
+        {
+            if (currentTarget != null && currentTarget.gameObject.activeInHierarchy && Vector3.Distance(transform.position, currentTarget.transform.position) <= config.range)
+            {
+                return; // Current target is still valid
             }
 
-            fireCountdown -= Time.deltaTime;
-        }
+            currentTarget = null;
 
-        private bool IsTargetValid()
-        {
-            if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy) return false;
-            return Vector3.Distance(transform.position, currentTarget.transform.position) <= config.range + 0.5f;
-        }
+            // Zero GC allocation approach
+            int numColliders = Physics.OverlapSphereNonAlloc(transform.position, config.range, hitColliders, enemyLayer);
 
-        private void UpdateTarget()
-        {
-            int count = Physics.OverlapSphereNonAlloc(transform.position, config.range, hitBuffer, enemyLayer);
             float shortestDistance = Mathf.Infinity;
             Enemy nearestEnemy = null;
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < numColliders; i++)
             {
-                if (hitBuffer[i].TryGetComponent<Enemy>(out var enemy) && enemy.gameObject.activeInHierarchy)
+                float distanceToEnemy = Vector3.Distance(transform.position, hitColliders[i].transform.position);
+                if (distanceToEnemy < shortestDistance)
                 {
-                    float distance = Vector3.Distance(transform.position, enemy.transform.position);
-                    if (distance < shortestDistance)
+                    if (hitColliders[i].TryGetComponent<Enemy>(out var enemy) && enemy.gameObject.activeInHierarchy)
                     {
-                        shortestDistance = distance;
+                        shortestDistance = distanceToEnemy;
                         nearestEnemy = enemy;
                     }
                 }
             }
-            currentTarget = (nearestEnemy != null && shortestDistance <= config.range) ? nearestEnemy : null;
+
+            currentTarget = nearestEnemy;
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (config != null)
+            {
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawWireSphere(transform.position, config.range);
+            }
         }
     }
 }

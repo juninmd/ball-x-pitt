@@ -3,16 +3,21 @@ using NeonDefense.Core;
 
 namespace NeonDefense.ScriptableObjects
 {
-    public enum AttackStrategyType { Laser, Missile, Slow }
+    public enum AttackStrategyType
+    {
+        Laser,
+        Missile,
+        Slow
+    }
 
-    [CreateAssetMenu(fileName = "NewTowerConfig", menuName = "NeonDefense/Tower Config")]
+    [CreateAssetMenu(fileName = "NewTowerConfig", menuName = "NeonDefense/TowerConfig")]
     public class TowerConfig : ScriptableObject
     {
         public Towers.Tower prefab;
         public Projectile projectilePrefab;
-        public AttackStrategyType strategyType = AttackStrategyType.Laser;
+        public AttackStrategyType attackStrategyType;
 
-        [Range(1, 50)]
+        [Range(1f, 50f)]
         public float range = 5f;
 
         [Range(0.1f, 10f)]
@@ -21,6 +26,6 @@ namespace NeonDefense.ScriptableObjects
         [Range(1, 1000)]
         public int damage = 10;
 
-        public int cost = 50;
+        public int cost = 100;
     }
 }

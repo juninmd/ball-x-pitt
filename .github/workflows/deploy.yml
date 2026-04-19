@@ -1,9 +1,12 @@
-name: Deploy
+name: Deploy NeonDefense
 
 on:
   push:
     tags:
       - 'v*'
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -19,7 +22,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          lfs: true
 
       - name: Cache Unity Library
         uses: actions/cache@v4
@@ -28,8 +31,16 @@ jobs:
           key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
             Library-${{ matrix.targetPlatform }}-
+            Library-
 
-      - name: Build Project
+      - name: Free Disk Space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+      - name: Build Unity Project
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -37,36 +48,42 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
-          buildName: NeonDefense-${{ matrix.targetPlatform }}
-          buildsPath: build
+          unityVersion: 6000.3.6f1
 
-      - name: Zip Build Artifacts
+      - name: Zip Artifacts (Windows)
+        if: matrix.targetPlatform == 'StandaloneWindows64'
         run: |
-          cd build/${{ matrix.targetPlatform }}
-          zip -r ../../NeonDefense-${{ matrix.targetPlatform }}.zip .
+          cd build/StandaloneWindows64
+          zip -r ../../NeonDefense-Windows.zip .
 
-      - name: Upload Build Artifact
+      - name: Zip Artifacts (WebGL)
+        if: matrix.targetPlatform == 'WebGL'
+        run: |
+          cd build/WebGL
+          zip -r ../../NeonDefense-WebGL.zip .
+
+      - name: Upload Artifact (Zip)
         uses: actions/upload-artifact@v4
         with:
-          name: Build-${{ matrix.targetPlatform }}
-          path: NeonDefense-${{ matrix.targetPlatform }}.zip
+          name: NeonDefense-${{ matrix.targetPlatform }}
+          path: NeonDefense-*.zip
 
   release:
     name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+          merge-multiple: true
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*.zip
+          files: artifacts/*.zip
           generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
