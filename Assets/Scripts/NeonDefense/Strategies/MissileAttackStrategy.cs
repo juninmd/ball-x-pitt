@@ -33,7 +33,7 @@ namespace NeonDefense.Strategies
 
             if (projectile != null)
             {
-                projectile.Initialize(target, config.damage);
+                projectile.Initialize(target, config.damage, config.projectilePrefab);
             }
         }
     }

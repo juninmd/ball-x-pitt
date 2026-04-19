@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using NeonDefense.Core;
 using NeonDefense.ScriptableObjects;
+using NeonDefense.Enemies;
 
 namespace NeonDefense.Managers
 {
@@ -10,6 +11,7 @@ namespace NeonDefense.Managers
     {
         [SerializeField] private List<WaveConfig> waves;
         [SerializeField] private List<Transform> waypoints;
+        [SerializeField] private Transform spawnPoint;
         [SerializeField] private float timeBetweenWaves = 5f;
         [SerializeField] private bool autoStart = false;
 
@@ -19,19 +21,19 @@ namespace NeonDefense.Managers
 
         private void OnEnable()
         {
-            GameEvents.OnEnemyKilled += HandleEnemyDefeated;
+            GameEvents.OnEnemyKilled += HandleEnemyKilled;
             GameEvents.OnEnemyReachedGoal += HandleEnemyReachedGoal;
         }
 
         private void OnDisable()
         {
-            GameEvents.OnEnemyKilled -= HandleEnemyDefeated;
+            GameEvents.OnEnemyKilled -= HandleEnemyKilled;
             GameEvents.OnEnemyReachedGoal -= HandleEnemyReachedGoal;
         }
 
         private void Start()
         {
-            if (autoStart && waves != null && waves.Count > 0)
+            if (autoStart && waves.Count > 0)
             {
                 StartCoroutine(StartWaveCoroutine());
             }
@@ -42,24 +44,26 @@ namespace NeonDefense.Managers
             if (currentWaveIndex >= waves.Count) yield break;
 
             GameEvents.OnWaveStart?.Invoke(currentWaveIndex);
-            WaveConfig currentWave = waves[currentWaveIndex];
             isSpawning = true;
 
-            foreach (var group in currentWave.enemyGroups)
+            WaveConfig currentWave = waves[currentWaveIndex];
+
+            foreach (EnemyGroup group in currentWave.enemyGroups)
             {
                 for (int i = 0; i < group.count; i++)
                 {
                     SpawnEnemy(group.enemyConfig);
-                    float waitTime = group.spawnRate > 0f ? 1f / group.spawnRate : 0f;
-                    if (waitTime > 0f)
+
+                    if (group.spawnRate <= 0f)
                     {
-                        yield return new WaitForSeconds(waitTime);
+                        yield return null; // Prevents division by zero or infinite loops
                     }
                     else
                     {
-                        yield return null;
+                        yield return new WaitForSeconds(group.spawnRate);
                     }
                 }
+
                 yield return new WaitForSeconds(currentWave.timeBetweenGroups);
             }
 
@@ -69,20 +73,22 @@ namespace NeonDefense.Managers
 
         private void SpawnEnemy(EnemyConfig config)
         {
-            if (EnemyPool.Instance == null || config.prefab == null) return;
+            Enemy newEnemy = EnemyPool.Instance.Get(config.prefab);
+            newEnemy.transform.position = spawnPoint.position;
+            newEnemy.transform.rotation = spawnPoint.rotation;
 
-            Enemies.Enemy enemy = EnemyPool.Instance.Get(config.prefab);
-            enemy.Initialize(config, waypoints, config.prefab);
+            newEnemy.Initialize(config, waypoints);
+
             activeEnemies++;
         }
 
-        private void HandleEnemyDefeated(Enemies.Enemy enemy)
+        private void HandleEnemyKilled(Enemy enemy)
         {
             activeEnemies--;
             CheckWaveEndAndTriggerEvent();
         }
 
-        private void HandleEnemyReachedGoal(Enemies.Enemy enemy, int damage)
+        private void HandleEnemyReachedGoal(Enemy enemy, int damage)
         {
             activeEnemies--;
             CheckWaveEndAndTriggerEvent();

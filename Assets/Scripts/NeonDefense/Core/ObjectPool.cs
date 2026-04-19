@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,55 +6,52 @@ namespace NeonDefense.Core
 {
     public abstract class ObjectPool<T> : MonoBehaviour where T : MonoBehaviour
     {
-        private Dictionary<int, Queue<T>> pools = new Dictionary<int, Queue<T>>();
+        private Dictionary<int, Queue<T>> poolDictionary = new Dictionary<int, Queue<T>>();
 
-        public void PreAllocate(T prefab, int initialPoolSize)
+        public void PreAllocate(T prefab, int count)
         {
-            int key = prefab.GetInstanceID();
-            if (!pools.ContainsKey(key))
+            int instanceId = prefab.GetInstanceID();
+            if (!poolDictionary.ContainsKey(instanceId))
             {
-                pools[key] = new Queue<T>();
+                poolDictionary[instanceId] = new Queue<T>();
             }
 
-            for (int i = 0; i < initialPoolSize; i++)
+            for (int i = 0; i < count; i++)
             {
-                T newObj = Instantiate(prefab);
+                T newObj = Instantiate(prefab, transform);
                 newObj.gameObject.SetActive(false);
-                pools[key].Enqueue(newObj);
+                poolDictionary[instanceId].Enqueue(newObj);
             }
         }
 
         public T Get(T prefab)
         {
-            int key = prefab.GetInstanceID();
+            int instanceId = prefab.GetInstanceID();
 
-            if (!pools.ContainsKey(key))
+            if (poolDictionary.ContainsKey(instanceId) && poolDictionary[instanceId].Count > 0)
             {
-                pools[key] = new Queue<T>();
-            }
-
-            if (pools[key].Count > 0)
-            {
-                T obj = pools[key].Dequeue();
+                T obj = poolDictionary[instanceId].Dequeue();
                 obj.gameObject.SetActive(true);
                 return obj;
             }
 
-            T newObj = Instantiate(prefab);
+            // Fallback (should ideally be avoided via PreAllocate)
+            T newObj = Instantiate(prefab, transform);
+            newObj.gameObject.SetActive(true);
             return newObj;
         }
 
         public void ReturnToPool(T obj, T prefab)
         {
             obj.gameObject.SetActive(false);
-            int key = prefab.GetInstanceID();
+            int instanceId = prefab.GetInstanceID();
 
-            if (!pools.ContainsKey(key))
+            if (!poolDictionary.ContainsKey(instanceId))
             {
-                pools[key] = new Queue<T>();
+                poolDictionary[instanceId] = new Queue<T>();
             }
 
-            pools[key].Enqueue(obj);
+            poolDictionary[instanceId].Enqueue(obj);
         }
     }
 }
