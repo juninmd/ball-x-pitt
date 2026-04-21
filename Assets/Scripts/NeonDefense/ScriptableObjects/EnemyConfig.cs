@@ -1,16 +1,14 @@
-using System;
 using UnityEngine;
-using NeonDefense.Enemies;
 
 namespace NeonDefense.ScriptableObjects
 {
-    [CreateAssetMenu(fileName = "NewEnemyConfig", menuName = "NeonDefense/EnemyConfig")]
+    [CreateAssetMenu(fileName = "NewEnemyConfig", menuName = "NeonDefense/Enemy Config")]
     public class EnemyConfig : ScriptableObject
     {
-        public Enemy prefab;
+        public Enemies.Enemy prefab;
 
         [Range(1, 10000)]
-        public float health = 100f;
+        public int health = 100;
 
         [Range(0.1f, 50f)]
         public float speed = 5f;

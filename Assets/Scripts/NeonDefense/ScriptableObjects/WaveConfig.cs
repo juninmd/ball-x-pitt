@@ -13,10 +13,10 @@ namespace NeonDefense.ScriptableObjects
         public float spawnRate;
     }
 
-    [CreateAssetMenu(fileName = "NewWaveConfig", menuName = "NeonDefense/WaveConfig")]
+    [CreateAssetMenu(fileName = "NewWaveConfig", menuName = "NeonDefense/Wave Config")]
     public class WaveConfig : ScriptableObject
     {
-        public List<EnemyGroup> enemyGroups;
+        public List<EnemyGroup> enemyGroups = new List<EnemyGroup>();
         public float timeBetweenGroups = 2f;
     }
 }

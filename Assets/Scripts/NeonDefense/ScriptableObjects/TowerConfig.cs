@@ -1,5 +1,4 @@
 using UnityEngine;
-using NeonDefense.Core;
 
 namespace NeonDefense.ScriptableObjects
 {
@@ -10,11 +9,11 @@ namespace NeonDefense.ScriptableObjects
         Slow
     }
 
-    [CreateAssetMenu(fileName = "NewTowerConfig", menuName = "NeonDefense/TowerConfig")]
+    [CreateAssetMenu(fileName = "NewTowerConfig", menuName = "NeonDefense/Tower Config")]
     public class TowerConfig : ScriptableObject
     {
         public Towers.Tower prefab;
-        public Projectile projectilePrefab;
+        public Core.Projectile projectilePrefab;
         public AttackStrategyType attackStrategyType;
 
         [Range(1f, 50f)]
