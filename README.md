@@ -1,46 +1,32 @@
-# 🤖 NeonDefense (Unity Edition)
+# 🎮 Ball-X-Pitt
 
-[![Unity Status](https://img.shields.io/badge/Unity-6000.x-blue.svg?logo=unity)]()
-[![Status: Active](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+> Um jogo de defesa frenético construído em Unity.
 
-> A Cyberpunk-themed Tower Defense game built with Unity. Defend the central server (Core) from waves of "virus" enemies using high-tech security towers.
+[![Unity Version](https://img.shields.io/badge/Unity-2022.3+-black?style=for-the-badge&logo=unity)](https://unity.com/)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
-## ✨ Features
+## 📝 Descrição
 
-- **Cyberpunk Aesthetic**: Neon, dark, and high-tech visual style.
-- **Strategic Gameplay**: Place towers strategically on the grid to defend against predefined enemy paths.
-- **Dynamic Towers**: Configure range, fire rate, and strategies via ScriptableObjects.
-- **Cross-Platform**: Optimized for PC (Windows 64-bit) and WebGL deployment.
-- **Antigravity Verification**: Built-in scripts for scene and asset integrity validation.
+**Ball-X-Pitt** (também conhecido como Neon Defense) é um jogo de ação e defesa onde você deve proteger seu núcleo contra ondas de inimigos neon em um ambiente cibernético. O jogo utiliza o sistema de renderização Universal Render Pipeline (URP) da Unity para visuais vibrantes e performance otimizada.
 
 ## 🛠️ Tech Stack
 
-- **Game Engine**: Unity 6000+
-- **Scripting**: C# (Strictly typed, SOLID, Data/View separation)
-- **Architecture**:
-  - **Managers**: GameManager, WaveManager, EconomyManager.
-  - **Event Driven**: Uses C# Actions for decoupled communication.
-  - **Design Patterns**: Object Pooling (Zero GC), Factory Method, Strategy Pattern (Laser, Missile, Slow).
-  - **ScriptableObjects**: Data-driven setup for enemies, towers, and waves.
+- **Engine**: [Unity 2022.3+](https://unity.com/)
+- **Render Pipeline**: URP (Universal Render Pipeline)
+- **Linguagem**: C#
+- **Input System**: New Unity Input System
 
-## 🚀 Getting Started
+## 🚀 Como Abrir o Projeto
 
-```bash
-# Clone the repository
-git clone --depth 1 https://github.com/juninmd/NeonDefense.git
+1. Certifique-se de ter o **Unity Hub** instalado.
+2. Clone o repositório:
+   ```bash
+   git clone https://github.com/juninmd/ball-x-pitt.git
+   ```
+3. No Unity Hub, clique em **Add** e selecione a pasta do projeto.
+4. Selecione a versão do Unity recomendada (2022.3 ou superior).
+5. Abra a cena principal em `Assets/Scenes/SampleScene.unity`.
 
-# Open the project in Unity Hub
-# Import required Packages (Settings > Package Manager)
-```
+## 📦 Builds
 
-## 🛡️ Antigravity Protocol (Unity)
-
-This project adheres to the **Antigravity** engineering standards:
-- **Modular C# Scripts**: Separation of concerns between Logic, View, and Data.
-- **Zero Allocations**: Essential Object Pooling for Enemies and Projectiles to prevent GC spikes during gameplay.
-- **Scriptable Objects**: Data-driven architecture for enemies, towers and wave management.
-
----
-
-*"The best offense is a good neon defense."*
+Atualmente, o projeto está em fase de desenvolvimento de código-fonte. Builds para WebGL e Desktop serão disponibilizadas em breve.
