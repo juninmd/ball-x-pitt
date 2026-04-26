@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    name: Build ${{ matrix.targetPlatform }}
+    name: Build for ${{ matrix.targetPlatform }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -20,11 +20,17 @@ jobs:
           - WebGL
 
     steps:
+      - name: Free Disk Space (Ubuntu)
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Free Disk Space
-        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+        with:
+          lfs: true
 
       - name: Cache Unity Library
         uses: actions/cache@v4
@@ -43,41 +49,45 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
+          buildName: NeonDefense-${{ matrix.targetPlatform }}
+          versioning: Tag
 
-      - name: Upload Build Artifacts
+      - name: Zip Build Artifacts
+        run: |
+          cd build/${{ matrix.targetPlatform }}
+          zip -r ../../NeonDefense-${{ matrix.targetPlatform }}.zip .
+          cd ../../
+
+      - name: Upload Artifacts for Release
         uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: build/${{ matrix.targetPlatform }}
+          path: NeonDefense-${{ matrix.targetPlatform }}.zip
 
   release:
-    name: Create Release
+    name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
-
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
       - name: Download Windows Artifact
         uses: actions/download-artifact@v4
         with:
           name: Build-StandaloneWindows64
-          path: release-builds/Windows
+          path: ./artifacts/
 
       - name: Download WebGL Artifact
         uses: actions/download-artifact@v4
         with:
           name: Build-WebGL
-          path: release-builds/WebGL
+          path: ./artifacts/
 
-      - name: Zip Artifacts
-        run: |
-          cd release-builds
-          zip -r WindowsBuild.zip Windows/
-          zip -r WebGLBuild.zip WebGL/
-
-      - name: Create GitHub Release
+      - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            release-builds/WindowsBuild.zip
-            release-builds/WebGLBuild.zip
+          files: ./artifacts/*.zip
           generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
