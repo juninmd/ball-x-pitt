@@ -11,6 +11,8 @@ namespace NeonDefense.Enemies
     /// </summary>
     public class Enemy : MonoBehaviour
     {
+        public EnemyConfig config { get; private set; }
+
         private float health;
         private float speed;
         private int bitDrop;
@@ -23,6 +25,7 @@ namespace NeonDefense.Enemies
 
         public void Initialize(EnemyConfig config, List<Transform> path)
         {
+            this.config = config;
             this.health = config.health;
             this.speed = config.speed;
             this.bitDrop = config.bitDrop;
@@ -90,7 +93,7 @@ namespace NeonDefense.Enemies
         {
             isDead = true;
             // Notify system to award bits
-            GameEvents.OnEnemyKilled?.Invoke(this, bitDrop);
+            GameEvents.OnEnemyKilled?.Invoke(this);
             ReturnToPool();
         }
 
