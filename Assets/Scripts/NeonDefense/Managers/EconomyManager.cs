@@ -54,9 +54,12 @@ namespace NeonDefense.Managers
             GameEvents.OnEnemyKilled -= HandleEnemyKilled;
         }
 
-        private void HandleEnemyKilled(Enemy enemy, int amount)
+        private void HandleEnemyKilled(Enemy enemy)
         {
-            AddBits(amount);
+            if (enemy != null && enemy.config != null)
+            {
+                AddBits(enemy.config.bitDrop);
+            }
         }
 
         private void AddBits(int amount)
