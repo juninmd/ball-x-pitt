@@ -75,7 +75,12 @@ public class EconomyManagerTests
         // Trigger event
         var enemyGO = new GameObject("Enemy");
         var enemy = enemyGO.AddComponent<Enemy>();
-        GameEvents.OnEnemyKilled?.Invoke(enemy, 50);
+
+        var configGO = ScriptableObject.CreateInstance<NeonDefense.ScriptableObjects.EnemyConfig>();
+        configGO.bitDrop = 50;
+        typeof(Enemy).GetProperty("config").SetValue(enemy, configGO);
+
+        GameEvents.OnEnemyKilled?.Invoke(enemy);
 
         Assert.AreEqual(50, manager.CurrentBits);
 

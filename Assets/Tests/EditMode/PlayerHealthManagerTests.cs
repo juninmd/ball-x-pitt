@@ -35,15 +35,6 @@ public class PlayerHealthManagerTests
     public void TakeDamage_ReducesHealth()
     {
         // Set initial health
-        FieldInfo currentHealthField = typeof(PlayerHealthManager).GetProperty("CurrentHealth").GetSetMethod(true);
-        // CurrentHealth has private set. PropertyInfo.SetValue works?
-        // Wait, CurrentHealth property is: public int CurrentHealth { get; private set; }
-        // Reflection on backing field is safer usually, or use setter info.
-        // Backing field usually <CurrentHealth>k__BackingField
-        // Or just invoke Awake?
-        // Awake sets CurrentHealth = startingBits (wait, startingHealth).
-        // startingHealth is serialized field.
-
         // Let's set startingHealth via reflection then call Awake.
         FieldInfo startingHealthField = typeof(PlayerHealthManager).GetField("startingHealth", BindingFlags.NonPublic | BindingFlags.Instance);
         startingHealthField.SetValue(manager, 100);

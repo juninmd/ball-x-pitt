@@ -28,7 +28,7 @@ namespace NeonDefense.Towers
 
             if (tower != null)
             {
-                IAttackStrategy strategy = CreateStrategy(config.strategyType);
+                IAttackStrategy strategy = CreateStrategy(config.attackStrategyType);
                 tower.Initialize(config, strategy);
             }
             else
