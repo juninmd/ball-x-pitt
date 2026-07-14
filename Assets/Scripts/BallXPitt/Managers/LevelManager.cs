@@ -1,107 +1,102 @@
 using UnityEngine;
-using BallXPitt.ScriptableObjects;
 using BallXPitt.Core;
+using BallXPitt.ScriptableObjects;
 
 namespace BallXPitt.Managers
 {
     public class LevelManager : MonoBehaviour
     {
-        [Header("Level Settings")]
-        [SerializeField] private int maxBalls = 10;
-        [SerializeField] private int targetScore = 5000;
+        public static LevelManager Instance { get; private set; }
 
-        [Header("Ball Spawning")]
-        [SerializeField] private BallConfig defaultBallConfig;
-        [SerializeField] private Transform spawnPoint;
+        public LevelConfig currentLevelConfig;
 
-        private int ballsUsed = 0;
-        private int currentScore = 0;
-        private int activeBallsCount = 0;
+        private int ballsRemaining;
+        private bool isLevelActive;
+
+        private void Awake()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
 
         private void OnEnable()
         {
             GameEvents.OnBallSpawned += HandleBallSpawned;
-            GameEvents.OnBallDespawned += HandleBallDespawned;
-            GameEvents.OnTargetHit += HandleTargetHit;
+            GameEvents.OnScoreGained += HandleScoreGained;
         }
 
         private void OnDisable()
         {
             GameEvents.OnBallSpawned -= HandleBallSpawned;
-            GameEvents.OnBallDespawned -= HandleBallDespawned;
-            GameEvents.OnTargetHit -= HandleTargetHit;
+            GameEvents.OnScoreGained -= HandleScoreGained;
         }
 
-        private void Start()
+        public void StartLevel(LevelConfig config)
         {
-            // Pre-allocate some balls to prevent GC spikes
-            if (BallPool.Instance != null && defaultBallConfig != null)
-            {
-                BallPool.Instance.PreAllocate(defaultBallConfig, maxBalls);
-            }
-        }
+            currentLevelConfig = config;
+            ballsRemaining = config.maxBalls;
+            isLevelActive = true;
 
-        private void Update()
-        {
-            // Example input: Click to spawn ball
-            if (Input.GetMouseButtonDown(0))
-            {
-                SpawnBall();
-            }
-        }
-
-        public void SpawnBall()
-        {
-            if (ballsUsed < maxBalls)
-            {
-                Vector3 spawnPos = spawnPoint != null ? spawnPoint.position : new Vector3(0, 5, 0);
-
-                // Emulate selecting horizontal position based on mouse X (simple representation)
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out RaycastHit hit))
-                {
-                    spawnPos.x = hit.point.x;
-                }
-
-                BallPool.Instance.GetBall(defaultBallConfig, spawnPos, Quaternion.identity);
-                ballsUsed++;
-            }
-            else
-            {
-                Debug.Log("No balls left!");
-            }
+            GameEvents.OnLevelStarted?.Invoke(config.maxBalls);
+            Debug.Log($"Level Started: {config.levelName}. Balls: {ballsRemaining}");
         }
 
         private void HandleBallSpawned(Ball ball)
         {
-            activeBallsCount++;
-        }
+            if (!isLevelActive) return;
 
-        private void HandleBallDespawned(Ball ball)
-        {
-            activeBallsCount--;
-            CheckLevelState();
-        }
+            ballsRemaining--;
+            Debug.Log($"Balls remaining: {ballsRemaining}");
 
-        private void HandleTargetHit(Ball ball, int score)
-        {
-            currentScore += score;
-            Debug.Log($"Target Hit! Score +{score}. Total Score: {currentScore}");
-            CheckLevelState();
-        }
-
-        private void CheckLevelState()
-        {
-            if (currentScore >= targetScore)
+            if (ballsRemaining <= 0)
             {
-                Debug.Log("Level Complete!");
-                GameEvents.OnLevelComplete?.Invoke();
+                CheckLevelEnd();
             }
-            else if (ballsUsed >= maxBalls && activeBallsCount == 0)
-            {
-                Debug.Log("Game Over!");
-                GameEvents.OnGameOver?.Invoke();
-            }
+        }
+
+        private void HandleScoreGained(int score, Vector3 position)
+        {
+             // Handled by ScoreManager, LevelManager just checks win condition
+             if (isLevelActive && ScoreManager.Instance.TotalScore >= currentLevelConfig.scoreToWin)
+             {
+                 isLevelActive = false;
+                 GameEvents.OnLevelCompleted?.Invoke();
+                 Debug.Log("Level Completed! Win Condition Met.");
+             }
+        }
+
+        private void CheckLevelEnd()
+        {
+             // Wait for balls to settle/destroy before actually ending, but for simplicity:
+             if (isLevelActive && ballsRemaining <= 0 && ScoreManager.Instance.TotalScore < currentLevelConfig.scoreToWin)
+             {
+                 // We might want to wait until active balls == 0, but this is a simplified version
+                 isLevelActive = false;
+                 GameEvents.OnGameOver?.Invoke();
+                 Debug.Log("Game Over! Out of balls and didn't reach the target score.");
+             }
+        }
+
+        // Factory Method pattern usage wrapper
+        public void SpawnBall(BallConfig ballConfig, Vector3 position)
+        {
+             if (!isLevelActive || ballsRemaining <= 0) return;
+
+             Ball newBall = BallPool.Instance.Get(ballConfig, position, Quaternion.identity);
+             if (newBall != null)
+             {
+                 newBall.Initialize(ballConfig);
+             }
+             else
+             {
+                 Debug.LogError("Failed to spawn ball from pool. Check BallConfig and its prefab.");
+             }
         }
     }
 }
