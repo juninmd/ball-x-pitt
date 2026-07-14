@@ -4,68 +4,61 @@ using BallXPitt.ScriptableObjects;
 namespace BallXPitt.Core
 {
     [RequireComponent(typeof(Rigidbody))]
-    [RequireComponent(typeof(SphereCollider))]
     public class Ball : MonoBehaviour
     {
-        public BallConfig Config { get; private set; }
-
+        public BallConfig config { get; private set; }
         private Rigidbody rb;
-        private SphereCollider col;
-        private PhysicMaterial physicsMaterial;
 
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
-            col = GetComponent<SphereCollider>();
-            physicsMaterial = new PhysicMaterial("BallMaterial");
-            col.material = physicsMaterial;
         }
 
-        public void Initialize(BallConfig config)
+        public void Initialize(BallConfig ballConfig)
         {
-            Config = config;
-            ApplyConfig();
-        }
+            config = ballConfig;
 
-        private void ApplyConfig()
-        {
-            if (Config == null) return;
-
-            rb.mass = Config.mass;
-            physicsMaterial.bounciness = Config.bounciness;
-
-            // Adjust physics material properties for a bouncy pit feeling
-            physicsMaterial.bounceCombine = PhysicMaterialCombine.Maximum;
-            physicsMaterial.frictionCombine = PhysicMaterialCombine.Minimum;
-            physicsMaterial.dynamicFriction = 0.1f;
-            physicsMaterial.staticFriction = 0.1f;
-        }
-
-        private void OnEnable()
-        {
-            // Reset velocity when spawned from pool
-            if (rb != null)
+            // Apply physics configuration
+            if (rb != null && config != null)
             {
+                rb.mass = config.mass;
                 rb.velocity = Vector3.zero;
                 rb.angularVelocity = Vector3.zero;
+                // Note: Bounciness should be handled by assigning a PhysicsMaterial in the Editor
+                // or dynamically assigning one here, but we'll assume the material is on the Collider
+                // and the user configures it per the instructions.
             }
+
+            GameEvents.OnBallSpawned?.Invoke(this);
         }
 
-        public void HitTarget(int multiplier = 1)
-        {
-            if (Config != null)
-            {
-                int totalScore = Config.baseScore * multiplier;
-                Managers.GameEvents.OnTargetHit?.Invoke(this, totalScore);
-            }
-        }
-
-        // This is an example to trigger despawn if it falls out of bounds (bottom of the pit)
         private void Update()
         {
-            if (transform.position.y < -10f && gameObject.activeInHierarchy)
+            // Auto-despawn cleanup if the ball falls out of the playable area
+            if (transform.position.y < -15f)
             {
-                Managers.BallPool.Instance.ReturnBall(this);
+                Despawn();
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (gameObject.activeSelf == false) // To handle pool recycling vs true destruction
+            {
+                // In pooling, disabled means "destroyed" / despawned.
+                GameEvents.OnBallDestroyed?.Invoke(this);
+            }
+        }
+
+        public void Despawn()
+        {
+            if (BallPool.Instance != null && config != null)
+            {
+                BallPool.Instance.ReturnToPool(this, config);
+            }
+            else
+            {
+                gameObject.SetActive(false);
             }
         }
     }
