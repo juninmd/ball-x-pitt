@@ -6,27 +6,39 @@ namespace BallXPitt.Core
     [RequireComponent(typeof(Rigidbody))]
     public class Ball : MonoBehaviour
     {
-        public BallConfig config { get; private set; }
         private Rigidbody rb;
+        private Collider col;
+        private PhysicMaterial pMaterial;
+        public BallConfig config { get; private set; }
 
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
+            col = GetComponent<Collider>();
+
+            if (col != null)
+            {
+                pMaterial = new PhysicMaterial($"{gameObject.name}_PhysicsMaterial");
+                pMaterial.bounceCombine = PhysicMaterialCombine.Maximum;
+                pMaterial.frictionCombine = PhysicMaterialCombine.Minimum;
+                col.sharedMaterial = pMaterial;
+            }
         }
 
         public void Initialize(BallConfig ballConfig)
         {
             config = ballConfig;
 
-            // Apply physics configuration
-            if (rb != null && config != null)
+            if (rb != null)
             {
                 rb.mass = config.mass;
                 rb.velocity = Vector3.zero;
                 rb.angularVelocity = Vector3.zero;
-                // Note: Bounciness should be handled by assigning a PhysicsMaterial in the Editor
-                // or dynamically assigning one here, but we'll assume the material is on the Collider
-                // and the user configures it per the instructions.
+            }
+
+            if (pMaterial != null)
+            {
+                pMaterial.bounciness = config.bounciness;
             }
 
             GameEvents.OnBallSpawned?.Invoke(this);
@@ -34,25 +46,18 @@ namespace BallXPitt.Core
 
         private void Update()
         {
-            // Auto-despawn cleanup if the ball falls out of the playable area
+            // Auto-despawn if it falls below -15f
             if (transform.position.y < -15f)
             {
                 Despawn();
             }
         }
 
-        private void OnDisable()
-        {
-            if (gameObject.activeSelf == false) // To handle pool recycling vs true destruction
-            {
-                // In pooling, disabled means "destroyed" / despawned.
-                GameEvents.OnBallDestroyed?.Invoke(this);
-            }
-        }
-
         public void Despawn()
         {
-            if (BallPool.Instance != null && config != null)
+            GameEvents.OnBallDestroyed?.Invoke(this);
+
+            if (config != null && BallPool.Instance != null)
             {
                 BallPool.Instance.ReturnToPool(this, config);
             }

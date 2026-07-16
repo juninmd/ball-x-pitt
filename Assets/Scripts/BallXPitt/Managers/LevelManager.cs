@@ -6,97 +6,124 @@ namespace BallXPitt.Managers
 {
     public class LevelManager : MonoBehaviour
     {
-        public static LevelManager Instance { get; private set; }
+        [Header("References")]
+        [SerializeField] private LevelConfig currentLevel;
+        [SerializeField] private BallConfig defaultBallConfig;
+        [SerializeField] private Transform spawnPoint;
 
-        public LevelConfig currentLevelConfig;
-
+        [Header("State")]
         private int ballsRemaining;
-        private bool isLevelActive;
-
-        private void Awake()
-        {
-            if (Instance == null)
-            {
-                Instance = this;
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
-        }
+        private int currentScore;
+        private int activeBalls;
 
         private void OnEnable()
         {
             GameEvents.OnBallSpawned += HandleBallSpawned;
+            GameEvents.OnBallDestroyed += HandleBallDestroyed;
             GameEvents.OnScoreGained += HandleScoreGained;
         }
 
         private void OnDisable()
         {
             GameEvents.OnBallSpawned -= HandleBallSpawned;
+            GameEvents.OnBallDestroyed -= HandleBallDestroyed;
             GameEvents.OnScoreGained -= HandleScoreGained;
         }
 
-        public void StartLevel(LevelConfig config)
+        private void Start()
         {
-            currentLevelConfig = config;
-            ballsRemaining = config.maxBalls;
-            isLevelActive = true;
-
-            GameEvents.OnLevelStarted?.Invoke(config.maxBalls);
-            Debug.Log($"Level Started: {config.levelName}. Balls: {ballsRemaining}");
+            if (currentLevel != null)
+            {
+                StartLevel(currentLevel);
+            }
         }
 
-        private void HandleBallSpawned(Ball ball)
+        public void StartLevel(LevelConfig level)
         {
-            if (!isLevelActive) return;
+            currentLevel = level;
+            ballsRemaining = level.maxBalls;
+            currentScore = 0;
+            activeBalls = 0;
 
-            ballsRemaining--;
-            Debug.Log($"Balls remaining: {ballsRemaining}");
+            if (BallPool.Instance != null && defaultBallConfig != null)
+            {
+                BallPool.Instance.PreAllocate(defaultBallConfig, 10);
+            }
 
-            if (ballsRemaining <= 0)
+            GameEvents.OnLevelStarted?.Invoke(1);
+        }
+
+        private void Update()
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                TrySpawnBall();
+            }
+        }
+
+        public void TrySpawnBall()
+        {
+            if (ballsRemaining > 0)
+            {
+                Vector3 spawnPos = spawnPoint != null ? spawnPoint.position : new Vector3(0, 10f, 0);
+
+                // Allow simple player input on X axis using mouse
+                if (Camera.main != null)
+                {
+                    Vector3 mousePos = Input.mousePosition;
+                    mousePos.z = Mathf.Abs(Camera.main.transform.position.z);
+                    float targetX = Camera.main.ScreenToWorldPoint(mousePos).x;
+                    spawnPos.x = targetX;
+                }
+
+                if (BallPool.Instance != null && defaultBallConfig != null)
+                {
+                    Ball ball = BallPool.Instance.GetBall(defaultBallConfig, spawnPos, Quaternion.identity);
+                    ball.Initialize(defaultBallConfig);
+                    ballsRemaining--;
+                }
+            }
+            else if (activeBalls == 0)
             {
                 CheckLevelEnd();
             }
         }
 
-        private void HandleScoreGained(int score, Vector3 position)
+        private void HandleBallSpawned(Ball ball)
         {
-             // Handled by ScoreManager, LevelManager just checks win condition
-             if (isLevelActive && ScoreManager.Instance.TotalScore >= currentLevelConfig.scoreToWin)
-             {
-                 isLevelActive = false;
-                 GameEvents.OnLevelCompleted?.Invoke();
-                 Debug.Log("Level Completed! Win Condition Met.");
-             }
+            activeBalls++;
+        }
+
+        private void HandleBallDestroyed(Ball ball)
+        {
+            activeBalls--;
+            if (activeBalls <= 0 && ballsRemaining <= 0)
+            {
+                CheckLevelEnd();
+            }
+        }
+
+        private void HandleScoreGained(int amount, Vector3 position)
+        {
+            currentScore += amount;
+            if (currentScore >= currentLevel.targetScore)
+            {
+                GameEvents.OnLevelCompleted?.Invoke();
+            }
         }
 
         private void CheckLevelEnd()
         {
-             // Wait for balls to settle/destroy before actually ending, but for simplicity:
-             if (isLevelActive && ballsRemaining <= 0 && ScoreManager.Instance.TotalScore < currentLevelConfig.scoreToWin)
-             {
-                 // We might want to wait until active balls == 0, but this is a simplified version
-                 isLevelActive = false;
-                 GameEvents.OnGameOver?.Invoke();
-                 Debug.Log("Game Over! Out of balls and didn't reach the target score.");
-             }
-        }
+            if (currentLevel == null) return;
 
-        // Factory Method pattern usage wrapper
-        public void SpawnBall(BallConfig ballConfig, Vector3 position)
-        {
-             if (!isLevelActive || ballsRemaining <= 0) return;
-
-             Ball newBall = BallPool.Instance.Get(ballConfig, position, Quaternion.identity);
-             if (newBall != null)
-             {
-                 newBall.Initialize(ballConfig);
-             }
-             else
-             {
-                 Debug.LogError("Failed to spawn ball from pool. Check BallConfig and its prefab.");
-             }
+            if (currentScore >= currentLevel.targetScore)
+            {
+                GameEvents.OnLevelCompleted?.Invoke();
+            }
+            else
+            {
+                GameEvents.OnGameOver?.Invoke();
+            }
         }
     }
 }
