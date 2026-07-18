@@ -37,19 +37,5 @@ namespace BallXPitt.Managers
                 LevelManager.Instance.StartLevel(initialLevel);
             }
         }
-
-        private void Update()
-        {
-            // Simple Input handling for falling balls (Horizontal move and drop)
-            if (Input.GetMouseButtonDown(0) && spawnPoint != null && defaultBall != null)
-            {
-                // Basic implementation of dropping a ball from a selected position
-                Vector3 dropPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 10f));
-                dropPosition.y = spawnPoint.position.y; // Keep it at the top of the pit
-                dropPosition.z = 0; // 2D plane logic on a 3D setup
-
-                LevelManager.Instance.SpawnBall(defaultBall, dropPosition);
-            }
-        }
     }
 }
