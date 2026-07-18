@@ -6,6 +6,8 @@ namespace BallXPitt.Managers
 {
     public class LevelManager : MonoBehaviour
     {
+        public static LevelManager Instance { get; private set; }
+
         [Header("References")]
         [SerializeField] private LevelConfig currentLevel;
         [SerializeField] private BallConfig defaultBallConfig;
@@ -15,6 +17,18 @@ namespace BallXPitt.Managers
         private int ballsRemaining;
         private int currentScore;
         private int activeBalls;
+
+        private void Awake()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
 
         private void OnEnable()
         {
