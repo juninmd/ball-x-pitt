@@ -1,53 +1,55 @@
 using UnityEngine;
 using BallXPitt.ScriptableObjects;
+using BallXPitt.Managers;
 
 namespace BallXPitt.Core
 {
     [RequireComponent(typeof(Rigidbody))]
+    [RequireComponent(typeof(SphereCollider))]
     public class Ball : MonoBehaviour
     {
+        public BallConfig Config { get; private set; }
         private Rigidbody rb;
-        private Collider col;
-        private PhysicMaterial pMaterial;
-        public BallConfig config { get; private set; }
+        private SphereCollider coll;
+
+        private const float DESPAWN_Y = -15f;
 
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
-            col = GetComponent<Collider>();
-
-            if (col != null)
-            {
-                pMaterial = new PhysicMaterial($"{gameObject.name}_PhysicsMaterial");
-                pMaterial.bounceCombine = PhysicMaterialCombine.Maximum;
-                pMaterial.frictionCombine = PhysicMaterialCombine.Minimum;
-                col.sharedMaterial = pMaterial;
-            }
+            coll = GetComponent<SphereCollider>();
         }
 
-        public void Initialize(BallConfig ballConfig)
+        public void Initialize(BallConfig config)
         {
-            config = ballConfig;
+            Config = config;
 
-            if (rb != null)
+            if (config != null)
             {
                 rb.mass = config.mass;
-                rb.velocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
+                if (coll.material != null)
+                {
+                    coll.material.bounciness = config.bounciness;
+                }
+                else
+                {
+                    PhysicMaterial mat = new PhysicMaterial();
+                    mat.bounciness = config.bounciness;
+                    mat.bounceCombine = PhysicMaterialCombine.Maximum;
+                    coll.material = mat;
+                }
             }
 
-            if (pMaterial != null)
-            {
-                pMaterial.bounciness = config.bounciness;
-            }
+            // Reset physical state
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
 
             GameEvents.OnBallSpawned?.Invoke(this);
         }
 
         private void Update()
         {
-            // Auto-despawn if it falls below -15f
-            if (transform.position.y < -15f)
+            if (transform.position.y < DESPAWN_Y)
             {
                 Despawn();
             }
@@ -55,16 +57,10 @@ namespace BallXPitt.Core
 
         public void Despawn()
         {
-            GameEvents.OnBallDestroyed?.Invoke(this);
+            if (!gameObject.activeInHierarchy) return;
 
-            if (config != null && BallPool.Instance != null)
-            {
-                BallPool.Instance.ReturnToPool(this, config);
-            }
-            else
-            {
-                gameObject.SetActive(false);
-            }
+            GameEvents.OnBallDestroyed?.Invoke(this);
+            BallPool.Instance.ReturnToPool(this, Config);
         }
     }
 }
