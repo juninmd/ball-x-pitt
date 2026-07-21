@@ -1,55 +1,46 @@
 using UnityEngine;
 using BallXPitt.ScriptableObjects;
-using BallXPitt.Managers;
 
 namespace BallXPitt.Core
 {
     [RequireComponent(typeof(Rigidbody))]
-    [RequireComponent(typeof(SphereCollider))]
     public class Ball : MonoBehaviour
     {
-        public BallConfig Config { get; private set; }
+        public BallConfig config { get; private set; }
         private Rigidbody rb;
-        private SphereCollider coll;
-
-        private const float DESPAWN_Y = -15f;
+        private Collider col;
 
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
-            coll = GetComponent<SphereCollider>();
+            col = GetComponent<Collider>();
         }
 
-        public void Initialize(BallConfig config)
+        public void Initialize(BallConfig ballConfig)
         {
-            Config = config;
+            config = ballConfig;
 
-            if (config != null)
+            // Apply physics settings
+            if (rb != null)
             {
                 rb.mass = config.mass;
-                if (coll.material != null)
-                {
-                    coll.material.bounciness = config.bounciness;
-                }
-                else
-                {
-                    PhysicMaterial mat = new PhysicMaterial();
-                    mat.bounciness = config.bounciness;
-                    mat.bounceCombine = PhysicMaterialCombine.Maximum;
-                    coll.material = mat;
-                }
+                rb.velocity = Vector3.zero; // Reset velocity
+                rb.angularVelocity = Vector3.zero;
             }
 
-            // Reset physical state
-            rb.velocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
+            if (col != null && col.material != null)
+            {
+                col.material.bounciness = config.bounciness;
+                col.material.bounceCombine = PhysicMaterialCombine.Maximum;
+            }
 
             GameEvents.OnBallSpawned?.Invoke(this);
         }
 
         private void Update()
         {
-            if (transform.position.y < DESPAWN_Y)
+            // Auto despawn logic if it falls out of bounds (Y < -15)
+            if (transform.position.y < -15f)
             {
                 Despawn();
             }
@@ -57,10 +48,8 @@ namespace BallXPitt.Core
 
         public void Despawn()
         {
-            if (!gameObject.activeInHierarchy) return;
-
             GameEvents.OnBallDestroyed?.Invoke(this);
-            BallPool.Instance.ReturnToPool(this, Config);
+            BallPool.Instance.ReturnToPool(this, config);
         }
     }
 }
