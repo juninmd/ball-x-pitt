@@ -1,5 +1,6 @@
 using UnityEngine;
 using BallXPitt.ScriptableObjects;
+using BallXPitt.Managers;
 
 namespace BallXPitt.Core
 {
@@ -8,39 +9,36 @@ namespace BallXPitt.Core
     {
         public BallConfig config { get; private set; }
         private Rigidbody rb;
-        private Collider col;
+        private bool isDespawning = false;
 
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
-            col = GetComponent<Collider>();
         }
 
         public void Initialize(BallConfig ballConfig)
         {
             config = ballConfig;
+            isDespawning = false;
 
-            // Apply physics settings
-            if (rb != null)
+            if (rb != null && config != null)
             {
                 rb.mass = config.mass;
-                rb.velocity = Vector3.zero; // Reset velocity
+                // Bounciness is typically handled via a PhysicsMaterial assigned to the Collider,
+                // but setting it up manually if needed. We'll rely on PhysicsMaterial for actual bounciness.
+                // Reset velocity on init
+                rb.velocity = Vector3.zero;
                 rb.angularVelocity = Vector3.zero;
             }
 
-            if (col != null && col.material != null)
-            {
-                col.material.bounciness = config.bounciness;
-                col.material.bounceCombine = PhysicMaterialCombine.Maximum;
-            }
-
+            gameObject.SetActive(true);
             GameEvents.OnBallSpawned?.Invoke(this);
         }
 
         private void Update()
         {
-            // Auto despawn logic if it falls out of bounds (Y < -15)
-            if (transform.position.y < -15f)
+            // Auto-despawn logic if it falls out of bounds (Y < -15f)
+            if (transform.position.y < -15f && !isDespawning)
             {
                 Despawn();
             }
@@ -48,8 +46,25 @@ namespace BallXPitt.Core
 
         public void Despawn()
         {
+            if (isDespawning) return;
+            isDespawning = true;
+
             GameEvents.OnBallDestroyed?.Invoke(this);
-            BallPool.Instance.ReturnToPool(this, config);
+
+            if (BallPool.Instance != null)
+            {
+                BallPool.Instance.ReturnToPool(this, config);
+            }
+            else
+            {
+                gameObject.SetActive(false); // Fallback
+            }
+        }
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            // Simple generic collision check logic can go here.
+            // In a real scenario, the Strategy Pattern effects on obstacles would handle the specific logic.
         }
     }
 }
