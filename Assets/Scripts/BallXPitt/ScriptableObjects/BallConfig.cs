@@ -2,18 +2,17 @@ using UnityEngine;
 
 namespace BallXPitt.ScriptableObjects
 {
-    [CreateAssetMenu(fileName = "New BallConfig", menuName = "BallXPitt/Ball Config", order = 1)]
+    [CreateAssetMenu(fileName = "NewBallConfig", menuName = "BallXPitt/BallConfig")]
     public class BallConfig : ScriptableObject
     {
         [Header("Physics Settings")]
         public float mass = 1f;
-        [Range(0f, 1f)]
         public float bounciness = 0.8f;
 
-        [Header("Visuals")]
+        [Header("Visual & Prefab Settings")]
         public GameObject prefab;
 
-        [Header("Scoring")]
-        public int baseScore = 100;
+        [Header("Game Data")]
+        public int baseScore = 10;
     }
 }

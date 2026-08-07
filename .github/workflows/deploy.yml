@@ -1,9 +1,12 @@
-name: Deploy Unity Game
+name: Game CI Deployment
 
 on:
   push:
     tags:
       - 'v*'
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -16,8 +19,7 @@ jobs:
           - StandaloneWindows64
           - WebGL
     steps:
-      # Free disk space (required to prevent out-of-space errors)
-      - name: Free Disk Space
+      - name: Free Disk Space for Unity Build
         run: |
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
@@ -26,6 +28,8 @@ jobs:
 
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Cache Unity Library
         uses: actions/cache@v4
@@ -34,6 +38,7 @@ jobs:
           key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
             Library-${{ matrix.targetPlatform }}-
+            Library-
 
       - name: Build Unity Project
         uses: game-ci/unity-builder@v4
@@ -43,36 +48,45 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
-          buildName: Ball-x-Pitt
+          buildName: BallXPitt-${{ matrix.targetPlatform }}
 
-      - name: Archive Build
+      - name: Zip Build Artifacts
+        run: |
+          cd build/${{ matrix.targetPlatform }}
+          zip -r ../../BallXPitt-${{ matrix.targetPlatform }}.zip .
+
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: build/${{ matrix.targetPlatform }}
+          path: BallXPitt-${{ matrix.targetPlatform }}.zip
 
   release:
     name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: Download Artifacts
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Windows Build
         uses: actions/download-artifact@v4
         with:
-          path: builds
+          name: Build-StandaloneWindows64
+          path: ./artifacts
 
-      - name: Zip Windows Build
-        run: zip -r builds/Ball-x-Pitt-Windows.zip builds/Build-StandaloneWindows64
-
-      - name: Zip WebGL Build
-        run: zip -r builds/Ball-x-Pitt-WebGL.zip builds/Build-WebGL
+      - name: Download WebGL Build
+        uses: actions/download-artifact@v4
+        with:
+          name: Build-WebGL
+          path: ./artifacts
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            builds/Ball-x-Pitt-Windows.zip
-            builds/Ball-x-Pitt-WebGL.zip
           generate_release_notes: true
+          files: |
+            ./artifacts/BallXPitt-StandaloneWindows64.zip
+            ./artifacts/BallXPitt-WebGL.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
