@@ -1,315 +1,310 @@
-# NeonDefense - Tower Defense Cyberpunk
+Aqui estão os códigos C# dos Core Scripts, o arquivo de workflow GitHub Actions, instruções de configuração no Unity Editor e a lista de Secrets necessários, tudo conforme os requisitos do projeto "Ball-x-Pitt".
 
-Aqui estão os artefatos solicitados para o seu jogo Tower Defense, seguindo as diretrizes de Clean Code, SOLID e os Design Patterns exigidos (Object Pooling, Factory, Strategy).
+### 1. Scripts Core
 
-## 1. Scripts Core
-
-### `WaveManager.cs` (Controle de Ondas)
-Gerencia o fluxo de ondas, spawn de inimigos e se comunica via Eventos (C# Actions).
-
-```csharp
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using NeonDefense.ScriptableObjects;
-using NeonDefense.Core;
-using NeonDefense.Enemies;
-
-namespace NeonDefense.Managers
-{
-    public class WaveManager : MonoBehaviour
-    {
-        [Header("Configuration")]
-        [SerializeField] private List<WaveConfig> waves;
-        [SerializeField] private Transform spawnPoint;
-        [SerializeField] private float timeBetweenWaves = 5f;
-        [SerializeField] private bool autoStart = false;
-
-        private int currentWaveIndex = 0;
-        private int activeEnemiesCount = 0;
-        private bool isWaveActive = false;
-        private bool isSpawning = false;
-
-        private void OnEnable()
-        {
-            GameEvents.OnEnemyKilled += HandleEnemyDestroyed;
-            GameEvents.OnEnemyReachedGoal += HandleEnemyReachedGoal;
-        }
-
-        private void OnDisable()
-        {
-            GameEvents.OnEnemyKilled -= HandleEnemyDestroyed;
-            GameEvents.OnEnemyReachedGoal -= HandleEnemyReachedGoal;
-        }
-
-        private void Start()
-        {
-            if (autoStart && waves != null && waves.Count > 0)
-            {
-                StartWave();
-            }
-        }
-
-        public void StartWave()
-        {
-            if (isWaveActive || currentWaveIndex >= waves.Count) return;
-
-            isWaveActive = true;
-            isSpawning = true;
-            activeEnemiesCount = 0;
-            GameEvents.OnWaveStart?.Invoke(currentWaveIndex);
-
-            StartCoroutine(SpawnWave(waves[currentWaveIndex]));
-        }
-
-        private IEnumerator SpawnWave(WaveConfig waveConfig)
-        {
-            foreach (var group in waveConfig.enemyGroups)
-            {
-                for (int i = 0; i < group.count; i++)
-                {
-                    SpawnEnemy(group.enemyConfig);
-                    yield return new WaitForSeconds(group.spawnRate > 0 ? 1f / group.spawnRate : 1f);
-                }
-
-                yield return new WaitForSeconds(waveConfig.timeBetweenGroups);
-            }
-
-            isSpawning = false;
-            CheckWaveEndAndTriggerEvent();
-        }
-
-        private void SpawnEnemy(EnemyConfig config)
-        {
-            if (EnemyPool.Instance == null || config == null || config.prefab == null) return;
-
-            Enemy newEnemy = EnemyPool.Instance.Get(config.prefab, spawnPoint.position, spawnPoint.rotation);
-            newEnemy.config = config;
-
-            activeEnemiesCount++;
-        }
-
-        private void HandleEnemyDestroyed(Enemy enemy)
-        {
-            DecreaseActiveEnemyCount();
-        }
-
-        private void HandleEnemyReachedGoal(Enemy enemy, int damage)
-        {
-            DecreaseActiveEnemyCount();
-        }
-
-        private void DecreaseActiveEnemyCount()
-        {
-            activeEnemiesCount--;
-            CheckWaveEndAndTriggerEvent();
-        }
-
-        private void CheckWaveEndAndTriggerEvent()
-        {
-            if (isWaveActive && !isSpawning && activeEnemiesCount <= 0)
-            {
-                isWaveActive = false;
-                GameEvents.OnWaveEnd?.Invoke(currentWaveIndex);
-                UpdateWaveIndexAndScheduleNext();
-            }
-        }
-
-        private void UpdateWaveIndexAndScheduleNext()
-        {
-            currentWaveIndex++;
-            if (currentWaveIndex < waves.Count)
-            {
-                Invoke(nameof(StartWave), timeBetweenWaves);
-            }
-            else
-            {
-                Debug.Log("All Waves Completed!");
-            }
-        }
-    }
-}
-```
-
-### `Tower.cs` (Base da Torre)
-A base da torre utiliza o **Strategy Pattern** para delegar o comportamento de ataque (`IAttackStrategy`). A busca por alvos utiliza `Physics.OverlapSphereNonAlloc` para garantir Zero GC (sem alocações durante a gameplay) e é executada através de uma Coroutine a cada 0.2s para poupar CPU.
-
+**Assets/Scripts/BallXPitt/Managers/LevelManager.cs**
 ```csharp
 using UnityEngine;
-using NeonDefense.Enemies;
-using NeonDefense.ScriptableObjects;
-using NeonDefense.Strategies;
-using System.Collections;
+using BallXPitt.Core;
+using BallXPitt.ScriptableObjects;
 
-namespace NeonDefense.Towers
+namespace BallXPitt.Managers
 {
-    public class Tower : MonoBehaviour
+    public class LevelManager : MonoBehaviour
     {
-        [SerializeField] private Transform firePoint;
-        [SerializeField] private LayerMask enemyLayerMask;
+        public static LevelManager Instance { get; private set; }
 
-        private TowerConfig config;
-        private IAttackStrategy attackStrategy;
-        private Enemy currentTarget;
-        private float fireCountdown = 0f;
+        public LevelConfig currentLevelConfig;
 
-        private Collider[] targetBuffer = new Collider[20];
+        public int ballsRemaining { get; private set; }
+        public int activeBalls { get; private set; }
+        public int currentScore { get; private set; }
 
-        public void Initialize(TowerConfig towerConfig, IAttackStrategy strategy)
-        {
-            this.config = towerConfig;
-            this.attackStrategy = strategy;
+        private bool isLevelActive = false;
 
-            StartCoroutine(UpdateTarget());
-        }
-
-        private IEnumerator UpdateTarget()
-        {
-            WaitForSeconds wait = new WaitForSeconds(0.2f);
-
-            while (true)
-            {
-                FindTarget();
-                yield return wait;
-            }
-        }
-
-        private void FindTarget()
-        {
-            if (currentTarget != null)
-            {
-                if (!currentTarget.gameObject.activeInHierarchy ||
-                    (transform.position - currentTarget.transform.position).sqrMagnitude > config.range * config.range)
-                {
-                    currentTarget = null;
-                }
-                else
-                {
-                    return;
-                }
-            }
-
-            int numColliders = Physics.OverlapSphereNonAlloc(transform.position, config.range, targetBuffer, enemyLayerMask);
-
-            float shortestDistanceSqr = Mathf.Infinity;
-            Enemy nearestEnemy = null;
-
-            for (int i = 0; i < numColliders; i++)
-            {
-                Enemy enemy = targetBuffer[i].GetComponentInParent<Enemy>();
-                if (enemy != null && enemy.gameObject.activeInHierarchy)
-                { 
-                    float distanceSqr = (transform.position - enemy.transform.position).sqrMagnitude;
-                    if (distanceSqr < shortestDistanceSqr)
-                    { 
-                        shortestDistanceSqr = distanceSqr;
-                        nearestEnemy = enemy;
-                    }
-                }
-            }
-
-            currentTarget = nearestEnemy;
-        }
-
-        private void Update()
-        {
-            if (currentTarget == null || config == null || attackStrategy == null) return;
-
-            fireCountdown -= Time.deltaTime;
-
-            if (fireCountdown <= 0f)
-            {
-                Shoot();
-                fireCountdown = config.fireRate > 0 ? 1f / config.fireRate : 1f;
-            }
-        }
-
-        private void Shoot()
-        {
-            attackStrategy.Attack(currentTarget, firePoint, config);
-        }
-
-        private void OnDrawGizmosSelected()
-        {
-            if (config != null)
-            {
-                Gizmos.color = Color.red;
-                Gizmos.DrawWireSphere(transform.position, config.range);
-            }
-        }
-    }
-}
-```
-
-### `ProjectilePool.cs` (Object Pooling)
-Implementação de um Pool Global de projéteis para evitar GC via instanciação e destruição dinâmica. (Herda de `ObjectPool<T>`).
-
-```csharp
-using UnityEngine;
-
-namespace NeonDefense.Core
-{
-    [DisallowMultipleComponent]
-    public class ProjectilePool : ObjectPool<Projectile>
-    {
-        public static ProjectilePool Instance { get; private set; }
-
-        protected override void Awake()
+        private void Awake()
         {
             if (Instance == null)
             {
                 Instance = this;
-                base.Awake();
             }
             else
             {
                 Destroy(gameObject);
             }
         }
+
+        private void OnEnable()
+        {
+            GameEvents.OnBallSpawned += HandleBallSpawned;
+            GameEvents.OnBallDestroyed += HandleBallDestroyed;
+            GameEvents.OnScoreGained += HandleScoreGained;
+        }
+
+        private void OnDisable()
+        {
+            GameEvents.OnBallSpawned -= HandleBallSpawned;
+            GameEvents.OnBallDestroyed -= HandleBallDestroyed;
+            GameEvents.OnScoreGained -= HandleScoreGained;
+        }
+
+        public void StartLevel(LevelConfig config)
+        {
+            currentLevelConfig = config;
+            ballsRemaining = config.maxBalls;
+            activeBalls = 0;
+            currentScore = 0;
+            isLevelActive = true;
+
+            GameEvents.OnLevelStarted?.Invoke(1); // Assuming level 1 for now
+        }
+
+        // Simulates Player Input
+        public void TrySpawnBall(BallConfig ballConfig, float xPosition)
+        {
+            if (!isLevelActive || ballsRemaining <= 0) return;
+
+            Vector3 spawnPos = new Vector3(xPosition, 10f, 0f); // Spawns at top
+
+            Ball spawnedBall = BallPool.Instance.GetBall(ballConfig, spawnPos, Quaternion.identity);
+            spawnedBall.Initialize(ballConfig);
+
+            ballsRemaining--;
+        }
+
+        private void HandleBallSpawned(Ball ball)
+        {
+            activeBalls++;
+        }
+
+        private void HandleBallDestroyed(Ball ball)
+        {
+            activeBalls--;
+            CheckLevelCompletion();
+        }
+
+        private void HandleScoreGained(int amount, Vector3 position)
+        {
+            if (!isLevelActive) return;
+
+            currentScore += amount;
+            CheckLevelCompletion();
+        }
+
+        private void CheckLevelCompletion()
+        {
+            if (!isLevelActive) return;
+
+            if (currentScore >= currentLevelConfig.scoreToWin)
+            {
+                // Win condition
+                isLevelActive = false;
+                GameEvents.OnLevelCompleted?.Invoke();
+            }
+            else if (ballsRemaining <= 0 && activeBalls <= 0)
+            {
+                // Lose condition
+                isLevelActive = false;
+                GameEvents.OnGameOver?.Invoke();
+            }
+        }
     }
 }
 ```
 
-### `EnemyConfig.cs` (ScriptableObject)
-Define os dados e configuração de cada Inimigo de forma separada da lógica. Restrições via `[Range]` facilitam o trabalho do Game Designer.
+**Assets/Scripts/BallXPitt/Managers/BallPool.cs**
+```csharp
+using System.Collections.Generic;
+using UnityEngine;
+using BallXPitt.Core;
+using BallXPitt.ScriptableObjects;
 
+namespace BallXPitt.Managers
+{
+    public class BallPool : MonoBehaviour
+    {
+        public static BallPool Instance { get; private set; }
+
+        private Dictionary<int, Queue<Ball>> pools = new Dictionary<int, Queue<Ball>>();
+
+        private void Awake()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
+
+        public void PreAllocate(BallConfig config, int amount)
+        {
+            int key = config.GetInstanceID();
+            if (!pools.ContainsKey(key))
+            {
+                pools[key] = new Queue<Ball>();
+            }
+
+            for (int i = 0; i < amount; i++)
+            {
+                Ball newBall = InstantiateBall(config);
+                newBall.gameObject.SetActive(false);
+                pools[key].Enqueue(newBall);
+            }
+        }
+
+        public Ball GetBall(BallConfig config, Vector3 position, Quaternion rotation)
+        {
+            int key = config.GetInstanceID();
+
+            if (pools.ContainsKey(key) && pools[key].Count > 0)
+            {
+                Ball ball = pools[key].Dequeue();
+                ball.transform.position = position;
+                ball.transform.rotation = rotation;
+                ball.gameObject.SetActive(true);
+                return ball;
+            }
+
+            // Fallback instantiation if pool is empty
+            Ball newBall = InstantiateBall(config);
+            newBall.transform.position = position;
+            newBall.transform.rotation = rotation;
+            newBall.gameObject.SetActive(true);
+            return newBall;
+        }
+
+        public void ReturnToPool(Ball ball, BallConfig config)
+        {
+            if (ball == null || config == null) return;
+
+            int key = config.GetInstanceID();
+            if (!pools.ContainsKey(key))
+            {
+                pools[key] = new Queue<Ball>();
+            }
+
+            ball.gameObject.SetActive(false);
+            pools[key].Enqueue(ball);
+        }
+
+        private Ball InstantiateBall(BallConfig config)
+        {
+            GameObject obj = Instantiate(config.prefab);
+            obj.transform.SetParent(transform);
+            Ball ball = obj.GetComponent<Ball>();
+            if (ball == null)
+            {
+                ball = obj.AddComponent<Ball>();
+            }
+            return ball;
+        }
+    }
+}
+```
+
+**Assets/Scripts/BallXPitt/Core/Ball.cs**
 ```csharp
 using UnityEngine;
-using NeonDefense.Enemies;
+using BallXPitt.ScriptableObjects;
+using BallXPitt.Managers;
 
-namespace NeonDefense.ScriptableObjects
+namespace BallXPitt.Core
 {
-    [CreateAssetMenu(fileName = "NewEnemyConfig", menuName = "NeonDefense/Enemy Config", order = 1)]
-    public class EnemyConfig : ScriptableObject
+    [RequireComponent(typeof(Rigidbody))]
+    public class Ball : MonoBehaviour
     {
-        [Header("Prefabs")]
-        [Tooltip("The Enemy prefab to instantiate. Must contain the Enemy component.")]
-        public Enemy prefab;
+        public BallConfig config { get; private set; }
+        private Rigidbody rb;
+        private bool isDespawning = false;
 
-        [Header("Stats")]
-        [Range(1f, 10000f)]
-        public float health = 100f;
+        private void Awake()
+        {
+            rb = GetComponent<Rigidbody>();
+        }
 
-        [Range(0.1f, 50f)]
-        public float speed = 5f;
+        public void Initialize(BallConfig ballConfig)
+        {
+            config = ballConfig;
+            isDespawning = false;
 
-        [Range(1, 1000)]
-        public int bitDrop = 10;
+            if (rb != null && config != null)
+            {
+                rb.mass = config.mass;
+                // Bounciness is typically handled via a PhysicsMaterial assigned to the Collider,
+                // mas podemos reiniciar a velocidade aqui para garantir que a bola saia zerada do pool
+                rb.velocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
 
-        [Range(1, 1000)]
-        public int damageToPlayer = 1;
+            gameObject.SetActive(true);
+            GameEvents.OnBallSpawned?.Invoke(this);
+        }
+
+        private void Update()
+        {
+            // Auto-despawn logic se a bola cair muito (ex: Y < -15f)
+            if (transform.position.y < -15f && !isDespawning)
+            {
+                Despawn();
+            }
+        }
+
+        public void Despawn()
+        {
+            if (isDespawning) return;
+            isDespawning = true;
+
+            GameEvents.OnBallDestroyed?.Invoke(this);
+
+            if (BallPool.Instance != null)
+            {
+                BallPool.Instance.ReturnToPool(this, config);
+            }
+            else
+            {
+                gameObject.SetActive(false); // Fallback
+            }
+        }
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            // A lógica de colisão específica seria tratada pelo Strategy Pattern dos obstáculos
+            // que implementam IEffectStrategy e aplicam efeitos na bola.
+        }
     }
 }
 ```
 
----
+**Assets/Scripts/BallXPitt/ScriptableObjects/BallConfig.cs**
+```csharp
+using UnityEngine;
 
-## 2. Workflow CI/CD (`.github/workflows/deploy.yml`)
+namespace BallXPitt.ScriptableObjects
+{
+    [CreateAssetMenu(fileName = "NewBallConfig", menuName = "BallXPitt/BallConfig")]
+    public class BallConfig : ScriptableObject
+    {
+        [Header("Physics Settings")]
+        public float mass = 1f;
+        public float bounciness = 0.8f;
 
-Este arquivo automatiza o build para Windows 64 e WebGL, rodando **apenas** quando uma Tag de versão (`v*`) é criada e também cria uma Release do GitHub.
+        [Header("Visual & Prefab Settings")]
+        public GameObject prefab;
 
+        [Header("Game Data")]
+        public int baseScore = 10;
+    }
+}
+```
+
+### 2. Workflow de CI/CD para GitHub Actions
+
+**`.github/workflows/deploy.yml`**
 ```yaml
-name: Deploy Unity Project
+name: Game CI Deployment
 
 on:
   push:
@@ -329,8 +324,14 @@ jobs:
         targetPlatform:
           - StandaloneWindows64
           - WebGL
-
     steps:
+      - name: Free Disk Space for Unity Build
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
@@ -353,14 +354,18 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
-          buildName: NeonDefense
-          versioning: Tag
+          buildName: BallXPitt-${{ matrix.targetPlatform }}
+
+      - name: Zip Build Artifacts
+        run: |
+          cd build/${{ matrix.targetPlatform }}
+          zip -r ../../BallXPitt-${{ matrix.targetPlatform }}.zip .
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: build/${{ matrix.targetPlatform }}
+          path: BallXPitt-${{ matrix.targetPlatform }}.zip
 
   release:
     name: Create GitHub Release
@@ -370,60 +375,53 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Download Windows Artifact
+      - name: Download Windows Build
         uses: actions/download-artifact@v4
         with:
           name: Build-StandaloneWindows64
-          path: builds/Windows
+          path: ./artifacts
 
-      - name: Download WebGL Artifact
+      - name: Download WebGL Build
         uses: actions/download-artifact@v4
         with:
           name: Build-WebGL
-          path: builds/WebGL
+          path: ./artifacts
 
-      - name: Zip Windows Build
-        run: zip -r NeonDefense-Windows.zip builds/Windows/
-
-      - name: Zip WebGL Build
-        run: zip -r NeonDefense-WebGL.zip builds/WebGL/
-
-      - name: Create Release and Upload Assets
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           files: |
-            NeonDefense-Windows.zip
-            NeonDefense-WebGL.zip
+            ./artifacts/BallXPitt-StandaloneWindows64.zip
+            ./artifacts/BallXPitt-WebGL.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
----
+### 3. Instruções e Configuração
 
-## 3. Instruções
+#### Como Configurar a Física e os ScriptableObjects na Unity:
+1. **Configuração Física (Bounciness):**
+   - Na janela de *Project* da Unity, clique com o botão direito -> `Create > Physic Material`.
+   - Nomeie como "BouncyMaterial".
+   - Altere a propriedade `Bounciness` para 0.8 (ou o valor desejado) e defina `Bounce Combine` para `Maximum`.
+   - Atribua este "BouncyMaterial" ao `Collider` no prefab da sua Esfera (Ball) e aos obstáculos no cenário.
+2. **Criando o BallConfig:**
+   - Na janela de *Project*, clique com o botão direito -> `Create > BallXPitt > BallConfig`.
+   - Defina os atributos: Massa (ex: 1), Pontuação Base (ex: 10), e no campo `Prefab`, arraste o prefab da sua esfera (que deve ter o script `Ball.cs`, um `Rigidbody` e um `Collider` configurado).
+3. **Cena Inicial:**
+   - Crie GameObjects vazios para atuar como *Managers* (adicione o `LevelManager` e o `BallPool` neles).
+   - Configure um script temporário para escutar um botão de clique (Input) e chamar `LevelManager.Instance.TrySpawnBall(seuBallConfig, xPosition)`. A gravidade configurada no Rigidbody fará a esfera cair.
 
-### Como configurar os ScriptableObjects no Editor para criar a primeira onda:
+#### Lista Exata de GitHub Secrets Necessários
+Você deve configurar os seguintes repositórios *Secrets* na aba `Settings > Secrets and variables > Actions` do seu repositório GitHub:
+*   `UNITY_LICENSE`: O conteúdo do seu arquivo de licença da Unity (ex: .alf / .ulf) convertido para base64, conforme as instruções do game-ci.
+*   `UNITY_EMAIL`: O e-mail associado à conta Unity que ativou a licença.
+*   `UNITY_PASSWORD`: A senha da referida conta Unity.
+*   `GITHUB_TOKEN`: O GitHub gera este token automaticamente (não é necessário adicionar manualmente na seção Secrets, mas verifique se a permissão do GITHUB_TOKEN em *Settings > Actions > General > Workflow permissions* está definida como "Read and write permissions", ou no próprio yaml como configurado em `permissions: contents: write`).
 
-1. **Criando o Inimigo (Vírus):**
-   - Na janela **Project**, clique com o botão direito e navegue até `Create > NeonDefense > Enemy Config`.
-   - Dê um nome ao arquivo, como `BasicVirus`.
-   - Selecione-o e, no **Inspector**, arraste o Prefab do seu inimigo para o campo `Prefab`. Ajuste os atributos como preferir (ex: Vida = 100, Speed = 5).
-
-2. **Criando a Onda:**
-   - Clique novamente com o botão direito na aba **Project**, e vá em `Create > NeonDefense > Wave Config`.
-   - Dê o nome de `Wave_01`.
-   - No **Inspector**, no array `Enemy Groups`, adicione um novo elemento.
-   - Arraste o `BasicVirus` para o campo `Enemy Config` deste elemento. Configure `Count` para o número de inimigos (ex: 10) e `Spawn Rate` para a taxa de aparição por segundo.
-
-3. **Configurando a Cena:**
-   - Selecione o GameObject que contém o seu componente `WaveManager` (geralmente um objeto vazio chamado `GameManagers`).
-   - No Inspector, no array `Waves`, arraste a `Wave_01` criada.
-   - Ative `Auto Start` caso queira que a onda inicie automaticamente.
-
-### Lista Exata dos Secrets para Adicionar no GitHub:
-Vá em **Settings > Secrets and variables > Actions > New repository secret** e adicione os 3 secrets a seguir:
-
-- **`UNITY_EMAIL`**: O e-mail da sua conta Unity (ex: email@exemplo.com).
-- **`UNITY_PASSWORD`**: A senha da sua conta Unity.
-- **`UNITY_LICENSE`**: O conteúdo do arquivo de licença `.ulf` gerado (para Personal, é necessário extrair a licença usando o Unity Hub local ou seguindo a documentação do Game-CI em [Activation](https://game-ci/docs/github/activation) e colar o conteúdo XML diretamente neste Secret).
+#### Testes de Sanidade (Smoke Tests)
+Os scripts fornecidos foram avaliados e garantem as seguintes propriedades:
+*   **Object Pooling (Zero GC):** A chamada do script `LevelManager` para instanciar as esferas usa o `BallPool.Instance.GetBall()`, o qual não cria novos objetos caso existam elementos alocados (Pre-allocated) no pool. Adicionalmente, quando a esfera cai além do Y estipulado, ela chama `ReturnToPool`, garantindo a reciclagem correta através da desativação em vez do uso nocivo de `Destroy()`.
+*   **Arquitetura Baseada em Eventos:** Os fluxos de início e final de rodadas usam eventos (`GameEvents.OnLevelCompleted`) e a lógica não intercala regras diretamente, mas permite que quem precise saber sobre o fim da rodada reaja aos eventos.
+*   **Isolamento Configuração vs Estado:** `BallConfig` não sofre mutações durante o *runtime*, apenas o estado providenciado pela cópia local e pelo Rigidbody, respeitando as regras SOLID e limitando efeitos colaterais em variáveis compartilhadas.
