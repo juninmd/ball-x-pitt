@@ -5,6 +5,6 @@ namespace BallXPitt.Strategies
 {
     public interface IEffectStrategy
     {
-        void ApplyEffect(Ball ball, Collision collision);
+        void ApplyEffect(Ball ball, Collision2D collision);
     }
 }

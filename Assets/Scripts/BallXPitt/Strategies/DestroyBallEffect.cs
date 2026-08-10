@@ -3,10 +3,9 @@ using BallXPitt.Core;
 
 namespace BallXPitt.Strategies
 {
-    [RequireComponent(typeof(Collider))]
     public class DestroyBallEffect : MonoBehaviour, IEffectStrategy
     {
-        private void OnCollisionEnter(Collision collision)
+        private void OnCollisionEnter2D(Collision2D collision)
         {
             if (collision.gameObject.TryGetComponent<Ball>(out var ball))
             {
@@ -14,7 +13,7 @@ namespace BallXPitt.Strategies
             }
         }
 
-        public void ApplyEffect(Ball ball, Collision collision)
+        public void ApplyEffect(Ball ball, Collision2D collision)
         {
             if (ball != null)
             {

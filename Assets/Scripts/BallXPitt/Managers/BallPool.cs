@@ -9,81 +9,81 @@ namespace BallXPitt.Managers
     {
         public static BallPool Instance { get; private set; }
 
-        private Dictionary<int, Queue<Ball>> pools = new Dictionary<int, Queue<Ball>>();
+        private Dictionary<int, Queue<Ball>> poolDictionary = new Dictionary<int, Queue<Ball>>();
+        private Transform poolParent;
 
         private void Awake()
         {
-            if (Instance == null)
-            {
-                Instance = this;
-            }
-            else
+            if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
+                return;
             }
+            Instance = this;
+
+            poolParent = new GameObject("BallsPool").transform;
+            poolParent.SetParent(transform);
         }
 
         public void PreAllocate(BallConfig config, int amount)
         {
+            if (config == null || config.prefab == null) return;
+
             int key = config.GetInstanceID();
-            if (!pools.ContainsKey(key))
+
+            if (!poolDictionary.ContainsKey(key))
             {
-                pools[key] = new Queue<Ball>();
+                poolDictionary[key] = new Queue<Ball>();
             }
 
             for (int i = 0; i < amount; i++)
             {
-                Ball newBall = InstantiateBall(config);
+                Ball newBall = Instantiate(config.prefab, poolParent);
                 newBall.gameObject.SetActive(false);
-                pools[key].Enqueue(newBall);
+                poolDictionary[key].Enqueue(newBall);
             }
         }
 
-        public Ball GetBall(BallConfig config, Vector3 position, Quaternion rotation)
+        public Ball Get(BallConfig config, Vector3 position, Quaternion rotation)
         {
+            if (config == null || config.prefab == null) return null;
+
             int key = config.GetInstanceID();
 
-            if (pools.ContainsKey(key) && pools[key].Count > 0)
+            if (!poolDictionary.ContainsKey(key))
             {
-                Ball ball = pools[key].Dequeue();
-                ball.transform.position = position;
-                ball.transform.rotation = rotation;
-                ball.gameObject.SetActive(true);
-                return ball;
+                poolDictionary[key] = new Queue<Ball>();
             }
 
-            // Fallback instantiation if pool is empty
-            Ball newBall = InstantiateBall(config);
-            newBall.transform.position = position;
-            newBall.transform.rotation = rotation;
-            newBall.gameObject.SetActive(true);
-            return newBall;
+            Ball ballToSpawn;
+
+            if (poolDictionary[key].Count > 0)
+            {
+                ballToSpawn = poolDictionary[key].Dequeue();
+                ballToSpawn.transform.position = position;
+                ballToSpawn.transform.rotation = rotation;
+            }
+            else
+            {
+                // Fallback Se o pool acabar (idealmente PreAllocate deve ser suficiente)
+                ballToSpawn = Instantiate(config.prefab, position, rotation, poolParent);
+            }
+
+            ballToSpawn.gameObject.SetActive(true);
+            return ballToSpawn;
         }
 
         public void ReturnToPool(Ball ball, BallConfig config)
         {
             if (ball == null || config == null) return;
 
-            int key = config.GetInstanceID();
-            if (!pools.ContainsKey(key))
-            {
-                pools[key] = new Queue<Ball>();
-            }
-
             ball.gameObject.SetActive(false);
-            pools[key].Enqueue(ball);
-        }
 
-        private Ball InstantiateBall(BallConfig config)
-        {
-            GameObject obj = Instantiate(config.prefab);
-            obj.transform.SetParent(transform);
-            Ball ball = obj.GetComponent<Ball>();
-            if (ball == null)
+            int key = config.GetInstanceID();
+            if (poolDictionary.ContainsKey(key))
             {
-                ball = obj.AddComponent<Ball>();
+                poolDictionary[key].Enqueue(ball);
             }
-            return ball;
         }
     }
 }
