@@ -7,56 +7,44 @@ namespace BallXPitt.Managers
     {
         public static ScoreManager Instance { get; private set; }
 
-        public int TotalScore { get; private set; }
-        public float CurrentMultiplier { get; private set; } = 1.0f;
+        public int CurrentTotalScore { get; private set; }
 
         private void Awake()
         {
-            if (Instance == null)
-            {
-                Instance = this;
-            }
-            else
+            if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
+                return;
             }
+            Instance = this;
+
+            // Keep alive between scenes if necessary
+            // DontDestroyOnLoad(gameObject);
         }
 
         private void OnEnable()
         {
-            GameEvents.OnLevelStarted += ResetScore;
             GameEvents.OnScoreGained += AddScore;
+            GameEvents.OnLevelStarted += ResetScore;
         }
 
         private void OnDisable()
         {
-            GameEvents.OnLevelStarted -= ResetScore;
             GameEvents.OnScoreGained -= AddScore;
+            GameEvents.OnLevelStarted -= ResetScore;
         }
 
-        private void ResetScore(int maxBalls)
+        private void ResetScore(int levelId)
         {
-            TotalScore = 0;
-            CurrentMultiplier = 1.0f;
-            Debug.Log("Score Reset.");
+            CurrentTotalScore = 0;
         }
 
         private void AddScore(int amount, Vector3 position)
         {
-            int calculatedScore = Mathf.RoundToInt(amount * CurrentMultiplier);
-            TotalScore += calculatedScore;
-            Debug.Log($"Scored! {amount} x {CurrentMultiplier} = {calculatedScore}. Total: {TotalScore}");
-        }
+            CurrentTotalScore += amount;
 
-        public void ApplyMultiplier(float multiplier)
-        {
-            CurrentMultiplier += multiplier;
-            Debug.Log($"Multiplier increased to {CurrentMultiplier}");
-        }
-
-        public void ResetMultiplier()
-        {
-            CurrentMultiplier = 1.0f;
+            // Optional: You could trigger UI updates or floating text events here
+            // e.g. GameEvents.OnScoreUIUpdate?.Invoke(CurrentTotalScore);
         }
     }
 }

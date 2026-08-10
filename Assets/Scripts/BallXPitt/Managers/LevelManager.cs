@@ -1,6 +1,7 @@
 using UnityEngine;
 using BallXPitt.Core;
 using BallXPitt.ScriptableObjects;
+using System.Collections.Generic;
 
 namespace BallXPitt.Managers
 {
@@ -8,98 +9,121 @@ namespace BallXPitt.Managers
     {
         public static LevelManager Instance { get; private set; }
 
-        public LevelConfig currentLevelConfig;
+        [SerializeField] private LevelConfig currentLevelConfig;
+        [SerializeField] private BallConfig defaultBallConfig; // Pode vir de um player config futuramente
 
-        public int ballsRemaining { get; private set; }
-        public int activeBalls { get; private set; }
-        public int currentScore { get; private set; }
-
+        private int ballsRemaining;
+        private int activeBalls = 0;
         private bool isLevelActive = false;
+        private int currentScore = 0;
 
         private void Awake()
         {
-            if (Instance == null)
-            {
-                Instance = this;
-            }
-            else
+            if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
+                return;
             }
+            Instance = this;
         }
 
         private void OnEnable()
         {
-            GameEvents.OnBallSpawned += HandleBallSpawned;
             GameEvents.OnBallDestroyed += HandleBallDestroyed;
             GameEvents.OnScoreGained += HandleScoreGained;
         }
 
         private void OnDisable()
         {
-            GameEvents.OnBallSpawned -= HandleBallSpawned;
             GameEvents.OnBallDestroyed -= HandleBallDestroyed;
             GameEvents.OnScoreGained -= HandleScoreGained;
         }
 
-        public void StartLevel(LevelConfig config)
+        private void Start()
         {
-            currentLevelConfig = config;
-            ballsRemaining = config.maxBalls;
+            if (currentLevelConfig != null)
+            {
+                StartLevel(currentLevelConfig);
+            }
+        }
+
+        public void StartLevel(LevelConfig levelConfig)
+        {
+            currentLevelConfig = levelConfig;
+            ballsRemaining = currentLevelConfig.maxBalls;
             activeBalls = 0;
             currentScore = 0;
             isLevelActive = true;
 
-            GameEvents.OnLevelStarted?.Invoke(1); // Assuming level 1 for now
+            // Opcional: pré-alocar pool para evitar spike no spawn
+            if (defaultBallConfig != null && BallPool.Instance != null)
+            {
+                BallPool.Instance.PreAllocate(defaultBallConfig, currentLevelConfig.maxBalls);
+            }
+
+            GameEvents.OnLevelStarted?.Invoke(currentLevelConfig.levelId);
         }
 
-        // Simulates Player Input
-        public void TrySpawnBall(BallConfig ballConfig, float xPosition)
+        private void Update()
         {
-            if (!isLevelActive || ballsRemaining <= 0) return;
+            if (!isLevelActive) return;
 
-            Vector3 spawnPos = new Vector3(xPosition, 10f, 0f); // Spawns at top
-
-            Ball spawnedBall = BallPool.Instance.GetBall(ballConfig, spawnPos, Quaternion.identity);
-            spawnedBall.Initialize(ballConfig);
-
-            ballsRemaining--;
+            // Simple input mechanic
+            if (Input.GetMouseButtonDown(0) && ballsRemaining > 0)
+            {
+                SpawnBallAtMousePosition();
+            }
         }
 
-        private void HandleBallSpawned(Ball ball)
+        private void SpawnBallAtMousePosition()
         {
-            activeBalls++;
+            if (defaultBallConfig == null || BallPool.Instance == null) return;
+
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            float spawnX = Mathf.Clamp(mousePos.x, currentLevelConfig.minX, currentLevelConfig.maxX);
+            Vector3 spawnPosition = new Vector3(spawnX, currentLevelConfig.spawnHeight, 0f);
+
+            Ball newBall = BallPool.Instance.Get(defaultBallConfig, spawnPosition, Quaternion.identity);
+            if (newBall != null)
+            {
+                newBall.Initialize(defaultBallConfig);
+                ballsRemaining--;
+                activeBalls++;
+                GameEvents.OnBallSpawned?.Invoke(newBall);
+            }
+        }
+
+        private void HandleScoreGained(int amount, Vector3 position)
+        {
+            currentScore += amount;
+            CheckLevelEndCondition();
         }
 
         private void HandleBallDestroyed(Ball ball)
         {
             activeBalls--;
-            CheckLevelCompletion();
+            CheckLevelEndCondition();
         }
 
-        private void HandleScoreGained(int amount, Vector3 position)
+        private void CheckLevelEndCondition()
         {
-            if (!isLevelActive) return;
+            if (!isLevelActive || currentLevelConfig == null) return;
 
-            currentScore += amount;
-            CheckLevelCompletion();
-        }
+            bool isWin = currentScore >= currentLevelConfig.scoreToWin;
+            bool isLoss = ballsRemaining <= 0 && activeBalls <= 0 && !isWin;
 
-        private void CheckLevelCompletion()
-        {
-            if (!isLevelActive) return;
-
-            if (currentScore >= currentLevelConfig.scoreToWin)
+            if (isWin || isLoss)
             {
-                // Win condition
                 isLevelActive = false;
-                GameEvents.OnLevelCompleted?.Invoke();
-            }
-            else if (ballsRemaining <= 0 && activeBalls <= 0)
-            {
-                // Lose condition
-                isLevelActive = false;
-                GameEvents.OnGameOver?.Invoke();
+
+                if (isWin)
+                {
+                    GameEvents.OnLevelCompleted?.Invoke();
+                }
+                else
+                {
+                    GameEvents.OnGameOver?.Invoke();
+                }
             }
         }
     }
