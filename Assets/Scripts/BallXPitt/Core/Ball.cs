@@ -42,6 +42,16 @@ namespace BallXPitt.Core
             }
         }
 
+        private void OnCollisionEnter2D(Collision2D collision)
+        {
+            if (config != null && config.collisionVFXPrefab != null && BallPool.Instance != null)
+            {
+                // Retrieve the contact point for the VFX position
+                Vector3 contactPoint = collision.GetContact(0).point;
+                BallPool.Instance.PlayVFX(config.collisionVFXPrefab, contactPoint);
+            }
+        }
+
         public void Despawn()
         {
             if (config != null && BallPool.Instance != null)
