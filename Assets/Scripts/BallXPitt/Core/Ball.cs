@@ -44,6 +44,11 @@ namespace BallXPitt.Core
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
+            if (collision.gameObject.TryGetComponent<Strategies.IEffectStrategy>(out var effectStrategy))
+            {
+                effectStrategy.ApplyEffect(this, collision);
+            }
+
             if (config != null && config.collisionVFXPrefab != null && BallPool.Instance != null)
             {
                 // Retrieve the contact point for the VFX position
