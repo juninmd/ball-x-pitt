@@ -1,6 +1,5 @@
 using UnityEngine;
 using BallXPitt.ScriptableObjects;
-using BallXPitt.Managers;
 
 namespace BallXPitt.Core
 {
