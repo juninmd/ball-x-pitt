@@ -8,6 +8,7 @@ namespace BallXPitt.Managers
         public static ScoreManager Instance { get; private set; }
 
         public int CurrentTotalScore { get; private set; }
+        private int multiplier = 1;
 
         private void Awake()
         {
@@ -17,9 +18,6 @@ namespace BallXPitt.Managers
                 return;
             }
             Instance = this;
-
-            // Keep alive between scenes if necessary
-            // DontDestroyOnLoad(gameObject);
         }
 
         private void OnEnable()
@@ -37,14 +35,17 @@ namespace BallXPitt.Managers
         private void ResetScore(int levelId)
         {
             CurrentTotalScore = 0;
+            multiplier = 1;
         }
 
         private void AddScore(int amount, Vector3 position)
         {
-            CurrentTotalScore += amount;
+            CurrentTotalScore += (amount * multiplier);
+        }
 
-            // Optional: You could trigger UI updates or floating text events here
-            // e.g. GameEvents.OnScoreUIUpdate?.Invoke(CurrentTotalScore);
+        public void ApplyMultiplier(int m)
+        {
+            multiplier *= m;
         }
     }
 }

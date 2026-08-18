@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
-using BallXPitt.Core;
 using BallXPitt.ScriptableObjects;
 
-namespace BallXPitt.Managers
+namespace BallXPitt.Core
 {
     public class BallPool : MonoBehaviour
     {
@@ -43,7 +42,8 @@ namespace BallXPitt.Managers
 
             for (int i = 0; i < amount; i++)
             {
-                Ball newBall = Instantiate(config.prefab, poolParent);
+                GameObject newGo = Instantiate(config.prefab, poolParent);
+                Ball newBall = newGo.GetComponent<Ball>();
                 newBall.gameObject.SetActive(false);
                 poolDictionary[key].Enqueue(newBall);
             }
@@ -88,8 +88,8 @@ namespace BallXPitt.Managers
             }
             else
             {
-                // Fallback Se o pool acabar (idealmente PreAllocate deve ser suficiente)
-                ballToSpawn = Instantiate(config.prefab, position, rotation, poolParent);
+                GameObject newGo = Instantiate(config.prefab, position, rotation, poolParent);
+                ballToSpawn = newGo.GetComponent<Ball>();
             }
 
             ballToSpawn.gameObject.SetActive(true);

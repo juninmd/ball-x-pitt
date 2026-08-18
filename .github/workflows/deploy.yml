@@ -1,22 +1,27 @@
-name: Deploy Ball-x-Pitt 🚀
+name: Deploy to WebGL and Windows 64
 
 on:
   push:
     tags:
       - 'v*'
 
-env:
-  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-  UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-  UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-
 jobs:
-  buildWindows:
-    name: Build for Windows 🖥️
+  build:
+    name: Build for ${{ matrix.targetPlatform }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        targetPlatform:
+          - StandaloneWindows64
+          - WebGL
     steps:
       - name: Free Disk Space
-        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -27,85 +32,51 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Library
-          key: Library-Windows-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
-            Library-Windows-
+            Library-${{ matrix.targetPlatform }}-
 
-      - name: Build Unity Windows Project
+      - name: Unity Build
         uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          targetPlatform: StandaloneWindows64
+          targetPlatform: ${{ matrix.targetPlatform }}
+          buildName: BallXPitt-${{ matrix.targetPlatform }}
 
-      - name: Upload Windows Artifact
+      - name: Zip Artifact
+        run: |
+          zip -r BallXPitt-${{ matrix.targetPlatform }}.zip build/${{ matrix.targetPlatform }}
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Build-Windows
-          path: build/StandaloneWindows64
-
-  buildWebGL:
-    name: Build for WebGL 🌐
-    runs-on: ubuntu-latest
-    steps:
-      - name: Free Disk Space
-        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
-
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          lfs: true
-
-      - name: Cache Unity Library
-        uses: actions/cache@v4
-        with:
-          path: Library
-          key: Library-WebGL-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
-          restore-keys: |
-            Library-WebGL-
-
-      - name: Build Unity WebGL Project
-        uses: game-ci/unity-builder@v4
-        with:
-          targetPlatform: WebGL
-
-      - name: Upload WebGL Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Build-WebGL
-          path: build/WebGL
+          name: Build-${{ matrix.targetPlatform }}
+          path: BallXPitt-${{ matrix.targetPlatform }}.zip
 
   release:
-    name: Create GitHub Release 📦
-    needs: [buildWindows, buildWebGL]
+    name: Create GitHub Release
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
       - name: Download Windows Artifact
         uses: actions/download-artifact@v4
         with:
-          name: Build-Windows
-          path: build/StandaloneWindows64
+          name: Build-StandaloneWindows64
 
       - name: Download WebGL Artifact
         uses: actions/download-artifact@v4
         with:
           name: Build-WebGL
-          path: build/WebGL
-
-      - name: Zip Artifacts
-        run: |
-          cd build
-          zip -r Ball-x-Pitt-Windows.zip StandaloneWindows64
-          zip -r Ball-x-Pitt-WebGL.zip WebGL
-          cd ..
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           files: |
-            build/Ball-x-Pitt-Windows.zip
-            build/Ball-x-Pitt-WebGL.zip
+            BallXPitt-StandaloneWindows64.zip
+            BallXPitt-WebGL.zip

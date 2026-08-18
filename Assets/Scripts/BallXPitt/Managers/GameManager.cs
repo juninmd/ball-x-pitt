@@ -10,7 +10,6 @@ namespace BallXPitt.Managers
 
         public LevelConfig initialLevel;
         public BallConfig defaultBall;
-        public Transform spawnPoint; // Temporary logic for input
 
         private void Awake()
         {
@@ -26,14 +25,8 @@ namespace BallXPitt.Managers
 
         private void Start()
         {
-            if (initialLevel != null)
+            if (initialLevel != null && LevelManager.Instance != null)
             {
-                // Pre-allocate some balls
-                if (defaultBall != null)
-                {
-                    BallPool.Instance.PreAllocate(defaultBall, initialLevel.maxBalls);
-                }
-
                 LevelManager.Instance.StartLevel(initialLevel);
             }
         }
