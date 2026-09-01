@@ -1,7 +1,6 @@
 using UnityEngine;
 using BallXPitt.Core;
 using BallXPitt.ScriptableObjects;
-using System.Collections.Generic;
 
 namespace BallXPitt.Managers
 {
@@ -10,7 +9,7 @@ namespace BallXPitt.Managers
         public static LevelManager Instance { get; private set; }
 
         [SerializeField] private LevelConfig currentLevelConfig;
-        [SerializeField] private BallConfig defaultBallConfig; // Pode vir de um player config futuramente
+        [SerializeField] private BallConfig defaultBallConfig;
 
         private int ballsRemaining;
         private int activeBalls = 0;
@@ -55,7 +54,6 @@ namespace BallXPitt.Managers
             currentScore = 0;
             isLevelActive = true;
 
-            // Opcional: pré-alocar pool para evitar spike no spawn
             if (defaultBallConfig != null && BallPool.Instance != null)
             {
                 BallPool.Instance.PreAllocate(defaultBallConfig, currentLevelConfig.maxBalls);
@@ -68,7 +66,6 @@ namespace BallXPitt.Managers
         {
             if (!isLevelActive) return;
 
-            // Simple input mechanic
             if (Input.GetMouseButtonDown(0) && ballsRemaining > 0)
             {
                 SpawnBallAtMousePosition();

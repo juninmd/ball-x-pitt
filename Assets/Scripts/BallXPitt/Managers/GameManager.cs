@@ -1,5 +1,4 @@
 using UnityEngine;
-using BallXPitt.Core;
 using BallXPitt.ScriptableObjects;
 
 namespace BallXPitt.Managers
@@ -9,7 +8,6 @@ namespace BallXPitt.Managers
         public static GameManager Instance { get; private set; }
 
         public LevelConfig initialLevel;
-        public BallConfig defaultBall;
 
         private void Awake()
         {

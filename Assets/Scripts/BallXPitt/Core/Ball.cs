@@ -50,7 +50,6 @@ namespace BallXPitt.Core
 
             if (config != null && config.collisionVFXPrefab != null && BallPool.Instance != null)
             {
-                // Retrieve the contact point for the VFX position
                 Vector3 contactPoint = collision.GetContact(0).point;
                 BallPool.Instance.PlayVFX(config.collisionVFXPrefab, contactPoint);
             }
