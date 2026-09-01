@@ -11,7 +11,6 @@ namespace BallXPitt.Core
         private Dictionary<int, Queue<Ball>> poolDictionary = new Dictionary<int, Queue<Ball>>();
         private Transform poolParent;
 
-        // VFX Pooling variables
         private Dictionary<int, Queue<ParticleSystem>> vfxPoolDictionary = new Dictionary<int, Queue<ParticleSystem>>();
         private List<ParticleSystem> activeVFXList = new List<ParticleSystem>();
         private Dictionary<ParticleSystem, int> vfxToPrefabKeyMap = new Dictionary<ParticleSystem, int>();
@@ -48,7 +47,6 @@ namespace BallXPitt.Core
                 poolDictionary[key].Enqueue(newBall);
             }
 
-            // Pre-allocate VFX if present
             if (config.collisionVFXPrefab != null)
             {
                 int vfxKey = config.collisionVFXPrefab.GetInstanceID();
@@ -140,7 +138,6 @@ namespace BallXPitt.Core
 
         private void Update()
         {
-            // Zero GC approach to despawning VFX
             for (int i = activeVFXList.Count - 1; i >= 0; i--)
             {
                 ParticleSystem vfx = activeVFXList[i];
