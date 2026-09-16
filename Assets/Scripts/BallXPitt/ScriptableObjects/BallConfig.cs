@@ -5,16 +5,14 @@ namespace BallXPitt.ScriptableObjects
     [CreateAssetMenu(fileName = "NewBallConfig", menuName = "BallXPitt/Ball Config")]
     public class BallConfig : ScriptableObject
     {
-        [Header("Physics")]
+        [Header("Física e Status")]
         public float mass = 1f;
+        [Range(0f, 1f)]
         public float bounciness = 0.8f;
-        public PhysicsMaterial2D physicsMaterial;
-
-        [Header("Visuals")]
-        public GameObject prefab;
-        public ParticleSystem collisionVFXPrefab;
-
-        [Header("Gameplay")]
         public int baseScore = 10;
+
+        [Header("Referências")]
+        public Core.Ball prefab;
+        public ParticleSystem collisionVFXPrefab;
     }
 }

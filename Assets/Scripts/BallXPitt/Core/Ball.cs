@@ -1,71 +1,53 @@
 using UnityEngine;
 using BallXPitt.ScriptableObjects;
+using BallXPitt.Strategies;
 
 namespace BallXPitt.Core
 {
-    [RequireComponent(typeof(Rigidbody2D))]
-    [RequireComponent(typeof(Collider2D))]
+    [RequireComponent(typeof(Rigidbody2D), typeof(CircleCollider2D))]
     public class Ball : MonoBehaviour
     {
         public BallConfig config { get; private set; }
-
-        private Rigidbody2D rb;
-        private Collider2D col;
-        private const float DESPAWN_Y = -15f;
+        private Rigidbody2D _rb;
 
         private void Awake()
         {
-            rb = GetComponent<Rigidbody2D>();
-            col = GetComponent<Collider2D>();
+            _rb = GetComponent<Rigidbody2D>();
         }
 
-        public void Initialize(BallConfig ballConfig)
+        public void Initialize(BallConfig cfg)
         {
-            this.config = ballConfig;
-
-            if (config != null)
-            {
-                rb.mass = config.mass;
-                col.sharedMaterial = config.physicsMaterial;
-            }
-
-            rb.velocity = Vector2.zero;
-            rb.angularVelocity = 0f;
+            config = cfg;
+            _rb.mass = config.mass;
+            _rb.velocity = Vector2.zero;
+            _rb.angularVelocity = 0f;
         }
 
         private void Update()
         {
-            if (transform.position.y < DESPAWN_Y)
-            {
+            // Auto-despawn usando Y
+            if (transform.position.y < -15f)
                 Despawn();
-            }
         }
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
-            if (collision.gameObject.TryGetComponent<Strategies.IEffectStrategy>(out var effectStrategy))
+            if (config.collisionVFXPrefab != null && collision.contactCount > 0)
             {
-                effectStrategy.ApplyEffect(this, collision);
+                BallPool.Instance.PlayVFX(config.collisionVFXPrefab, collision.GetContact(0).point);
             }
 
-            if (config != null && config.collisionVFXPrefab != null && BallPool.Instance != null)
+            // Strategy Pattern para acionar os efeitos dos obstáculos atingidos
+            if (collision.gameObject.TryGetComponent<IEffectStrategy>(out var strategy))
             {
-                Vector3 contactPoint = collision.GetContact(0).point;
-                BallPool.Instance.PlayVFX(config.collisionVFXPrefab, contactPoint);
+                strategy.ApplyEffect(this, collision);
             }
         }
 
         public void Despawn()
         {
-            if (config != null && BallPool.Instance != null)
-            {
-                BallPool.Instance.ReturnToPool(this, config);
-                GameEvents.OnBallDestroyed?.Invoke(this);
-            }
-            else
-            {
-                gameObject.SetActive(false);
-            }
+            GameEvents.OnBallDestroyed?.Invoke(this);
+            BallPool.Instance.ReturnToPool(this, config);
         }
     }
 }
