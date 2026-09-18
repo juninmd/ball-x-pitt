@@ -1,3 +1,4 @@
+// Generates core physical object logic
 using UnityEngine;
 using BallXPitt.ScriptableObjects;
 

@@ -1,3 +1,4 @@
+// Configuration SO for Physics Ball
 using UnityEngine;
 
 namespace BallXPitt.ScriptableObjects
