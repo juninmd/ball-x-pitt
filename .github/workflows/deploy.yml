@@ -1,12 +1,9 @@
-name: GameCI Deploy
+name: Deploy Ball-X-Pitt
 
 on:
   push:
     tags:
       - 'v*'
-
-permissions:
-  contents: write
 
 jobs:
   build:
@@ -18,10 +15,12 @@ jobs:
         targetPlatform:
           - StandaloneWindows64
           - WebGL
+
     steps:
       - name: Free Disk Space
         run: |
           sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
@@ -31,15 +30,16 @@ jobs:
         with:
           lfs: true
 
-      - name: Cache Unity Library
+      - name: Cache Library
         uses: actions/cache@v4
         with:
           path: Library
           key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
             Library-${{ matrix.targetPlatform }}-
+            Library-
 
-      - name: Build Unity Project
+      - name: Unity Builder
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -47,10 +47,9 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
-          buildName: BallXPitt
-          versioning: Tag
+          buildName: Ball-X-Pitt
 
-      - name: Archive Build Artifact
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
@@ -60,15 +59,14 @@ jobs:
     name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
       - name: Download Windows Build
         uses: actions/download-artifact@v4
         with:
           name: Build-StandaloneWindows64
-          path: build/Windows
+          path: build/StandaloneWindows64
 
       - name: Download WebGL Build
         uses: actions/download-artifact@v4
@@ -76,16 +74,15 @@ jobs:
           name: Build-WebGL
           path: build/WebGL
 
-      - name: Zip Windows Build
-        run: zip -r BallXPitt-Windows.zip build/Windows
-
-      - name: Zip WebGL Build
-        run: zip -r BallXPitt-WebGL.zip build/WebGL
+      - name: Zip Build Artifacts
+        run: |
+          cd build/StandaloneWindows64 && zip -r ../../Ball-X-Pitt-Windows.zip . && cd ../..
+          cd build/WebGL && zip -r ../../Ball-X-Pitt-WebGL.zip . && cd ../..
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            BallXPitt-Windows.zip
-            BallXPitt-WebGL.zip
+            Ball-X-Pitt-Windows.zip
+            Ball-X-Pitt-WebGL.zip
           generate_release_notes: true

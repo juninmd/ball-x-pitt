@@ -48,4 +48,4 @@ namespace BallXPitt.Managers
             multiplier *= m;
         }
     }
-}
+}// Update for Ball-x-Pitt PR

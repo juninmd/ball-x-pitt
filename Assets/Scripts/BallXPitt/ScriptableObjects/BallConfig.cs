@@ -18,3 +18,5 @@ namespace BallXPitt.ScriptableObjects
         public int baseScore = 10;
     }
 }
+// Generated for BallXPitt
+// Update for Ball-x-Pitt PR
