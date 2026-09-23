@@ -1,12 +1,9 @@
-name: GameCI Deploy
+name: Deploy Ball-x-Pitt
 
 on:
   push:
     tags:
       - 'v*'
-
-permissions:
-  contents: write
 
 jobs:
   build:
@@ -18,15 +15,16 @@ jobs:
         targetPlatform:
           - StandaloneWindows64
           - WebGL
+
     steps:
-      - name: Free Disk Space
+      - name: Free Disk Space (Ubuntu)
         run: |
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           lfs: true
@@ -38,8 +36,9 @@ jobs:
           key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
             Library-${{ matrix.targetPlatform }}-
+            Library-
 
-      - name: Build Unity Project
+      - name: Run Unity Build
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -47,45 +46,37 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
-          buildName: BallXPitt
-          versioning: Tag
+          buildName: BallXPitt_${{ matrix.targetPlatform }}
 
-      - name: Archive Build Artifact
+      - name: Zip Build Artifacts
+        run: |
+          cd build/${{ matrix.targetPlatform }}
+          zip -r ../../BallXPitt_${{ matrix.targetPlatform }}.zip .
+
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: build/${{ matrix.targetPlatform }}
+          path: BallXPitt_${{ matrix.targetPlatform }}.zip
 
   release:
     name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download Windows Build
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: Build-StandaloneWindows64
-          path: build/Windows
-
-      - name: Download WebGL Build
-        uses: actions/download-artifact@v4
-        with:
-          name: Build-WebGL
-          path: build/WebGL
-
-      - name: Zip Windows Build
-        run: zip -r BallXPitt-Windows.zip build/Windows
-
-      - name: Zip WebGL Build
-        run: zip -r BallXPitt-WebGL.zip build/WebGL
+          path: artifacts/
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            BallXPitt-Windows.zip
-            BallXPitt-WebGL.zip
           generate_release_notes: true
+          files: |
+            artifacts/**/*.zip

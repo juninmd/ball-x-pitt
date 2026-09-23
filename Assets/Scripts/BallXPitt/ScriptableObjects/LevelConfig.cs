@@ -2,15 +2,19 @@ using UnityEngine;
 
 namespace BallXPitt.ScriptableObjects
 {
-    [CreateAssetMenu(fileName = "NewLevelConfig", menuName = "BallXPitt/Level Config")]
+    [CreateAssetMenu(fileName = "NewLevelConfig", menuName = "BallXPitt/LevelConfig")]
     public class LevelConfig : ScriptableObject
     {
-        public int levelId = 1;
+        [Header("Rules")]
         public int maxBalls = 10;
         public int scoreToWin = 1000;
+
+        [Header("Level Data")]
         public GameObject layoutPrefab;
-        public float spawnHeight = 10f;
+
+        [Header("Spawn Bounds")]
         public float minX = -5f;
         public float maxX = 5f;
+        public float spawnHeight = 10f;
     }
 }
