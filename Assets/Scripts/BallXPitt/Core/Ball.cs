@@ -19,11 +19,8 @@ namespace BallXPitt.Core
 
         public void Initialize(BallConfig cfg)
         {
-            config = ballConfig;
+            config = cfg;
             rb.mass = config.mass;
-
-            // Note: Bounciness is handled directly via a PhysicsMaterial2D assigned to the prefab's Collider2D in the Editor.
-            // This avoids creating new material instances at runtime and causing GC allocations or overriding shared state globally.
 
             rb.velocity = Vector2.zero;
             rb.angularVelocity = 0f;
@@ -60,14 +57,10 @@ namespace BallXPitt.Core
 
         private void Update()
         {
-            // Auto despawn logic if fallen out of bounds
             if (transform.position.y < -15f)
             {
-                // Could also trigger a score zone event here if not handled by triggers
                 Despawn();
             }
         }
     }
 }
-// Generated for BallXPitt
-// Update for Ball-x-Pitt PR

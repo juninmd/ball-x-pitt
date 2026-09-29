@@ -11,11 +11,9 @@ namespace BallXPitt.ScriptableObjects
 
         [Header("Prefabs")]
         public GameObject prefab;
-        public GameObject collisionVFXPrefab;
+        public ParticleSystem collisionVFXPrefab;
 
         [Header("Gameplay")]
         public int baseScore = 100;
     }
 }
-// Generated for BallXPitt
-// Update for Ball-x-Pitt PR
