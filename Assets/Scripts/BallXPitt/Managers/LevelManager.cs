@@ -73,37 +73,9 @@ namespace BallXPitt.Managers
         {
             if (!isLevelActive) return;
 
-            // Simple logic to evaluate win condition based on score if we want to check continuously
             if (ScoreManager.Instance != null && ScoreManager.Instance.TotalScore >= currentLevelConfig.scoreToWin)
             {
                 CompleteLevel();
-            }
-
-        private void SpawnBallAtMousePosition()
-        {
-            if (defaultBallConfig == null || BallPool.Instance == null) return;
-
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            float spawnX = Mathf.Clamp(mousePos.x, currentLevelConfig.minX, currentLevelConfig.maxX);
-            Vector3 spawnPosition = new Vector3(spawnX, currentLevelConfig.spawnHeight, 0f);
-
-            Ball newBall = BallFactory.CreateBall(defaultBallConfig, spawnPosition, Quaternion.identity);
-            if (newBall != null)
-            {
-                ballsRemaining--;
-                activeBalls++;
-                GameEvents.OnBallSpawned?.Invoke(newBall);
-            }
-        }
-
-                if (defaultBallConfig != null)
-                {
-                    TrySpawnBall(worldPoint.x, defaultBallConfig);
-                }
-                else
-                {
-                    Debug.LogWarning("LevelManager: defaultBallConfig is missing!");
-                }
             }
         }
 
@@ -130,12 +102,10 @@ namespace BallXPitt.Managers
             GameEvents.OnLevelCompleted?.Invoke();
         }
 
-        // Expose a method to handle player input for spawning balls
         public void TrySpawnBall(float xPosition, BallConfig ballConfig)
         {
             if (!isLevelActive || BallsRemaining <= 0) return;
 
-            // Clamp X position
             xPosition = Mathf.Clamp(xPosition, currentLevelConfig.minX, currentLevelConfig.maxX);
             Vector3 spawnPosition = new Vector3(xPosition, currentLevelConfig.spawnHeight, 0);
 

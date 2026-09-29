@@ -1,69 +1,34 @@
-# Instruções de Setup - Ball-x-Pitt
+# Configuração do Projeto Ball-x-Pitt
 
-Bem-vindo ao projeto **Ball-x-Pitt**! Siga as instruções abaixo para configurar a física básica, os ScriptableObjects e a pipeline de CI/CD (GitHub Actions).
+Este guia fornece as instruções necessárias para testar o sistema de física e as configurações de CI/CD.
 
-## 1. Configurando a Física Básica na Unity
+## 1. Configuração da Física no Unity Editor
 
-O jogo "Ball-x-Pitt" é um arcade baseado em física. Para que as bolas (Balls) quiquem corretamente, precisamos configurar um **Physics Material 2D**.
+Para ver a física básica funcionando (a primeira queda da bola):
 
-1. Na aba **Project** da Unity, navegue até a pasta `Assets/Settings` ou crie uma pasta `Assets/Physics`.
-2. Clique com o botão direito `Create > 2D > Physics Material 2D`.
-3. Nomeie o material como `BouncyMaterial`.
-4. Selecione o `BouncyMaterial` criado e vá na aba **Inspector**:
-   - Defina o campo **Friction** como `0` (para a bola não "agarrar" nas paredes).
-   - Defina o campo **Bounciness** entre `0.6` e `0.9` (quanto maior, mais a bola vai quicar).
+1. **Criação do Physics Material:**
+   - Na janela Project, clique com o botão direito -> `Create` -> `2D` -> `Physics Material 2D`.
+   - Dê o nome de `BallPhysicsMaterial`.
+   - Ajuste o `Friction` (atrito) para `0.0`.
+   - Ajuste o `Bounciness` (quique) para `0.8` (ou outro valor de sua preferência para o estilo Pachinko).
 
-## 2. Configurando ScriptableObjects no Editor
+2. **Configuração dos ScriptableObjects:**
+   - **BallConfig:** Clique com o botão direito -> `Create` -> `BallXPitt` -> `BallConfig`.
+     - Atribua um Prefab de bola (que deve ter um `Rigidbody2D` e um `CircleCollider2D`).
+     - **Importante:** Arraste o `BallPhysicsMaterial` recém-criado para a propriedade `Material` do `CircleCollider2D` do Prefab.
+     - Ajuste a massa para `1.0`.
+   - **LevelConfig:** Clique com o botão direito -> `Create` -> `BallXPitt` -> `LevelConfig`.
+     - Configure o `spawnHeight` para o topo da câmera (ex: `10`), e `minX`/`maxX` para as bordas horizontais.
 
-Usamos ScriptableObjects para separar os dados de configuração da lógica. O jogo precisa de configurações para as bolas e para os níveis.
+3. **Iniciando o Teste:**
+   - Adicione os scripts `GameManager`, `LevelManager`, `ScoreManager` e `BallPool` em GameObjects vazios na sua cena.
+   - Configure as referências de `BallConfig` e `LevelConfig` no `LevelManager` e no `GameManager`.
+   - Ao rodar o jogo (Play), use um script temporário de input ou modifique o input padrão para chamar `LevelManager.Instance.TrySpawnBall(x, config)`. A bola cairá obedecendo à física e usando a re-instanciação com Object Pooling.
 
-### A. Criando um `BallConfig`
-1. Navegue até a pasta `Assets/Scripts/BallXPitt/ScriptableObjects` (ou outra pasta de sua preferência para dados).
-2. Clique com o botão direito `Create > BallXPitt > Ball Config`.
-3. Nomeie o arquivo (ex: `DefaultBall`).
-4. Selecione o arquivo e, no **Inspector**:
-   - **Mass:** Ajuste a massa da bola (ex: `1`).
-   - **Bounciness:** Pode deixar como `0.8` (este valor é usado em alguns cálculos).
-   - **Physics Material:** Arraste o `BouncyMaterial` que criamos no passo anterior para cá.
-   - **Prefab:** Crie um Prefab com um GameObject que possua SpriteRenderer, Rigidbody2D, CircleCollider2D e o script `Ball.cs`. Arraste esse prefab para este campo.
-   - **Collision VFX Prefab:** (Opcional) Arraste um prefab de ParticleSystem.
-   - **Base Score:** A pontuação base que a bola dá (ex: `10`).
+## 2. Configuração de Secrets no GitHub (CI/CD)
 
-### B. Criando um `LevelConfig`
-1. Na mesma pasta, clique com o botão direito `Create > BallXPitt > Level Config`.
-2. Nomeie o arquivo (ex: `Level1`).
-3. Selecione o arquivo e, no **Inspector**:
-   - **Level Id:** `1`
-   - **Max Balls:** Número inicial de bolas (ex: `10`).
-   - **Score To Win:** Pontuação para vencer (ex: `1000`).
-   - **Layout Prefab:** Arraste um Prefab que contenha os obstáculos (`BumperBounceEffect`, `ScoreMultiplierEffect`, etc.) dessa fase.
-   - **Spawn Height:** A altura no eixo Y onde a bola vai surgir.
-   - **Min X / Max X:** O limite horizontal de onde o jogador pode lançar a bola no topo da tela.
+Para que o workflow `.github/workflows/deploy.yml` funcione corretamente e gere os builds (Windows/WebGL), você precisará adicionar os seguintes **Secrets** no seu repositório do GitHub (em *Settings* -> *Secrets and variables* -> *Actions*):
 
-### C. Atribuindo os Configs no GameManager e LevelManager
-1. Na sua Scene, encontre o GameObject que possui o script `GameManager` e atribua o `LevelConfig` recém-criado no campo **Initial Level**.
-2. Encontre o GameObject que possui o script `LevelManager` e atribua o `BallConfig` no campo **Default Ball Config**.
-
-## 3. Configurando a Pipeline de CI/CD no GitHub (Game-CI)
-
-Para que os builds automatizados para Windows 64-bit e WebGL funcionem, você precisa adicionar as credenciais da sua conta Unity nos **Secrets** do repositório no GitHub.
-
-1. Acesse seu repositório no GitHub.
-2. Vá em **Settings > Secrets and variables > Actions**.
-3. Clique em **New repository secret**.
-4. Adicione os seguintes Secrets exatamente com estes nomes:
-
-- `UNITY_EMAIL` : O endereço de email usado na sua conta Unity.
-- `UNITY_PASSWORD` : A senha da sua conta Unity.
-- `UNITY_LICENSE` : O conteúdo do seu arquivo de licença da Unity (formato `.alf` convertido para `.ulf` via ativação manual). [Siga este tutorial oficial do Game-CI para gerar o UNITY_LICENSE](https://game.ci/docs/github/activation/).
-
-### Disparando o Build Automático
-A pipeline configurada em `.github/workflows/deploy.yml` será disparada **APENAS** quando você criar uma Tag no Git que comece com a letra "v".
-
-Exemplo via linha de comando:
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-Após o build, a pipeline criará automaticamente uma **Release** no GitHub com o changelog e anexará os arquivos `Ball-X-Pitt-Windows.zip` e `Ball-X-Pitt-WebGL.zip`.
+- `UNITY_LICENSE` (O conteúdo completo do arquivo de licença `.ulf` da Unity).
+- `UNITY_EMAIL` (O email da conta Unity).
+- `UNITY_PASSWORD` (A senha da conta Unity).
