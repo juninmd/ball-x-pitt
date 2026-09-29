@@ -3,18 +3,18 @@ using UnityEngine;
 
 namespace BallXPitt.ScriptableObjects
 {
-    [CreateAssetMenu(fileName = "NewBallConfig", menuName = "BallXPitt/Ball Config")]
+    [CreateAssetMenu(fileName = "NewBallConfig", menuName = "BallXPitt/BallConfig")]
     public class BallConfig : ScriptableObject
     {
         [Header("Física e Status")]
         public float mass = 1f;
-        [Range(0f, 1f)]
-        public float bounciness = 0.8f;
-        public int baseScore = 10;
 
-        [Header("Referências")]
-        public Core.Ball prefab;
-        public ParticleSystem collisionVFXPrefab;
+        [Header("Prefabs")]
+        public GameObject prefab;
+        public GameObject collisionVFXPrefab;
+
+        [Header("Gameplay")]
+        public int baseScore = 100;
     }
 }
 // Generated for BallXPitt

@@ -1,54 +1,71 @@
 // Generates core physical object logic
 using UnityEngine;
 using BallXPitt.ScriptableObjects;
+using BallXPitt.Pools;
 using BallXPitt.Strategies;
 
 namespace BallXPitt.Core
 {
-    [RequireComponent(typeof(Rigidbody2D), typeof(CircleCollider2D))]
+    [RequireComponent(typeof(Rigidbody2D))]
     public class Ball : MonoBehaviour
     {
         public BallConfig config { get; private set; }
-        private Rigidbody2D _rb;
+        private Rigidbody2D rb;
 
         private void Awake()
         {
-            _rb = GetComponent<Rigidbody2D>();
+            rb = GetComponent<Rigidbody2D>();
         }
 
         public void Initialize(BallConfig cfg)
         {
-            config = cfg;
-            _rb.mass = config.mass;
-            _rb.velocity = Vector2.zero;
-            _rb.angularVelocity = 0f;
-        }
+            config = ballConfig;
+            rb.mass = config.mass;
 
-        private void Update()
-        {
-            // Auto-despawn usando Y
-            if (transform.position.y < -15f)
-                Despawn();
+            // Note: Bounciness is handled directly via a PhysicsMaterial2D assigned to the prefab's Collider2D in the Editor.
+            // This avoids creating new material instances at runtime and causing GC allocations or overriding shared state globally.
+
+            rb.velocity = Vector2.zero;
+            rb.angularVelocity = 0f;
         }
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
-            if (config.collisionVFXPrefab != null && collision.contactCount > 0)
+            // Apply VFX
+            if (config != null && config.collisionVFXPrefab != null)
             {
-                BallPool.Instance.PlayVFX(config.collisionVFXPrefab, collision.GetContact(0).point);
+                Vector2 contactPoint = collision.GetContact(0).point;
+                BallPool.Instance.PlayVFX(config.collisionVFXPrefab, contactPoint);
             }
 
-            // Strategy Pattern para acionar os efeitos dos obstáculos atingidos
-            if (collision.gameObject.TryGetComponent<IEffectStrategy>(out var strategy))
+            // Apply strategy effects from obstacles
+            if (collision.gameObject.TryGetComponent<IEffectStrategy>(out var effectStrategy))
             {
-                strategy.ApplyEffect(this, collision);
+                effectStrategy.ApplyEffect(this, collision);
             }
         }
 
         public void Despawn()
         {
             GameEvents.OnBallDestroyed?.Invoke(this);
-            BallPool.Instance.ReturnToPool(this, config);
+            if (BallPool.Instance != null && config != null)
+            {
+                BallPool.Instance.ReturnToPool(this, config);
+            }
+            else
+            {
+                gameObject.SetActive(false);
+            }
+        }
+
+        private void Update()
+        {
+            // Auto despawn logic if fallen out of bounds
+            if (transform.position.y < -15f)
+            {
+                // Could also trigger a score zone event here if not handled by triggers
+                Despawn();
+            }
         }
     }
 }

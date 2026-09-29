@@ -2,6 +2,7 @@
 using UnityEngine;
 using BallXPitt.Core;
 using BallXPitt.ScriptableObjects;
+using BallXPitt.Factory;
 
 namespace BallXPitt.Managers
 {
@@ -9,90 +10,125 @@ namespace BallXPitt.Managers
     {
         public static LevelManager Instance { get; private set; }
 
-        [SerializeField] private LevelConfig currentLevelConfig;
-        [SerializeField] private BallConfig currentBallConfig;
+        public LevelConfig currentLevelConfig;
+        public BallConfig defaultBallConfig; // Added to supply a config on click
 
-        private int _ballsRemaining;
-        private int _activeBalls;
-        private int _currentScore;
+        private int activeBalls = 0;
+        public int BallsRemaining { get; private set; }
+        private bool isLevelActive = false;
 
         private void Awake()
         {
-            if (Instance == null) Instance = this;
-            else Destroy(gameObject);
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
 
         private void OnEnable()
         {
+            GameEvents.OnBallSpawned += HandleBallSpawned;
             GameEvents.OnBallDestroyed += HandleBallDestroyed;
-            GameEvents.OnScoreGained += HandleScoreGained;
         }
 
         private void OnDisable()
         {
+            GameEvents.OnBallSpawned -= HandleBallSpawned;
             GameEvents.OnBallDestroyed -= HandleBallDestroyed;
-            GameEvents.OnScoreGained -= HandleScoreGained;
         }
 
-        public void StartLevel()
+        public void StartLevel(LevelConfig config)
         {
-            _ballsRemaining = currentLevelConfig.maxBalls;
-            _activeBalls = 0;
-            _currentScore = 0;
+            currentLevelConfig = config;
+            BallsRemaining = config.maxBalls;
+            activeBalls = 0;
+            isLevelActive = true;
+            GameEvents.OnLevelStarted?.Invoke(0); // Pass level index if needed
 
-            // PreAllocate obrigatório para evitar Instantiate runtime
-            BallPool.Instance.PreAllocate(currentBallConfig, currentLevelConfig.maxBalls);
-
-            GameEvents.OnLevelStarted?.Invoke(0);
-        }
-
-        private void Update()
-        {
-            if (Input.GetMouseButtonDown(0) && _ballsRemaining > 0)
-                SpawnBall();
-        }
-
-        private void SpawnBall()
-        {
-            if (defaultBallConfig == null || BallFactory.Instance == null) return;
-
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            float spawnX = Mathf.Clamp(mousePos.x, currentLevelConfig.minX, currentLevelConfig.maxX);
-            Vector3 spawnPos = new Vector3(spawnX, currentLevelConfig.spawnHeight, 0);
-
-            // Use Factory to instantiate the ball
-            Ball newBall = BallFactory.Instance.CreateBall(defaultBallConfig, spawnPosition);
-            if (newBall != null)
+            if (config.layoutPrefab != null)
             {
-                ballsRemaining--;
-                activeBalls++;
-                GameEvents.OnBallSpawned?.Invoke(newBall);
+                Instantiate(config.layoutPrefab, Vector3.zero, Quaternion.identity);
             }
         }
 
-            _ballsRemaining--;
-            _activeBalls++;
-            GameEvents.OnBallSpawned?.Invoke(ball);
+        private void HandleBallSpawned(Ball ball)
+        {
+            if (!isLevelActive) return;
+            activeBalls++;
+            BallsRemaining--;
         }
 
         private void HandleBallDestroyed(Ball ball)
         {
-            _activeBalls--;
-            CheckWinCondition();
+            if (!isLevelActive) return;
+            activeBalls--;
+            CheckLevelConditions();
         }
 
-        private void HandleScoreGained(int points, Vector3 pos)
+        private void Update()
         {
-            _currentScore += points;
-            CheckWinCondition();
+            if (!isLevelActive) return;
+
+            // Simple logic to evaluate win condition based on score if we want to check continuously
+            if (ScoreManager.Instance != null && ScoreManager.Instance.TotalScore >= currentLevelConfig.scoreToWin)
+            {
+                CompleteLevel();
+            }
+
+            // Handle simple player input for spawning balls
+            if (Input.GetMouseButtonDown(0))
+            {
+                // Convert mouse position to world position for X coordinate
+                Vector3 worldPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+                if (defaultBallConfig != null)
+                {
+                    TrySpawnBall(worldPoint.x, defaultBallConfig);
+                }
+                else
+                {
+                    Debug.LogWarning("LevelManager: defaultBallConfig is missing!");
+                }
+            }
         }
 
-        private void CheckWinCondition()
+        private void CheckLevelConditions()
         {
-            if (_currentScore >= currentLevelConfig.scoreToWin)
-                GameEvents.OnLevelCompleted?.Invoke();
-            else if (_ballsRemaining == 0 && _activeBalls == 0)
+            if (!isLevelActive) return;
+
+            // Check if level is completed (Score reached)
+            if (ScoreManager.Instance != null && ScoreManager.Instance.TotalScore >= currentLevelConfig.scoreToWin)
+            {
+                CompleteLevel();
+            }
+            // Check if game over (No balls left and no active balls)
+            else if (BallsRemaining <= 0 && activeBalls <= 0)
+            {
+                isLevelActive = false;
                 GameEvents.OnGameOver?.Invoke();
+            }
+        }
+
+        private void CompleteLevel()
+        {
+            isLevelActive = false;
+            GameEvents.OnLevelCompleted?.Invoke();
+        }
+
+        // Expose a method to handle player input for spawning balls
+        public void TrySpawnBall(float xPosition, BallConfig ballConfig)
+        {
+            if (!isLevelActive || BallsRemaining <= 0) return;
+
+            // Clamp X position
+            xPosition = Mathf.Clamp(xPosition, currentLevelConfig.minX, currentLevelConfig.maxX);
+            Vector3 spawnPosition = new Vector3(xPosition, currentLevelConfig.spawnHeight, 0);
+
+            BallFactory.Instance.CreateBall(ballConfig, spawnPosition);
         }
     }
 }

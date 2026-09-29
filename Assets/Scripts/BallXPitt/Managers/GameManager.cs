@@ -1,5 +1,5 @@
 using UnityEngine;
-using BallXPitt.ScriptableObjects;
+using BallXPitt.Core;
 
 namespace BallXPitt.Managers
 {
@@ -7,13 +7,14 @@ namespace BallXPitt.Managers
     {
         public static GameManager Instance { get; private set; }
 
-        public LevelConfig initialLevel;
+        public BallXPitt.ScriptableObjects.LevelConfig initialLevelConfig;
 
         private void Awake()
         {
             if (Instance == null)
             {
                 Instance = this;
+                DontDestroyOnLoad(gameObject);
             }
             else
             {
@@ -23,10 +24,38 @@ namespace BallXPitt.Managers
 
         private void Start()
         {
-            if (initialLevel != null && LevelManager.Instance != null)
+            if (initialLevelConfig != null && LevelManager.Instance != null)
             {
-                LevelManager.Instance.StartLevel(initialLevel);
+                LevelManager.Instance.StartLevel(initialLevelConfig);
+            }
+            else
+            {
+                Debug.LogWarning("GameManager: Missing initialLevelConfig or LevelManager instance to start the game.");
             }
         }
+
+        private void OnEnable()
+        {
+            GameEvents.OnLevelCompleted += HandleLevelCompleted;
+            GameEvents.OnGameOver += HandleGameOver;
+        }
+
+        private void OnDisable()
+        {
+            GameEvents.OnLevelCompleted -= HandleLevelCompleted;
+            GameEvents.OnGameOver -= HandleGameOver;
+        }
+
+        private void HandleLevelCompleted()
+        {
+            Debug.Log("GameManager: Level Completed!");
+            // Implement next level transition logic
+        }
+
+        private void HandleGameOver()
+        {
+            Debug.Log("GameManager: Game Over!");
+            // Implement game over screen logic
+        }
     }
-}// Update for Ball-x-Pitt PR
+}

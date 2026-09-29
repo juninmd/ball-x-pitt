@@ -7,45 +7,53 @@ namespace BallXPitt.Managers
     {
         public static ScoreManager Instance { get; private set; }
 
-        public int CurrentTotalScore { get; private set; }
-        private int multiplier = 1;
+        public int TotalScore { get; private set; }
+        private float currentMultiplier = 1f;
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+            else
             {
                 Destroy(gameObject);
-                return;
             }
-            Instance = this;
         }
 
         private void OnEnable()
         {
-            GameEvents.OnScoreGained += AddScore;
-            GameEvents.OnLevelStarted += ResetScore;
+            GameEvents.OnScoreGained += HandleScoreGained;
+            GameEvents.OnLevelStarted += HandleLevelStarted;
         }
 
         private void OnDisable()
         {
-            GameEvents.OnScoreGained -= AddScore;
-            GameEvents.OnLevelStarted -= ResetScore;
+            GameEvents.OnScoreGained -= HandleScoreGained;
+            GameEvents.OnLevelStarted -= HandleLevelStarted;
         }
 
-        private void ResetScore(int levelId)
+        private void HandleLevelStarted(int levelIndex)
         {
-            CurrentTotalScore = 0;
-            multiplier = 1;
+            TotalScore = 0;
+            currentMultiplier = 1f;
         }
 
-        private void AddScore(int amount, Vector3 position)
+        private void HandleScoreGained(int points, Vector3 position)
         {
-            CurrentTotalScore += (amount * multiplier);
+            int finalPoints = Mathf.RoundToInt(points * currentMultiplier);
+            TotalScore += finalPoints;
+            Debug.Log($"ScoreManager: Gained {finalPoints} points. Total Score: {TotalScore}");
+
+            // Check win condition via LevelManager (in a decoupled way this could be checked by LevelManager listening to score events,
+            // but since LevelManager manages the level, we let LevelManager check its own conditions).
         }
 
-        public void ApplyMultiplier(int m)
+        public void ApplyMultiplier(float multiplier)
         {
-            multiplier *= m;
+            currentMultiplier *= multiplier;
+            Debug.Log($"ScoreManager: Multiplier applied. Current Multiplier: {currentMultiplier}");
         }
     }
-}// Update for Ball-x-Pitt PR
+}
