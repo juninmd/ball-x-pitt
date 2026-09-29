@@ -1,10 +1,16 @@
-# Limitações de Testes na Sandbox
+# Ball-x-Pitt Limitations & Documentation
 
-Como a Sandbox atual é um ambiente de terminal puro (sem interface gráfica e sem a engine Unity instalada ou executando), não é possível rodar a engine de física da Unity em tempo real para testes de integração.
+This document outlines the known limitations of the initial implementation of the "Ball-x-Pitt" core mechanic.
 
-As seguintes limitações existem durante o desenvolvimento neste ambiente:
-1. **APIs de Física**: Testes interativos utilizando APIs como `Rigidbody2D`, `Collider2D` e simulação de colisões reais da Unity não podem ser executados e validados na Sandbox.
-2. **Smoke Tests Lógicos**: Apenas testes de unidade de código lógico (ex: testes de matemática, estado de instâncias) que não dependam da inicialização do Unity Player/Editor podem ser feitos via ferramentas de CI/CD padrão se configurados apropriadamente.
-3. **Test Runner**: Para validarmos corretamente a física (`OnCollisionEnter2D`, dinâmicas de BallPool com GameObjects reais, uso de `PhysicsMaterial2D`), o código deve ser executado no próprio Unity Editor, ou através do Unity Test Runner dentro de um ambiente provido pelo CI/CD da Unity (como o github actions utilizando as instâncias do `game-ci`).
+## 1. Local Testing Constraints
+- **Unity Test Framework (Mocks)**: Due to the constraints of the sandbox environment without a full Unity editor, comprehensive mocking of Unity's native physics APIs (`Rigidbody2D`, `Collider2D`) is not currently implemented.
+- **Automated Tests**: True validation of physical collisions and continuous detection edge cases requires manual smoke testing or integration testing within a functional Unity instance using the Unity Test Runner. The GitHub Action validation workflow will just verify the standard builds without executing functional/PlayMode testing.
 
-Por enquanto, qualquer smoke test nos arquivos de C# (`Ball.cs`, `LevelManager.cs`, etc.) no ambiente Sandbox consistirá de verificação sintática estática (`python3 verify_syntax.py`) e revisão lógica das interações entre as classes. A validação empírica da física de quiques deve ser feita pelo desenvolvedor dentro do Editor da Unity.
+## 2. CI/CD Local Simulation
+- Attempting to simulate the game CI/CD pipeline locally via `act` tools may fail due to dependency mismatches (like missing permissions or Docker image setups tailored strictly for GitHub's native runners). Rely on the GitHub Actions UI for verifying real builds.
+
+## 3. VFX Recycling Constraints
+- The `BallPool` updates its active VFX queue in its standard `Update()` loop. While this minimizes Garbage Collection, if a large number of particles are destroyed in a single frame, the array cleanup loop may cause minor CPU overhead spikes. If performance becomes an issue in the future on low-end mobile devices, consider an event-driven recycling system over active polling.
+
+## 4. GitHub Actions Disk Space
+- The current workflow has explicit actions to remove pre-installed software on the Ubuntu-latest runners to free up disk space. If the project scales to hundreds of megabytes or gigabytes, `Free Disk Space` might need even more aggressive directory cleaning to avoid build failures.

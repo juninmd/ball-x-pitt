@@ -10,21 +10,16 @@ namespace BallXPitt.Managers
         public static LevelManager Instance { get; private set; }
 
         [SerializeField] private LevelConfig currentLevelConfig;
-        [SerializeField] private BallConfig defaultBallConfig;
+        [SerializeField] private BallConfig currentBallConfig;
 
-        private int ballsRemaining;
-        private int activeBalls = 0;
-        private bool isLevelActive = false;
-        private int currentScore = 0;
+        private int _ballsRemaining;
+        private int _activeBalls;
+        private int _currentScore;
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
+            if (Instance == null) Instance = this;
+            else Destroy(gameObject);
         }
 
         private void OnEnable()
@@ -39,89 +34,56 @@ namespace BallXPitt.Managers
             GameEvents.OnScoreGained -= HandleScoreGained;
         }
 
-        private void Start()
+        public void StartLevel()
         {
-            if (currentLevelConfig != null)
-            {
-                StartLevel(currentLevelConfig);
-            }
-        }
+            _ballsRemaining = currentLevelConfig.maxBalls;
+            _activeBalls = 0;
+            _currentScore = 0;
 
-        public void StartLevel(LevelConfig levelConfig)
-        {
-            currentLevelConfig = levelConfig;
-            ballsRemaining = currentLevelConfig.maxBalls;
-            activeBalls = 0;
-            currentScore = 0;
-            isLevelActive = true;
+            // PreAllocate obrigatório para evitar Instantiate runtime
+            BallPool.Instance.PreAllocate(currentBallConfig, currentLevelConfig.maxBalls);
 
-            if (defaultBallConfig != null && BallPool.Instance != null)
-            {
-                BallPool.Instance.PreAllocate(defaultBallConfig, currentLevelConfig.maxBalls);
-            }
-
-            GameEvents.OnLevelStarted?.Invoke(currentLevelConfig.levelId);
+            GameEvents.OnLevelStarted?.Invoke(0);
         }
 
         private void Update()
         {
-            if (!isLevelActive) return;
-
-            if (Input.GetMouseButtonDown(0) && ballsRemaining > 0)
-            {
-                SpawnBallAtMousePosition();
-            }
+            if (Input.GetMouseButtonDown(0) && _ballsRemaining > 0)
+                SpawnBall();
         }
 
-        private void SpawnBallAtMousePosition()
+        private void SpawnBall()
         {
-            if (defaultBallConfig == null || BallFactory.Instance == null) return;
-
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             float spawnX = Mathf.Clamp(mousePos.x, currentLevelConfig.minX, currentLevelConfig.maxX);
-            Vector3 spawnPosition = new Vector3(spawnX, currentLevelConfig.spawnHeight, 0f);
+            Vector3 spawnPos = new Vector3(spawnX, currentLevelConfig.spawnHeight, 0);
 
-            Ball newBall = BallFactory.Instance.CreateBall(defaultBallConfig, spawnPosition, Quaternion.identity);
-            if (newBall != null)
-            {
-                ballsRemaining--;
-                activeBalls++;
-                GameEvents.OnBallSpawned?.Invoke(newBall);
-            }
-        }
+            Ball ball = BallPool.Instance.GetBall(currentBallConfig, spawnPos);
+            ball.Initialize(currentBallConfig);
 
-        private void HandleScoreGained(int amount, Vector3 position)
-        {
-            currentScore += amount;
-            CheckLevelEndCondition();
+            _ballsRemaining--;
+            _activeBalls++;
+            GameEvents.OnBallSpawned?.Invoke(ball);
         }
 
         private void HandleBallDestroyed(Ball ball)
         {
-            activeBalls--;
-            CheckLevelEndCondition();
+            _activeBalls--;
+            CheckWinCondition();
         }
 
-        private void CheckLevelEndCondition()
+        private void HandleScoreGained(int points, Vector3 pos)
         {
-            if (!isLevelActive || currentLevelConfig == null) return;
+            _currentScore += points;
+            CheckWinCondition();
+        }
 
-            bool isWin = currentScore >= currentLevelConfig.scoreToWin;
-            bool isLoss = ballsRemaining <= 0 && activeBalls <= 0 && !isWin;
-
-            if (isWin || isLoss)
-            {
-                isLevelActive = false;
-
-                if (isWin)
-                {
-                    GameEvents.OnLevelCompleted?.Invoke();
-                }
-                else
-                {
-                    GameEvents.OnGameOver?.Invoke();
-                }
-            }
+        private void CheckWinCondition()
+        {
+            if (_currentScore >= currentLevelConfig.scoreToWin)
+                GameEvents.OnLevelCompleted?.Invoke();
+            else if (_ballsRemaining == 0 && _activeBalls == 0)
+                GameEvents.OnGameOver?.Invoke();
         }
     }
 }

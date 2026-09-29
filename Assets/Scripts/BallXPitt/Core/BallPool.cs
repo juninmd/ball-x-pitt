@@ -9,151 +9,78 @@ namespace BallXPitt.Core
     {
         public static BallPool Instance { get; private set; }
 
-        private Dictionary<int, Queue<Ball>> poolDictionary = new Dictionary<int, Queue<Ball>>();
-        private Transform poolParent;
+        private Dictionary<int, Queue<Ball>> _ballPool = new Dictionary<int, Queue<Ball>>();
+        private Dictionary<int, Queue<ParticleSystem>> _vfxPool = new Dictionary<int, Queue<ParticleSystem>>();
 
-        private Dictionary<int, Queue<ParticleSystem>> vfxPoolDictionary = new Dictionary<int, Queue<ParticleSystem>>();
-        private List<ParticleSystem> activeVFXList = new List<ParticleSystem>();
-        private Dictionary<ParticleSystem, int> vfxToPrefabKeyMap = new Dictionary<ParticleSystem, int>();
+        // Mapeamentos para reciclagem de VFX no Update sem Garbage Collection
+        private List<ParticleSystem> _activeVFX = new List<ParticleSystem>();
+        private Dictionary<ParticleSystem, int> _activeVFXToKey = new Dictionary<ParticleSystem, int>();
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
-
-            poolParent = new GameObject("BallsPool").transform;
-            poolParent.SetParent(transform);
+            if (Instance == null) Instance = this;
+            else Destroy(gameObject);
         }
 
-        public void PreAllocate(BallConfig config, int amount)
+        public void PreAllocate(BallConfig config, int count)
         {
-            if (config == null || config.prefab == null) return;
-
             int key = config.GetInstanceID();
+            if (!_ballPool.ContainsKey(key))
+                _ballPool[key] = new Queue<Ball>();
 
-            if (!poolDictionary.ContainsKey(key))
+            for (int i = 0; i < count; i++)
             {
-                poolDictionary[key] = new Queue<Ball>();
-            }
-
-            for (int i = 0; i < amount; i++)
-            {
-                GameObject newGo = Instantiate(config.prefab, poolParent);
-                Ball newBall = newGo.GetComponent<Ball>();
-                newBall.gameObject.SetActive(false);
-                poolDictionary[key].Enqueue(newBall);
-            }
-
-            if (config.collisionVFXPrefab != null)
-            {
-                int vfxKey = config.collisionVFXPrefab.GetInstanceID();
-                if (!vfxPoolDictionary.ContainsKey(vfxKey))
-                {
-                    vfxPoolDictionary[vfxKey] = new Queue<ParticleSystem>();
-                }
-
-                for (int i = 0; i < amount / 2 + 1; i++)
-                {
-                    ParticleSystem vfx = Instantiate(config.collisionVFXPrefab, poolParent);
-                    vfx.gameObject.SetActive(false);
-                    vfxPoolDictionary[vfxKey].Enqueue(vfx);
-                    vfxToPrefabKeyMap[vfx] = vfxKey;
-                }
+                Ball ball = Instantiate(config.prefab, transform);
+                ball.gameObject.SetActive(false);
+                _ballPool[key].Enqueue(ball);
             }
         }
 
-        public Ball Get(BallConfig config, Vector3 position, Quaternion rotation)
+        public Ball GetBall(BallConfig config, Vector3 position)
         {
-            if (config == null || config.prefab == null) return null;
-
             int key = config.GetInstanceID();
+            if (!_ballPool.ContainsKey(key) || _ballPool[key].Count == 0)
+                PreAllocate(config, 1);
 
-            if (!poolDictionary.ContainsKey(key))
-            {
-                poolDictionary[key] = new Queue<Ball>();
-            }
-
-            Ball ballToSpawn;
-
-            if (poolDictionary[key].Count > 0)
-            {
-                ballToSpawn = poolDictionary[key].Dequeue();
-                ballToSpawn.transform.position = position;
-                ballToSpawn.transform.rotation = rotation;
-            }
-            else
-            {
-                GameObject newGo = Instantiate(config.prefab, position, rotation, poolParent);
-                ballToSpawn = newGo.GetComponent<Ball>();
-            }
-
-            ballToSpawn.gameObject.SetActive(true);
-            return ballToSpawn;
+            Ball ball = _ballPool[key].Dequeue();
+            ball.transform.position = position;
+            ball.gameObject.SetActive(true);
+            return ball;
         }
 
         public void ReturnToPool(Ball ball, BallConfig config)
         {
-            if (ball == null || config == null) return;
-
             ball.gameObject.SetActive(false);
-
-            int key = config.GetInstanceID();
-            if (poolDictionary.ContainsKey(key))
-            {
-                poolDictionary[key].Enqueue(ball);
-            }
+            _ballPool[config.GetInstanceID()].Enqueue(ball);
         }
 
-        public void PlayVFX(ParticleSystem vfxPrefab, Vector3 position)
+        public void PlayVFX(ParticleSystem prefab, Vector2 position)
         {
-            if (vfxPrefab == null) return;
+            if (prefab == null) return;
+            int key = prefab.GetInstanceID();
+            if (!_vfxPool.ContainsKey(key))
+                _vfxPool[key] = new Queue<ParticleSystem>();
 
-            int vfxKey = vfxPrefab.GetInstanceID();
+            ParticleSystem vfx = _vfxPool[key].Count > 0 ? _vfxPool[key].Dequeue() : Instantiate(prefab, transform);
+            vfx.transform.position = position;
+            vfx.gameObject.SetActive(true);
+            vfx.Play();
 
-            if (!vfxPoolDictionary.ContainsKey(vfxKey))
-            {
-                vfxPoolDictionary[vfxKey] = new Queue<ParticleSystem>();
-            }
-
-            ParticleSystem vfxToPlay;
-
-            if (vfxPoolDictionary[vfxKey].Count > 0)
-            {
-                vfxToPlay = vfxPoolDictionary[vfxKey].Dequeue();
-                vfxToPlay.transform.position = position;
-            }
-            else
-            {
-                vfxToPlay = Instantiate(vfxPrefab, position, Quaternion.identity, poolParent);
-                vfxToPrefabKeyMap[vfxToPlay] = vfxKey;
-            }
-
-            vfxToPlay.gameObject.SetActive(true);
-            vfxToPlay.Play();
-            activeVFXList.Add(vfxToPlay);
+            _activeVFX.Add(vfx);
+            _activeVFXToKey[vfx] = key;
         }
 
         private void Update()
         {
-            for (int i = activeVFXList.Count - 1; i >= 0; i--)
+            for (int i = _activeVFX.Count - 1; i >= 0; i--)
             {
-                ParticleSystem vfx = activeVFXList[i];
-                if (vfx != null && !vfx.IsAlive(true))
+                var vfx = _activeVFX[i];
+                if (!vfx.IsAlive(true))
                 {
                     vfx.gameObject.SetActive(false);
-                    activeVFXList.RemoveAt(i);
-
-                    if (vfxToPrefabKeyMap.TryGetValue(vfx, out int vfxKey))
-                    {
-                        if (vfxPoolDictionary.ContainsKey(vfxKey))
-                        {
-                            vfxPoolDictionary[vfxKey].Enqueue(vfx);
-                        }
-                    }
+                    _vfxPool[_activeVFXToKey[vfx]].Enqueue(vfx);
+                    _activeVFXToKey.Remove(vfx);
+                    _activeVFX.RemoveAt(i);
                 }
             }
         }
