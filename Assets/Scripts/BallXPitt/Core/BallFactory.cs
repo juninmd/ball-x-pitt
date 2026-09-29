@@ -17,11 +17,15 @@ namespace BallXPitt.Core
             Instance = this;
         }
 
-        public Ball CreateBall(BallConfig config, Vector3 position, Quaternion rotation)
+        public Ball CreateBall(BallConfig config, Vector3 position)
         {
-            if (config == null || BallPool.Instance == null) return null;
+            if (BallPool.Instance == null)
+            {
+                Debug.LogError("BallPool instance not found!");
+                return null;
+            }
 
-            Ball newBall = BallPool.Instance.Get(config, position, rotation);
+            Ball newBall = BallPool.Instance.Get(config, position, Quaternion.identity);
             if (newBall != null)
             {
                 newBall.Initialize(config);

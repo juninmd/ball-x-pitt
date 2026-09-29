@@ -54,12 +54,21 @@ namespace BallXPitt.Managers
 
         private void SpawnBall()
         {
+            if (defaultBallConfig == null || BallFactory.Instance == null) return;
+
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             float spawnX = Mathf.Clamp(mousePos.x, currentLevelConfig.minX, currentLevelConfig.maxX);
             Vector3 spawnPos = new Vector3(spawnX, currentLevelConfig.spawnHeight, 0);
 
-            Ball ball = BallPool.Instance.GetBall(currentBallConfig, spawnPos);
-            ball.Initialize(currentBallConfig);
+            // Use Factory to instantiate the ball
+            Ball newBall = BallFactory.Instance.CreateBall(defaultBallConfig, spawnPosition);
+            if (newBall != null)
+            {
+                ballsRemaining--;
+                activeBalls++;
+                GameEvents.OnBallSpawned?.Invoke(newBall);
+            }
+        }
 
             _ballsRemaining--;
             _activeBalls++;

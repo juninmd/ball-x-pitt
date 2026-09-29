@@ -17,3 +17,5 @@ namespace BallXPitt.ScriptableObjects
         public ParticleSystem collisionVFXPrefab;
     }
 }
+// Generated for BallXPitt
+// Update for Ball-x-Pitt PR
