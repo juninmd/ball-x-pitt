@@ -79,11 +79,22 @@ namespace BallXPitt.Managers
                 CompleteLevel();
             }
 
-            // Handle simple player input for spawning balls
-            if (Input.GetMouseButtonDown(0))
+        private void SpawnBallAtMousePosition()
+        {
+            if (defaultBallConfig == null || BallPool.Instance == null) return;
+
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            float spawnX = Mathf.Clamp(mousePos.x, currentLevelConfig.minX, currentLevelConfig.maxX);
+            Vector3 spawnPosition = new Vector3(spawnX, currentLevelConfig.spawnHeight, 0f);
+
+            Ball newBall = BallFactory.CreateBall(defaultBallConfig, spawnPosition, Quaternion.identity);
+            if (newBall != null)
             {
-                // Convert mouse position to world position for X coordinate
-                Vector3 worldPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                ballsRemaining--;
+                activeBalls++;
+                GameEvents.OnBallSpawned?.Invoke(newBall);
+            }
+        }
 
                 if (defaultBallConfig != null)
                 {
