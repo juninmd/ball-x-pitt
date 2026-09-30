@@ -1,34 +1,39 @@
-# Configuração do Projeto Ball-x-Pitt
+# Instruções de Setup - Ball-x-Pitt
 
-Este guia fornece as instruções necessárias para testar o sistema de física e as configurações de CI/CD.
+Este guia explica como configurar o ambiente e a física básica do projeto na Unity, bem como os secrets necessários no GitHub Actions.
 
-## 1. Configuração da Física no Unity Editor
+## Configuração na Unity Editor
 
-Para ver a física básica funcionando (a primeira queda da bola):
+### 1. ScriptableObjects
+Para criar os dados necessários para o jogo, utilizaremos os `ScriptableObjects` providenciados.
 
-1. **Criação do Physics Material:**
-   - Na janela Project, clique com o botão direito -> `Create` -> `2D` -> `Physics Material 2D`.
-   - Dê o nome de `BallPhysicsMaterial`.
-   - Ajuste o `Friction` (atrito) para `0.0`.
-   - Ajuste o `Bounciness` (quique) para `0.8` (ou outro valor de sua preferência para o estilo Pachinko).
+*   **BallConfig:**
+    1.  Clique com o botão direito na aba *Project*.
+    2.  Vá em `Create -> BallXPitt -> BallConfig`.
+    3.  Selecione o arquivo recém-criado. No *Inspector*, preencha a Massa (Mass), selecione o Prefab da bola e do efeito de colisão visual (ParticleSystem), além da Pontuação Base (Base Score).
+*   **LevelConfig:**
+    1.  Clique com o botão direito na aba *Project*.
+    2.  Vá em `Create -> BallXPitt -> LevelConfig`.
+    3.  No *Inspector*, preencha as variáveis de limite de bolas (`maxBalls`), a pontuação necessária para vencer (`scoreToWin`) e, opcionalmente, defina as coordenadas X e Y onde as bolas deverão aparecer na parte superior da tela.
 
-2. **Configuração dos ScriptableObjects:**
-   - **BallConfig:** Clique com o botão direito -> `Create` -> `BallXPitt` -> `BallConfig`.
-     - Atribua um Prefab de bola (que deve ter um `Rigidbody2D` e um `CircleCollider2D`).
-     - **Importante:** Arraste o `BallPhysicsMaterial` recém-criado para a propriedade `Material` do `CircleCollider2D` do Prefab.
-     - Ajuste a massa para `1.0`.
-   - **LevelConfig:** Clique com o botão direito -> `Create` -> `BallXPitt` -> `LevelConfig`.
-     - Configure o `spawnHeight` para o topo da câmera (ex: `10`), e `minX`/`maxX` para as bordas horizontais.
+### 2. Configuração de Física Básica (Physics Material 2D)
+Para que a bola quique de forma correta ao atingir as paredes ou os Bumpers:
 
-3. **Iniciando o Teste:**
-   - Adicione os scripts `GameManager`, `LevelManager`, `ScoreManager` e `BallPool` em GameObjects vazios na sua cena.
-   - Configure as referências de `BallConfig` e `LevelConfig` no `LevelManager` e no `GameManager`.
-   - Ao rodar o jogo (Play), use um script temporário de input ou modifique o input padrão para chamar `LevelManager.Instance.TrySpawnBall(x, config)`. A bola cairá obedecendo à física e usando a re-instanciação com Object Pooling.
+1.  Crie um novo Material Físico: Clique com o botão direito na aba *Project* -> `Create -> 2D -> Physics Material 2D`.
+2.  Nomeie como `BouncyMaterial` ou algo similar.
+3.  Selecione o material. No *Inspector*, ajuste o valor de **Bounciness** (geralmente entre `0.6` e `0.9` funciona melhor para efeito "pinball"). Defina **Friction** como `0` ou num valor baixo.
+4.  Arraste este material para o componente `Collider 2D` (como um `CircleCollider2D`) no **Prefab da Bola** e também nos colisores dos **Bumpers** ou **Paredes** do "Pit".
 
-## 2. Configuração de Secrets no GitHub (CI/CD)
+### 3. Setup da Cena Base
+*   Certifique-se de que há instâncias do `LevelManager`, `ScoreManager`, `BallPool`, `GameManager` e `BallFactory` ativos na cena principal.
+*   Associe a `BallConfig` padrão que será usada no `LevelManager` e alimente os `LevelConfig`.
 
-Para que o workflow `.github/workflows/deploy.yml` funcione corretamente e gere os builds (Windows/WebGL), você precisará adicionar os seguintes **Secrets** no seu repositório do GitHub (em *Settings* -> *Secrets and variables* -> *Actions*):
+---
 
-- `UNITY_LICENSE` (O conteúdo completo do arquivo de licença `.ulf` da Unity).
-- `UNITY_EMAIL` (O email da conta Unity).
-- `UNITY_PASSWORD` (A senha da conta Unity).
+## Configuração do GitHub Actions (CI/CD)
+
+Para que o pipeline de integração contínua (game-ci) funcione perfeitamente, você deve adicionar os seguintes **Secrets** no repositório GitHub (`Settings -> Secrets and variables -> Actions`):
+
+*   `UNITY_LICENSE`: O conteúdo do arquivo de licença `.ulf` da Unity.
+*   `UNITY_EMAIL`: O e-mail da sua conta Unity (utilizado na ativação da licença).
+*   `UNITY_PASSWORD`: A senha da sua conta Unity.

@@ -13,4 +13,3 @@ namespace BallXPitt.Core
         public static Action OnGameOver;
     }
 }
-// Update for Ball-x-Pitt PR

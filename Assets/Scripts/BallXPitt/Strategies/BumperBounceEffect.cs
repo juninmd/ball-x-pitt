@@ -12,11 +12,9 @@ namespace BallXPitt.Strategies
             Rigidbody2D rb = ball.GetComponent<Rigidbody2D>();
             if (rb != null)
             {
-                // Calculate bounce direction
                 Vector2 normal = collision.contacts[0].normal;
                 Vector2 force = normal * bounceForce;
 
-                // Add force
                 rb.AddForce(force, ForceMode2D.Impulse);
 
                 Debug.Log("BumperBounceEffect applied!");
@@ -24,4 +22,3 @@ namespace BallXPitt.Strategies
         }
     }
 }
-// Update for Ball-x-Pitt PR

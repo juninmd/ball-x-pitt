@@ -46,8 +46,6 @@ namespace BallXPitt.Managers
             TotalScore += finalPoints;
             Debug.Log($"ScoreManager: Gained {finalPoints} points. Total Score: {TotalScore}");
 
-            // Check win condition via LevelManager (in a decoupled way this could be checked by LevelManager listening to score events,
-            // but since LevelManager manages the level, we let LevelManager check its own conditions).
         }
 
         public void ApplyMultiplier(float multiplier)

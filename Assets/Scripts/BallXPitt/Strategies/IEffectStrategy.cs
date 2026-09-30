@@ -8,4 +8,3 @@ namespace BallXPitt.Strategies
         void ApplyEffect(Ball ball, Collision2D collision);
     }
 }
-// Update for Ball-x-Pitt PR
