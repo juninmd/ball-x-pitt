@@ -49,13 +49,11 @@ namespace BallXPitt.Managers
         private void HandleLevelCompleted()
         {
             Debug.Log("GameManager: Level Completed!");
-            // Implement next level transition logic
         }
 
         private void HandleGameOver()
         {
             Debug.Log("GameManager: Game Over!");
-            // Implement game over screen logic
         }
     }
 }

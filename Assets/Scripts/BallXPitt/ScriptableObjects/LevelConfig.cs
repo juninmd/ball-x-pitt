@@ -18,4 +18,3 @@ namespace BallXPitt.ScriptableObjects
         public float spawnHeight = 10f;
     }
 }
-// Update for Ball-x-Pitt PR

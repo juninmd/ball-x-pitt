@@ -1,4 +1,3 @@
-// Generates core physical object logic
 using UnityEngine;
 using BallXPitt.ScriptableObjects;
 using BallXPitt.Pools;
@@ -28,14 +27,12 @@ namespace BallXPitt.Core
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
-            // Apply VFX
             if (config != null && config.collisionVFXPrefab != null)
             {
                 Vector2 contactPoint = collision.GetContact(0).point;
                 BallPool.Instance.PlayVFX(config.collisionVFXPrefab, contactPoint);
             }
 
-            // Apply strategy effects from obstacles
             if (collision.gameObject.TryGetComponent<IEffectStrategy>(out var effectStrategy))
             {
                 effectStrategy.ApplyEffect(this, collision);

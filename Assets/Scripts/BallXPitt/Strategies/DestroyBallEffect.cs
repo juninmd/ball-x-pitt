@@ -12,4 +12,3 @@ namespace BallXPitt.Strategies
         }
     }
 }
-// Update for Ball-x-Pitt PR

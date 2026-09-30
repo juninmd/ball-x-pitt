@@ -61,7 +61,6 @@ namespace BallXPitt.Pools
                 return ball;
             }
 
-            // Fallback instantiation if pool is empty
             Ball newBall = CreateNewBall(config);
             newBall.gameObject.SetActive(true);
             return newBall;
