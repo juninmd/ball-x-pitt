@@ -81,44 +81,38 @@ namespace BallXPitt.Pools
 
         private struct ActiveVFXInfo
         {
-            public GameObject instance;
             public ParticleSystem particleSystem;
             public int prefabId;
         }
 
-        private Dictionary<int, Queue<GameObject>> vfxPoolDictionary = new Dictionary<int, Queue<GameObject>>();
+        private Dictionary<int, Queue<ParticleSystem>> vfxPoolDictionary = new Dictionary<int, Queue<ParticleSystem>>();
         private List<ActiveVFXInfo> activeVFXList = new List<ActiveVFXInfo>();
 
-        public void PlayVFX(GameObject vfxPrefab, Vector2 position)
+        public void PlayVFX(ParticleSystem vfxPrefab, Vector2 position)
         {
             if (vfxPrefab == null) return;
 
             int id = vfxPrefab.GetInstanceID();
             if (!vfxPoolDictionary.ContainsKey(id))
             {
-                vfxPoolDictionary[id] = new Queue<GameObject>();
+                vfxPoolDictionary[id] = new Queue<ParticleSystem>();
             }
 
-            GameObject vfxObj = null;
+            ParticleSystem ps = null;
             if (vfxPoolDictionary[id].Count > 0)
             {
-                vfxObj = vfxPoolDictionary[id].Dequeue();
-                vfxObj.transform.position = position;
-                vfxObj.SetActive(true);
+                ps = vfxPoolDictionary[id].Dequeue();
+                ps.transform.position = position;
+                ps.gameObject.SetActive(true);
             }
             else
             {
-                vfxObj = Instantiate(vfxPrefab, position, Quaternion.identity);
-                vfxObj.transform.SetParent(transform);
+                ps = Instantiate(vfxPrefab, position, Quaternion.identity);
+                ps.transform.SetParent(transform);
             }
 
-            ParticleSystem ps = vfxObj.GetComponent<ParticleSystem>();
-            if (ps != null)
-            {
-                ps.Play();
-            }
-
-            activeVFXList.Add(new ActiveVFXInfo { instance = vfxObj, particleSystem = ps, prefabId = id });
+            ps.Play();
+            activeVFXList.Add(new ActiveVFXInfo { particleSystem = ps, prefabId = id });
         }
 
         private void Update()
@@ -127,10 +121,10 @@ namespace BallXPitt.Pools
             {
                 ActiveVFXInfo info = activeVFXList[i];
 
-                if (info.particleSystem != null && !info.particleSystem.IsAlive())
+                if (info.particleSystem != null && !info.particleSystem.IsAlive(true))
                 {
-                    info.instance.SetActive(false);
-                    vfxPoolDictionary[info.prefabId].Enqueue(info.instance);
+                    info.particleSystem.gameObject.SetActive(false);
+                    vfxPoolDictionary[info.prefabId].Enqueue(info.particleSystem);
                     activeVFXList.RemoveAt(i);
                 }
             }
