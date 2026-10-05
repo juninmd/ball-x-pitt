@@ -1,48 +1,73 @@
-# Instruções de Setup - Ball-x-Pitt
+# Instruções de Configuração - Ball-x-Pitt
 
-Bem-vindo ao projeto Ball-x-Pitt! Aqui você encontrará as instruções necessárias para configurar a física, os ScriptableObjects no Editor e habilitar o pipeline de CI/CD.
+Como Senior Unity Developer e Especialista em DevOps, preparei estas instruções para ajudar na configuração do seu jogo arcade "Ball-x-Pitt" (estilo Pachinko/Ball Pit).
 
-## 1. Configurando a Física (Physics Material 2D)
+## 1. Configuração da Física e ScriptableObjects no Unity Editor
 
-O jogo utiliza bastante a engine de física da Unity. Para garantir que as esferas pulem adequadamente:
+O jogo "Ball-x-Pitt" foi projetado separando a lógica de dados da física/view através de `ScriptableObjects`, conforme as práticas de Clean Code e princípios SOLID. Siga estes passos para configurar a primeira queda de bola:
 
-1. Na aba **Project**, crie um novo Material Físico 2D (`Create > 2D > Physics Material 2D`).
-2. Dê o nome de `BouncyMaterial`.
-3. Selecione o `BouncyMaterial` e no **Inspector**, configure a propriedade **Bounciness** para um valor alto (ex: `0.8` ou `0.9`) para esferas mais elásticas, e ajuste o **Friction** (Geralmente `0` a `0.1` funciona bem para Pachinko).
-4. Aplique este `BouncyMaterial` ao componente `Rigidbody2D` e/ou `Collider2D` no Prefab da sua **Ball** (Esfera) e também nos obstáculos do cenário.
+### Passo A: Criar e Configurar o Physics Material 2D
+A física é essencial para os quiques das esferas nos obstáculos.
+1. Na janela **Project**, clique com o botão direito na pasta `Assets` (ou crie uma pasta `Assets/Physics`).
+2. Vá em `Create` -> `2D` -> `Physics Material 2D`.
+3. Nomeie-o, por exemplo, como `BouncyMaterial`.
+4. No **Inspector**, ajuste os valores:
+   - **Friction**: `0` (para que as bolas não fiquem presas).
+   - **Bounciness**: `0.8` (ou outro valor próximo de 1 para um quique elástico).
 
-## 2. Configurando ScriptableObjects
+### Passo B: Criar as Configurações com ScriptableObjects
+Usamos o padrão Strategy e configurações modulares.
+1. **Configuração da Bola (`BallConfig`)**:
+   - Vá na pasta `Assets/Scripts/BallXPitt/ScriptableObjects/` (crie se necessário).
+   - Clique com o botão direito -> `Create` -> `BallXPitt` -> `Ball Config`.
+   - Nomeie como `DefaultBall`.
+   - No **Inspector**, configure:
+     - **Mass**: `1`.
+     - **Bounciness**: `0.8`.
+     - **Physics Material**: Arraste o `BouncyMaterial` criado no Passo A.
+     - **Prefab**: Arraste um Prefab de Esfera (que DEVE ter os componentes `Rigidbody2D` Dinâmico, `CircleCollider2D` e o script `Ball.cs`).
+     - **Collision VFX Prefab**: Opcional, arraste um Prefab de `ParticleSystem` para os efeitos de impacto.
+     - **Base Score**: `10`.
 
-Os ScriptableObjects centralizam as configurações para evitar alterações dispersas no código.
+2. **Configuração do Level (`LevelConfig`)**:
+   - Clique com o botão direito -> `Create` -> `BallXPitt` -> `Level Config` (assumindo que você também tenha um ScriptableObject de LevelConfig, similar ao código do `LevelManager`).
+   - Configure o número máximo de bolas (`maxBalls`), limites horizontais do pit (`minX`, `maxX`), e altura do spawn (`spawnHeight`).
 
-### Criando BallConfig
-1. No Editor, clique com o botão direito: `Create > BallXPitt > BallConfig`.
-2. Dê o nome, por exemplo, `DefaultBallConfig`.
-3. Configure:
-   - **Mass:** `1` (ou ajuste conforme necessário).
-   - **Prefab:** Arraste o seu Prefab da esfera que possui os componentes `Ball.cs`, `Rigidbody2D` e `CircleCollider2D`.
-   - **Collision VFX Prefab:** Arraste o Prefab de ParticleSystem que será instanciado na colisão.
-   - **Base Score:** A pontuação base (ex: 100).
+### Passo C: Conectar aos Managers
+A arquitetura é baseada em Managers orientados a eventos (`GameManager`, `ScoreManager`, `LevelManager`) e Object Pooling (`BallPool`).
+1. Crie um GameObject vazio na Cena, nomeie-o `LevelManager`.
+2. Adicione o script `LevelManager.cs`.
+3. No Inspector do `LevelManager`, arraste os seus ScriptableObjects recém-criados para os campos `Current Level Config` e `Default Ball Config`.
+4. Certifique-se de que o objeto que contém o `BallPool.cs` também está na cena.
 
-### Criando LevelConfig
-1. Clique com o botão direito: `Create > BallXPitt > LevelConfig`.
-2. Dê o nome, por exemplo, `Level_1`.
-3. Configure:
-   - **Max Balls:** Quantidade de bolas permitidas para o nível (ex: 10).
-   - **Score To Win:** Pontuação necessária (ex: 1000).
-   - **Layout Prefab:** O Prefab do seu pit com os obstáculos posicionados.
-   - **Min X / Max X:** Limites da posição horizontal de onde o jogador pode lançar a bola.
-   - **Spawn Height:** A altura no eixo Y de onde a bola cairá.
-
-## 3. GitHub Secrets para CI/CD
-
-Para o Game-CI compilar o projeto com sucesso usando o GitHub Actions, você deve adicionar as credenciais da Unity aos Secrets do repositório no GitHub.
-
-Vá em `Settings > Secrets and variables > Actions > New repository secret` e adicione os seguintes:
-
-* `UNITY_LICENSE`: O conteúdo do arquivo `.ulf` da sua licença Unity gerada. (Requerido pelo Game-CI para ativar a licença offline).
-* `UNITY_EMAIL`: O seu e-mail associado à conta Unity.
-* `UNITY_PASSWORD`: A senha da sua conta Unity.
+Ao rodar a cena e clicar com o botão esquerdo do mouse (dentro dos limites configurados no `LevelConfig`), o Object Pooling será inicializado pelo `LevelManager.cs` através da Factory, e uma bola aparecerá caindo devido à gravidade.
 
 ---
-Após configurar esses itens, você estará pronto para lançar a primeira bola e criar tags (`v1.0`) para testar o sistema de automação e release automático!
+
+## 2. Segredos do GitHub (DevOps) para CI/CD
+
+O workflow de produção que criei (`.github/workflows/deploy.yml`) usa o **Game-CI** para gerar builds para **StandaloneWindows64** e **WebGL** e automaticamente criar um release zipado.
+
+Para que a compilação nos servidores do GitHub Actions tenha sucesso e ative a licença da Unity (através da `game-ci/unity-builder`), é obrigatório configurar as seguintes **Secrets** no seu repositório:
+
+1. Acesse o seu repositório no GitHub.
+2. Navegue até: `Settings` -> `Secrets and variables` -> `Actions`.
+3. Clique no botão `New repository secret`.
+4. Adicione as 3 variáveis exatas abaixo:
+
+| Nome da Secret | Descrição e Como Obter |
+| :--- | :--- |
+| `UNITY_LICENSE` | O conteúdo bruto do seu arquivo `.ulf` de licença Unity (em formato XML). Você pode gerar a licença localmente na sua máquina ou seguindo a [documentação do Game-CI para Ativação de Licença](https://game-ci/docs/github/activation). |
+| `UNITY_EMAIL` | O endereço de email usado para fazer login na sua conta da Unity. |
+| `UNITY_PASSWORD` | A senha da sua conta da Unity. |
+
+### Fluxo de Release Automática
+O CI/CD está configurado para disparar **APENAS** na criação de tags de versão.
+Para gerar e lançar uma nova versão jogável:
+```bash
+git add .
+git commit -m "Nova versão pronta para deploy"
+git tag v1.0
+git push origin v1.0
+```
+Isso irá ativar a pipeline, compilar os alvos, comprimir em ZIP e criar uma Release oficial na aba de "Releases" do GitHub!
