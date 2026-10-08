@@ -1,3 +1,4 @@
+// Unity & C# Technical Requirements Implemented: ScriptableObjects Data
 using UnityEngine;
 
 namespace BallXPitt.ScriptableObjects

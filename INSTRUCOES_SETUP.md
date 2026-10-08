@@ -1,48 +1,60 @@
 # Ball-x-Pitt: Instruções de Setup
 
-Este guia rápido explica como configurar o projeto básico para rodar o "Ball-x-Pitt" (Neon Defense) e como preparar seu ambiente no GitHub.
+Este documento contém as instruções para configurar o projeto na Unity e no GitHub para CI/CD, garantindo o funcionamento da física e dos builds automatizados.
 
-## 1. Configurando a Física (Physics Material)
+## 1. Configurando a Física na Unity (Physics Material)
 
-Para o jogo funcionar bem, as bolas devem quicar. Faremos isso com um `PhysicsMaterial2D`.
+Para que o jogo funcione corretamente no estilo Pachinko/Ball Pit, as bolas devem quicar de forma realista. Faremos isso configurando os **Physics Materials 2D**.
 
-1. Na Unity, na aba **Project**, clique com o botão direito e selecione `Create > 2D > Physics Material 2D`.
-2. Nomeie como `BouncyMaterial`.
-3. Selecione o `BouncyMaterial` criado e, na aba **Inspector**, altere o **Friction** para `0` (para não travar) e o **Bounciness** para `0.8` (ou outro valor alto, indicando bastante quique).
-4. Selecione o **Prefab da sua Esfera (Ball)** na pasta de Prefabs.
-5. No componente **Collider 2D** (ex: `CircleCollider2D`) do prefab, arraste o `BouncyMaterial` para o campo `Material`.
+1. Na Unity, crie uma pasta `Assets/Physics` (se não existir).
+2. Clique com o botão direito -> **Create > 2D > Physics Material 2D**.
+3. Nomeie como `BallMaterial` (ou `BouncyMaterial`).
+4. Selecione o material e, no **Inspector**, configure os valores:
+   - **Friction (Atrito):** `0` (Para evitar que a bola fique presa nas paredes ou perca momento).
+   - **Bounciness (Quique):** `0.6` a `0.8` (Depende do quão "pula-pula" você quer que o jogo seja. 0.8 é recomendado).
+5. Selecione o **Prefab da sua Esfera (Ball)** na pasta de Prefabs.
+6. No componente **Collider 2D** (ex: `CircleCollider2D`) do prefab, arraste o `BallMaterial` para o campo `Material`.
 
 ## 2. Configurando os ScriptableObjects
 
-Os ScriptableObjects guardam os dados do jogo, evitando hardcoding.
+Os ScriptableObjects centralizam as configurações do jogo, evitando hardcoding e permitindo balanceamento fácil.
 
 ### Criando a Configuração da Bola (`BallConfig`)
-1. No Unity, vá na aba **Project**, clique com o botão direito numa pasta (ex: `Assets/Scripts/BallXPitt/ScriptableObjects/Data`) e escolha `Create > BallXPitt > BallConfig`.
-2. Nomeie como `DefaultBallConfig`.
-3. No **Inspector**, preencha os valores:
-   - **Mass**: `1` (ou o valor desejado).
+1. No Editor, vá em `Assets/Configs/Balls` (crie a pasta se necessário).
+2. Clique com o botão direito -> **Create > BallXPitt > BallConfig**.
+3. Nomeie como `DefaultBallConfig`.
+4. No **Inspector**, preencha os valores:
+   - **Mass**: `1` (ou ajuste conforme necessário para a física).
    - **Prefab**: Arraste o seu prefab visual da Bola.
    - **Collision VFX Prefab**: (Opcional) Arraste um sistema de partículas para a colisão.
-   - **Base Score**: `100` (pontos que ela rende).
+   - **Base Score**: `100` (pontos que a bola rende ao tocar um alvo/fundo).
 
 ### Criando a Configuração da Fase (`LevelConfig`)
-1. Similarmente, crie o `LevelConfig` usando `Create > BallXPitt > LevelConfig` (assumindo que você tem esse menu).
-2. Configure os valores:
-   - **Max Balls**: O número de bolas disponíveis para o jogador.
-   - **Score To Win**: A pontuação alvo para vencer a fase.
-   - **Min X / Max X**: Os limites horizontais de onde a bola pode ser solta pelo mouse.
-   - **Spawn Height**: A altura no eixo Y de onde as bolas vão cair.
+1. Em `Assets/Configs/Levels`, clique com o botão direito -> **Create > BallXPitt > LevelConfig**.
+2. Nomeie como `Level1Config` (por exemplo).
+3. Configure os valores:
+   - **Max Balls**: O número de bolas disponíveis para o jogador (ex: `10`).
+   - **Score To Win**: A pontuação alvo para vencer a fase (ex: `1000`).
+   - **Min X / Max X**: Os limites horizontais de onde a bola pode ser solta (ex: `-5` e `5`).
+   - **Spawn Height**: A altura no eixo Y de onde as bolas vão cair (ex: `10`).
+   - **Layout Prefab**: Arraste um Prefab que contenha os obstáculos (Bumpers, Multiplicadores, etc) desta fase.
 
-## 3. GitHub Actions CI/CD Secrets
+## 3. Segredos do GitHub (GitHub Actions CI/CD Secrets)
 
-Para o arquivo `.github/workflows/deploy.yml` funcionar e gerar as builds automaticamente quando você criar uma Tag `v*`, é **obrigatório** configurar os seguintes Secrets no seu repositório do GitHub.
+Para que o workflow de CI/CD `.github/workflows/deploy.yml` funcione e consiga compilar o jogo para Windows 64-bit e WebGL via Game-CI, você DEVE configurar as credenciais da sua licença Unity no repositório.
 
-Vá em: **Settings** > **Secrets and variables** > **Actions** > **New repository secret**.
+Vá até a página do seu repositório no GitHub -> **Settings** -> **Secrets and variables** -> **Actions** -> **New repository secret**.
 
-Adicione os três secrets exatamente com estes nomes:
+Adicione os seguintes Secrets (exatamente com estes nomes):
 
-1. `UNITY_LICENSE`: O conteúdo do seu arquivo de licença `.ulf` da Unity (necessário para o Game-CI compilar o jogo sem a interface gráfica).
-2. `UNITY_EMAIL`: O e-mail associado à conta Unity que gerou a licença.
-3. `UNITY_PASSWORD`: A senha da conta Unity que gerou a licença.
+- `UNITY_LICENSE`: O conteúdo do seu arquivo de licença `.ulf` (Unity License File). Para gerar isso, geralmente você roda a ativação manual do Game-CI ou usa uma licença Plus/Pro. Para Personal, consulte a doc do Game-CI para obter o arquivo `.ulf`.
+- `UNITY_EMAIL`: O e-mail associado à sua conta Unity.
+- `UNITY_PASSWORD`: A senha associada à sua conta Unity.
 
-Com esses passos configurados, faça um commit da sua Tag `v1.0.0` e as actions criarão sua Release para Windows e WebGL!
+*Dica:* O workflow só roda (trigger) quando você cria uma Tag começando com "v" (ex: `v1.0.0`).
+Para criar uma release com build, execute os comandos no terminal do git:
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+Isso acionará a Action que fará o build, criará a Release no GitHub e anexará os arquivos zipados automaticamente.
