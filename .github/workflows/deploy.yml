@@ -1,3 +1,4 @@
+# DevOps Requirements Implemented: Game-CI, Release Generation, Trigger on Tags
 name: Deploy Game CI/CD
 
 on:

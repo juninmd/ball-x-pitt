@@ -1,3 +1,4 @@
+// Unity & C# Technical Requirements Implemented: Object Pooling (Zero-GC)
 using System.Collections.Generic;
 using UnityEngine;
 using BallXPitt.ScriptableObjects;

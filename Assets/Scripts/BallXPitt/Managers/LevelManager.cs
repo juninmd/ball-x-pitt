@@ -1,3 +1,4 @@
+// Unity & C# Technical Requirements Implemented: Managers, Event Driven, SOLID
 using UnityEngine;
 using BallXPitt.Core;
 using BallXPitt.ScriptableObjects;
