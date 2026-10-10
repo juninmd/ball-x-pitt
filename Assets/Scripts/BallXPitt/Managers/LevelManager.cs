@@ -1,4 +1,4 @@
-// Projeto: Ball-x-Pitt
+// Projeto: Ball-x-Pitt Arcade
 // Unity & C# Technical Requirements Implemented: Managers, Event Driven, SOLID
 using UnityEngine;
 using BallXPitt.Core;
