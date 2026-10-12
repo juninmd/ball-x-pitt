@@ -1,4 +1,4 @@
-// Modificado para o PR
+// Atualizado para o PR
 // Projeto: Ball-x-Pitt Arcade
 // Unity & C# Technical Requirements Implemented: Object Pooling (Zero-GC)
 using System.Collections.Generic;

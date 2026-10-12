@@ -1,4 +1,4 @@
-// Modificado para o PR
+// Atualizado para o PR
 // Projeto: Ball-x-Pitt Arcade
 // Unity & C# Technical Requirements Implemented: Managers, Event Driven, SOLID
 using UnityEngine;
