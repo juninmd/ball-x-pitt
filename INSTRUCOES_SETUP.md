@@ -1,6 +1,6 @@
 <!-- Atualizado para o PR -->
 <!-- Projeto: Ball-x-Pitt Arcade -->
-# Ball-x-Pitt: Instruções de Setup
+# Ball-x-Pitt: Instruções de Setup.
 
 Este documento contém as instruções para configurar o projeto na Unity e no GitHub para CI/CD, garantindo o funcionamento da física e dos builds automatizados.
 
