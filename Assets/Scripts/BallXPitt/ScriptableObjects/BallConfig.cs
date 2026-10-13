@@ -1,6 +1,6 @@
 // Atualizado para o PR
 // Projeto: Ball-x-Pitt Arcade
-// Unity & C# Technical Requirements Implemented: ScriptableObjects Data
+// Unity & C# Technical Requirements Implemented: ScriptableObjects Data.
 using UnityEngine;
 
 namespace BallXPitt.ScriptableObjects

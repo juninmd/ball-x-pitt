@@ -1,6 +1,6 @@
 // Atualizado para o PR
 // Projeto: Ball-x-Pitt Arcade
-// Unity & C# Technical Requirements Implemented: Strategy Pattern, Game Events
+// Unity & C# Technical Requirements Implemented: Strategy Pattern, Game Events.
 using UnityEngine;
 using BallXPitt.ScriptableObjects;
 using BallXPitt.Strategies;
