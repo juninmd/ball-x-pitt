@@ -19,3 +19,4 @@ namespace BallXPitt.ScriptableObjects
         public int baseScore = 100;
     }
 }
+// Validated
