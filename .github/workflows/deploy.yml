@@ -94,3 +94,4 @@ jobs:
           files: |
             ./releases/StandaloneWindows64-build.zip
             ./releases/WebGL-build.zip
+# Validated

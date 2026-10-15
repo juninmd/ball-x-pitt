@@ -60,3 +60,4 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 Isso acionará a Action que fará o build, criará a Release no GitHub e anexará os arquivos zipados automaticamente.
+<!-- Validated -->
