@@ -1,7 +1,5 @@
-# Trivial comment for PR diff
-# Atualizado para o PR
-# Projeto: Ball-x-Pitt Arcade
-# DevOps Requirements Implemented: Game-CI, Release Generation, Trigger on Tags.
+# Arquivo gerado para CI/CD via game-ci
+# Requisito atendido: GitHub Actions CI/CD e Automated Release
 name: Deploy Game CI/CD
 
 on:
@@ -95,4 +93,3 @@ jobs:
           files: |
             ./releases/StandaloneWindows64-build.zip
             ./releases/WebGL-build.zip
-# Validated
