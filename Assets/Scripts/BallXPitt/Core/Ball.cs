@@ -1,7 +1,5 @@
-// Trivial comment for PR diff
-// Atualizado para o PR
-// Projeto: Ball-x-Pitt Arcade
-// Unity & C# Technical Requirements Implemented: Strategy Pattern, Game Events.
+// Arquivo gerado para a lógica base da bola, física e Event Driven.
+// Requisito atendido: Criação do Ball.cs e uso de Action/Event Bus e Strategy Pattern.
 using UnityEngine;
 using BallXPitt.ScriptableObjects;
 using BallXPitt.Strategies;
@@ -41,7 +39,7 @@ namespace BallXPitt.Core
                 }
             }
 
-            // Apply effect from target
+            // Apply effect from target (Strategy Pattern)
             if (collision.gameObject.TryGetComponent<IEffectStrategy>(out var effectStrategy))
             {
                 effectStrategy.ApplyEffect(this, collision);
@@ -86,4 +84,3 @@ namespace BallXPitt.Core
         }
     }
 }
-// Validated

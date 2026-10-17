@@ -1,7 +1,5 @@
-// Trivial comment for PR diff
-// Atualizado para o PR
-// Projeto: Ball-x-Pitt Arcade
-// Unity & C# Technical Requirements Implemented: Managers, Event Driven, SOLID.
+// Arquivo gerado para a solução de Managers, Event Driven, e SOLID.
+// Requisito atendido: Criação do LevelManager.cs
 using UnityEngine;
 using BallXPitt.Core;
 using BallXPitt.ScriptableObjects;
@@ -115,5 +113,3 @@ namespace BallXPitt.Managers
         }
     }
 }
-// Modified to trigger diff
-// Validated

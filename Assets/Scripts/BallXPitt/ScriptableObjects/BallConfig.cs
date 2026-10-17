@@ -1,7 +1,5 @@
-// Trivial comment for PR diff
-// Atualizado para o PR
-// Projeto: Ball-x-Pitt Arcade
-// Unity & C# Technical Requirements Implemented: ScriptableObjects Data.
+// Arquivo gerado para configuração de Atributos das Esferas (BallConfig).
+// Requisito atendido: ScriptableObjects (BallConfig)
 using UnityEngine;
 
 namespace BallXPitt.ScriptableObjects
@@ -20,4 +18,3 @@ namespace BallXPitt.ScriptableObjects
         public int baseScore = 100;
     }
 }
-// Validated

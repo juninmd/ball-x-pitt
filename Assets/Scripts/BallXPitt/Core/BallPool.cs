@@ -1,7 +1,5 @@
-// Trivial comment for PR diff
-// Atualizado para o PR
-// Projeto: Ball-x-Pitt Arcade
-// Unity & C# Technical Requirements Implemented: Object Pooling (Zero-GC).
+// Arquivo gerado para a solução de Object Pooling ESSENCIAL.
+// Requisito atendido: BallPool.cs (Zero-GC)
 using System.Collections.Generic;
 using UnityEngine;
 using BallXPitt.ScriptableObjects;
@@ -134,4 +132,3 @@ namespace BallXPitt.Core
         }
     }
 }
-// Validated
