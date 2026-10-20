@@ -1,3 +1,4 @@
+<!-- Instruções de Setup -->
 # Ball-x-Pitt: Instruções de Setup e Documentação
 
 ## Arquitetura e Visão Geral
