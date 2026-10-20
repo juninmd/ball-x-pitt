@@ -1,3 +1,4 @@
+// Requisito Atendido: Object Pool
 // Arquivo gerado para a solução de Object Pooling ESSENCIAL.
 // Requisito atendido: BallPool.cs (Zero-GC)
 using System.Collections.Generic;
