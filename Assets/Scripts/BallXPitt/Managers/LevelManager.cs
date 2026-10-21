@@ -54,21 +54,21 @@ namespace BallXPitt.Managers
             _activeBalls = 0;
             _levelActive = true;
 
-            // Optionally instantiate layout prefab here if not already in scene
+
             if (currentLevelConfig.layoutPrefab != null)
             {
-                // Simple instantiation for demo; in full game, consider destroying previous layout
+
                 Instantiate(currentLevelConfig.layoutPrefab, Vector3.zero, Quaternion.identity);
             }
 
-            GameEvents.OnLevelStarted?.Invoke(1); // Passing dummy level index 1
+            GameEvents.OnLevelStarted?.Invoke(1);
         }
 
         private void Update()
         {
             if (!_levelActive || currentLevelConfig == null) return;
 
-            // Simple gameplay input: left click to drop a ball
+
             if (Input.GetMouseButtonDown(0) && _ballsRemaining > 0)
             {
                 Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -99,7 +99,7 @@ namespace BallXPitt.Managers
             {
                 _levelActive = false;
 
-                // Example win condition: check score via ScoreManager
+
                 if (ScoreManager.Instance != null && ScoreManager.Instance.TotalScore >= currentLevelConfig.scoreToWin)
                 {
                     Debug.Log("Level Won!");

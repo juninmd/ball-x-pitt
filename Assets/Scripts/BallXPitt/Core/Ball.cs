@@ -25,13 +25,13 @@ namespace BallXPitt.Core
             if (Config != null)
             {
                 Rb.mass = Config.mass;
-                // Bounciness is handled via PhysicsMaterial2D applied to the collider in the prefab.
+
             }
         }
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
-            // Apply collision VFX if configured
+
             if (Config != null && Config.collisionVFXPrefab != null)
             {
                 if (BallPool.Instance != null && collision.contactCount > 0)
@@ -40,13 +40,13 @@ namespace BallXPitt.Core
                 }
             }
 
-            // Apply effect from target (Strategy Pattern)
+
             if (collision.gameObject.TryGetComponent<IEffectStrategy>(out var effectStrategy))
             {
                 effectStrategy.ApplyEffect(this, collision);
             }
 
-            // Add base score
+
             if (Config != null)
             {
                 GameEvents.OnScoreGained?.Invoke(Config.baseScore, transform.position);
@@ -55,7 +55,7 @@ namespace BallXPitt.Core
 
         private void Update()
         {
-            // Auto-despawn if ball falls out of bounds (below pit)
+
             if (transform.position.y < -15f)
             {
                 Despawn();

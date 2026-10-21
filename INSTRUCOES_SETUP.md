@@ -1,61 +1,43 @@
-<!-- Instruções de Setup -->
-# Ball-x-Pitt: Instruções de Setup e Documentação
+# Instruções de Setup - Ball-x-Pitt
 
-## Arquitetura e Visão Geral
-O projeto **Ball-x-Pitt** é um jogo arcade baseado em física no estilo Pachinko/Ball Pit. O objetivo é lançar esferas (Balls) no topo de um cenário vertical (Pit), onde quicam em obstáculos, ativam efeitos variados (multiplicadores, destruição, bônus de pontuação) e caem em zonas ao fundo para somar pontos.
+Este documento contém as instruções solicitadas para configuração do projeto Ball-x-Pitt na Unity e GitHub Actions.
 
-Para manter o código limpo, escalável e evitar gargalos de performance, implementamos os seguintes padrões arquiteturais:
+## 1. Como configurar a física básica e os ScriptableObjects
 
-### Princípios SOLID & Clean Code
-- **Separação de Responsabilidades:** A lógica de estado global é gerenciada por `GameManager`, a pontuação e seus multiplicadores por `ScoreManager`, e as regras da fase (como o limite de bolas lançadas) por `LevelManager`.
-- **Event-Driven:** A comunicação entre sistemas é totalmente desacoplada através do `GameEvents.cs`. Por exemplo, quando uma bola é gerada, ela dispara um `OnBallSpawned`, permitindo que os Managers computem estatísticas sem que a bola precise saber sobre a existência deles.
+Para testar a primeira queda de bola, você precisa configurar os objetos e a física:
 
-### Design Patterns Aplicados
-- **Object Pooling:** Essencial para evitar **GC Spikes** (falhas e travamentos devidos ao Garbage Collector). `BallPool.cs` gerencia o reaproveitamento das esferas e dos efeitos de partículas de colisão.
-- **Factory Method:** `BallFactory.cs` é encarregada da lógica de criar ou buscar a bola certa do Pool antes de habilitá-la na cena.
-- **Strategy Pattern:** Utilizado nos comportamentos dos obstáculos (ex: `BumperBounceEffect`, `ScoreMultiplierEffect`). A bola simplesmente delega a responsabilidade de "o que acontece na colisão" para quem a atingiu.
-- **ScriptableObjects:** Separação estrita dos dados (`BallConfig`, `LevelConfig`) das lógicas físicas e visuais.
+### Configurando o Physics Material 2D
+O jogo depende do comportamento elástico (quique) das esferas.
+1. Na Unity, crie uma pasta chamada `Assets/Physics` se não existir.
+2. Clique com o botão direito `Create > 2D > Physics Material 2D`. Nomeie como `BouncyMaterial`.
+3. No Inspector do material, defina:
+   - **Friction:** `0.0` (Evita que a bola pare presa).
+   - **Bounciness:** `0.8` (Ajuste para o nível de "pula-pula" desejado).
+4. Selecione o Prefab da sua Bola (Ball) e no componente `Collider2D`, arraste o `BouncyMaterial` para o campo **Material**.
 
----
+### Configurando os ScriptableObjects
+Os ScriptableObjects mantêm os dados isolados da lógica.
+1. **Configuração da Bola (BallConfig):**
+   - Vá em `Assets/Configs` e clique `Create > BallXPitt > BallConfig`.
+   - Nomeie como `DefaultBallConfig`.
+   - No Inspector, ajuste `Mass` (ex: 1.0), `Base Score` (ex: 100), e associe os Prefabs visual e de partículas.
+2. **Configuração do Nível (LevelConfig):**
+   - Clique `Create > BallXPitt > LevelConfig`. Nomeie como `Level_1`.
+   - Defina `Max Balls` (ex: 10), `Score To Win` (ex: 1000) e os limites (`minX`, `maxX`, `spawnHeight`).
+3. **Cena Base:**
+   - Adicione os Managers (LevelManager, ScoreManager, BallPool) em objetos vazios na cena.
+   - Atribua os ScriptableObjects criados aos campos correspondentes no `LevelManager`.
 
-## Instruções de Configuração no Unity Editor
+## 2. Segredos do GitHub (GitHub Secrets)
 
-Siga este passo a passo para testar a mecânica base (física) e preparar a cena inicial para a primeira queda de bola:
+Para que o workflow de CI/CD para Unity (`.github/workflows/deploy.yml`) rode com sucesso via game-ci, você precisa configurar credenciais da sua licença Unity como segredos no seu repositório do GitHub.
 
-### 1. Criando os Scriptable Objects de Configuração
-Você precisará criar instâncias dos ScriptableObjects contendo os atributos base do jogo.
-- No Project, clique com o botão direito `Create > BallXPitt > BallConfig`. Chame de `DefaultBallConfig`.
-  - No inspector, ajuste a `Mass` (ex: `1.0`) e defina a `BaseScore` (ex: `100`).
-  - Arraste o seu Prefab visual de bola e o Prefab de partículas de colisão para os campos respectivos.
-- Crie também um `LevelConfig` (`Create > BallXPitt > LevelConfig`).
-  - Preencha `MaxBalls`, `ScoreToWin`, além dos limites horizontais (`minX`, `maxX`) e altura do Spawn (`spawnHeight`).
+Vá até a página do repositório no GitHub > **Settings** > **Secrets and variables** > **Actions** > **New repository secret**.
 
-### 2. Configurando a Física (Physics Material 2D)
-A propriedade de bounciness (o "pulo" da bola ao bater nos obstáculos) é gerenciada direto pela engine de física da Unity.
-- Crie um novo material: `Create > 2D > Physics Material 2D` (nomeie como `BouncyMaterial`).
-- No Inspector deste material, ajuste a `Bounciness` para `0.8` (ou outro valor que se adeque ao design do jogo) e defina o `Friction` bem baixo para evitar que a bola pare presa (ex: `0.0`).
-- No Prefab da sua Bola (`Ball`), encontre o componente `CircleCollider2D` (ou similar) e arraste o `BouncyMaterial` para o campo `Material`.
+Adicione **exatamente** esta lista de secrets:
 
-### 3. Ajustando os Managers na Cena
-- Crie um GameObject vazio na sua cena chamado `Managers`.
-- Anexe o script `LevelManager.cs` e arraste os ScriptableObjects (`LevelConfig` e `BallConfig`) recém-criados para seus respectivos campos no Inspector.
-- Anexe também os scripts `ScoreManager.cs` e `BallPool.cs`.
-- Crie um chão estático com colisor fora da tela ou defina o auto-despawn por eixo Y (já configurado no script da `Ball.cs` para valores `< -15f`).
+- `UNITY_LICENSE`: O conteúdo texto (XML) do seu arquivo de licença de ativação (`.alf`/`.ulf`).
+- `UNITY_EMAIL`: O e-mail da sua conta Unity.
+- `UNITY_PASSWORD`: A senha da sua conta Unity.
 
-Dê `Play` no Editor, clique com o mouse no topo da tela e você verá a bola instanciar, cair aplicando física e ser reciclada ao sair dos limites ou por outros gatilhos!
-
----
-
-## CI/CD: Pipeline de Produção (GitHub Actions)
-O fluxo CI/CD está implementado via Game-CI, para automatizar o build para Windows 64-bit e WebGL assim que uma nova versão (tag `v*`) for publicada, gerando uma Release automática.
-
-Para que a compilação funcione, as credenciais da licença da Unity são obrigatórias nos Secrets do GitHub.
-
-### Secrets Necessários no GitHub
-Vá em `Settings > Secrets and variables > Actions > New repository secret` e adicione exatamente estes nomes:
-
-- `UNITY_LICENSE`: O conteúdo completo do seu arquivo de licença de ativação (`.alf`/`.ulf`).
-- `UNITY_EMAIL`: O e-mail da sua conta registrada na Unity.
-- `UNITY_PASSWORD`: A senha da sua conta registrada na Unity.
-
-*(Nota: Estes secrets são confidenciais e nunca devem ser versionados em texto plano no repositório.)*
+*(As compilações para WebGL e Windows ocorrerão automaticamente sempre que você criar uma Tag começando com `v`, ex: `v1.0`)*
