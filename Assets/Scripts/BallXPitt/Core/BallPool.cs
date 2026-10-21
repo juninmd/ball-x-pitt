@@ -53,7 +53,7 @@ namespace BallXPitt.Core
             if (ball == null)
             {
                 GameObject obj = Instantiate(config.prefab);
-                obj.SetActive(false); // keep it disabled until positioned by factory
+                obj.SetActive(false);
                 ball = obj.GetComponent<Ball>();
                 if (ball == null)
                 {
@@ -65,7 +65,7 @@ namespace BallXPitt.Core
 
             ball.Initialize(config);
 
-            // Reset Rigidbody state before enabling
+
             if (ball.Rb != null)
             {
                 ball.Rb.velocity = Vector2.zero;
@@ -119,11 +119,17 @@ namespace BallXPitt.Core
 
         private void Update()
         {
-            // Zero-GC loop to check and recycle stopped VFX
+
             for (int i = _activeVFX.Count - 1; i >= 0; i--)
             {
                 var info = _activeVFX[i];
-                if (info.ps != null && !info.ps.IsAlive(true))
+                if (info.ps == null)
+                {
+                    _activeVFX.RemoveAt(i);
+                    continue;
+                }
+
+                if (!info.ps.IsAlive(true))
                 {
                     info.ps.gameObject.SetActive(false);
                     _vfxPools[info.prefabInstanceId].Enqueue(info.ps);

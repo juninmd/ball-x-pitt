@@ -1,4 +1,4 @@
-// Requisito Atendido: ScriptableObject
+// Requisito Atendido: ScriptableObject Modificado
 // Arquivo gerado para configuração de Atributos das Esferas (BallConfig).
 // Requisito atendido: ScriptableObjects (BallConfig)
 using UnityEngine;
