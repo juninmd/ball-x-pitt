@@ -1,3 +1,4 @@
+// Gerado para a solucao do projeto Ball-x-Pitt
 // Requisito Atendido: Manager
 // Arquivo gerado para a solução de Managers, Event Driven, e SOLID.
 // Requisito atendido: Criação do LevelManager.cs
