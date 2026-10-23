@@ -1,7 +1,3 @@
-// Gerado para a solucao do projeto Ball-x-Pitt
-// Requisito Atendido: Core Lógica
-// Arquivo gerado para a lógica base da bola, física e Event Driven.
-// Requisito atendido: Criação do Ball.cs e uso de Action/Event Bus e Strategy Pattern.
 using UnityEngine;
 using BallXPitt.ScriptableObjects;
 using BallXPitt.Strategies;
