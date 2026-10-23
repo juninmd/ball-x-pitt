@@ -1,7 +1,3 @@
-// Gerado para a solucao do projeto Ball-x-Pitt
-// Requisito Atendido: ScriptableObject Modificado
-// Arquivo gerado para configuração de Atributos das Esferas (BallConfig).
-// Requisito atendido: ScriptableObjects (BallConfig)
 using UnityEngine;
 
 namespace BallXPitt.ScriptableObjects

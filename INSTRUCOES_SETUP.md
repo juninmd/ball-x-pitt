@@ -1,4 +1,3 @@
-<!-- Gerado para a solucao do projeto Ball-x-Pitt -->
 # Instruções de Setup - Ball-x-Pitt
 
 Este documento contém as instruções solicitadas para configuração do projeto Ball-x-Pitt na Unity e GitHub Actions.
