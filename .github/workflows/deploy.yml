@@ -1,4 +1,4 @@
-name: Deploy Ball-x-Pitt
+name: Deploy Ball-x-Pitt # Generated and updated workflow
 
 on:
   push:
