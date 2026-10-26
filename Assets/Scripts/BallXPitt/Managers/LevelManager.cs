@@ -1,5 +1,6 @@
 // Ball-x-Pitt System
 using UnityEngine;
+using UnityEngine.InputSystem;
 using BallXPitt.Core;
 using BallXPitt.ScriptableObjects;
 using BallXPitt.Factories;
@@ -67,9 +68,10 @@ namespace BallXPitt.Managers
             if (!_levelActive || currentLevelConfig == null) return;
 
 
-            if (Input.GetMouseButtonDown(0) && _ballsRemaining > 0)
+            var mouse = Mouse.current;
+            if (mouse != null && mouse.leftButton.wasPressedThisFrame && _ballsRemaining > 0)
             {
-                Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                Vector3 mousePos = Camera.main.ScreenToWorldPoint(mouse.position.ReadValue());
                 float clampedX = Mathf.Clamp(mousePos.x, currentLevelConfig.minX, currentLevelConfig.maxX);
                 Vector3 spawnPos = new Vector3(clampedX, currentLevelConfig.spawnHeight, 0f);
 
