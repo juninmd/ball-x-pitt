@@ -1,4 +1,4 @@
-// Ball-x-Pitt System
+// Ball-x-Pitt System - Updated for Release Workflow
 using UnityEngine;
 using BallXPitt.Core;
 using BallXPitt.ScriptableObjects;
