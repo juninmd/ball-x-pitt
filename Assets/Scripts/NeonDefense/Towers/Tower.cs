@@ -50,7 +50,13 @@ namespace NeonDefense.Towers
                 fireCooldown -= Time.deltaTime;
             }
 
-            if (currentTarget != null && fireCooldown <= 0f && attackStrategy != null)
+            // Pooled enemies are deactivated (not destroyed), so a plain null check keeps a dead target alive
+            if (currentTarget != null && !currentTarget.gameObject.activeInHierarchy)
+            {
+                currentTarget = null;
+            }
+
+            if (currentTarget != null && fireCooldown <= 0f && attackStrategy != null && config != null)
             {
                 attackStrategy.Attack(currentTarget, firePoint, config);
                 fireCooldown = 1f / config.fireRate;

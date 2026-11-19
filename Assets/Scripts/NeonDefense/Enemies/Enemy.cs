@@ -107,9 +107,9 @@ namespace NeonDefense.Enemies
 
         private void ReturnToPool()
         {
-            if (EnemyPool.Instance != null)
+            if (EnemyPool.Instance != null && config != null && config.prefab != null)
             {
-                EnemyPool.Instance.ReturnToPool(this);
+                EnemyPool.Instance.ReturnToPool(this, config.prefab);
             }
             else
             {
