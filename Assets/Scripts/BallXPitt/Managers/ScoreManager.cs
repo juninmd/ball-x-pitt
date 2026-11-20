@@ -10,6 +10,9 @@ namespace BallXPitt.Managers
         public int TotalScore { get; private set; }
         private float currentMultiplier = 1f;
 
+        [Tooltip("Upper bound for the stacked multiplier, so repeated bonuses cannot overflow the score.")]
+        [SerializeField, Min(1f)] private float maxMultiplier = 10f;
+
         private void Awake()
         {
             if (Instance == null)
@@ -42,15 +45,18 @@ namespace BallXPitt.Managers
 
         private void HandleScoreGained(int points, Vector3 position)
         {
-            int finalPoints = Mathf.RoundToInt(points * currentMultiplier);
-            TotalScore += finalPoints;
+            // Widen to long so a large score cannot wrap negative; saturate at int.MaxValue
+            long finalPoints = (long)System.Math.Round(points * (double)currentMultiplier);
+            TotalScore = (int)System.Math.Min(int.MaxValue, TotalScore + finalPoints);
             Debug.Log($"ScoreManager: Gained {finalPoints} points. Total Score: {TotalScore}");
 
         }
 
         public void ApplyMultiplier(float multiplier)
         {
-            currentMultiplier *= multiplier;
+            // NaN, zero or negative values would wipe or invert the score
+            if (float.IsNaN(multiplier) || multiplier <= 0f) return;
+            currentMultiplier = Mathf.Min(currentMultiplier * multiplier, maxMultiplier);
             Debug.Log($"ScoreManager: Multiplier applied. Current Multiplier: {currentMultiplier}");
         }
     }
