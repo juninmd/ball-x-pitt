@@ -75,8 +75,11 @@ namespace BallXPitt.Managers
                 float clampedX = Mathf.Clamp(mousePos.x, currentLevelConfig.minX, currentLevelConfig.maxX);
                 Vector3 spawnPos = new Vector3(clampedX, currentLevelConfig.spawnHeight, 0f);
 
-                BallFactory.CreateBall(defaultBallConfig, spawnPos);
-                _ballsRemaining--;
+                // Only spend a ball when one was actually spawned (missing config/pool/prefab returns null)
+                if (BallFactory.CreateBall(defaultBallConfig, spawnPos) != null)
+                {
+                    _ballsRemaining--;
+                }
             }
         }
 
