@@ -5,7 +5,7 @@ Ball-x-Pitt: a Unity 6 game (Universal Render Pipeline). The code lives under th
 ## Stack
 
 - Unity Editor `6000.3.6f1` (`ProjectSettings/ProjectVersion.txt`).
-- C#, `NeonDefense` assembly (`Assets/Scripts/NeonDefense/NeonDefense.asmdef`).
+- C#. Assemblies: `Assets/Scripts/NeonDefense.asmdef` (game) and `Assets/Tests/EditMode/NeonDefense.Tests.EditMode.asmdef` (EditMode tests).
 - Universal Render Pipeline, Input System (`InputSystem_Actions.inputactions`).
 - Packages are declared in `Packages/manifest.json`.
 
@@ -18,8 +18,8 @@ Ball-x-Pitt: a Unity 6 game (Universal Render Pipeline). The code lives under th
 
 ## Structure
 
-- `Assets/Scripts/`: game code. `Assets/Scenes/`: scenes. `Assets/Settings/`: project settings. `Assets/Tests/`: tests.
-- `Assets/Scripts/NeonDefense.asmdef`: assembly definition. Keep new code inside this assembly.
+- `Assets/Scripts/`: game code (`BallXPitt/`: Core, Factories, Managers, ScriptableObjects, Strategies). `Assets/Scenes/`: scenes. `Assets/Settings/`: project settings. `Assets/Tests/EditMode/`: tests.
+- Put game code under `Assets/Scripts/` so it compiles in the `NeonDefense` assembly.
 - `Packages/`: package manifest and lock file. `ProjectSettings/`: Unity project settings.
 - `.github/workflows/`: `validate.yml` (PR and main), `security.yml`, `sast.yml`, `deploy.yml` (tags), `release-drafter.yml`.
 
