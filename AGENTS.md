@@ -1,32 +1,41 @@
-# 🧠 AGENTS.md - Ball-x-Pitt Intelligence System
+# AGENTS.md
 
-## 👤 AI Personas
+Ball-x-Pitt: a Unity 6 game (Universal Render Pipeline). The code lives under the `NeonDefense` namespace; the project and some docs still use the older `Ball-X-Pitt` and `NeonDefense` names.
 
-### 1. Jules-Architect (Unity Architect)
-- **Role**: Designing the core game architecture and scene structure.
-- **Focus**: Performance optimization, data-driven design (ScriptableObjects), and memory efficiency.
-- **Vibe**: Direct, performance-obsessed, and strategic.
+## Stack
 
-### 2. Spark-Frontend (UI/HUD Designer)
-- **Role**: Designing and implementing the Unity UI and menus.
-- **Focus**: Visual clarity, aesthetic consistency, and fluid transitions.
-- **Vibe**: Creative and detail-oriented.
+- Unity Editor `6000.3.6f1` (`ProjectSettings/ProjectVersion.txt`).
+- C#. Assemblies: `Assets/Scripts/NeonDefense.asmdef` (game) and `Assets/Tests/EditMode/NeonDefense.Tests.EditMode.asmdef` (EditMode tests).
+- Universal Render Pipeline, Input System (`InputSystem_Actions.inputactions`).
+- Packages are declared in `Packages/manifest.json`.
 
-### 3. Bolt-Automation (VFX & Physics)
-- **Role**: Developing physics interactions and particle effects.
-- **Focus**: Shader Graph, Physics logic, and automated scene verification.
-- **Vibe**: Technical, precise, and "VFX-obsessed".
+## Commands
 
-## 📜 Development Rules (Antigravity)
+- Open the project with Unity Editor `6000.3.6f1`. The repo has no CLI build or test script.
+- Setup for a new machine: `SETUP.md`.
+- Release: push a tag `v*`. `deploy.yml` runs on tags only and uses the `UNITY_LICENSE` secret.
+- Validation criteria: `VERIFICATION_REPORT.md`. Every major change must meet them.
 
-1. **Size Limit**: **Max 150 lines per script**. If logic grows, refactor into smaller components.
-2. **Zero Mocks**: Real physics and game data must be used for testing where possible.
-3. **No 'any' (C# equivalent)**: Avoid generic `object` types; use strictly typed interfaces and classes.
-4. **Validation**: Every major change must pass the `VERIFICATION_REPORT.md` criteria.
+## Structure
 
-## 🤝 Interaction Protocol
-- Follow the **Plan -> Act -> Validate** cycle for new game mechanics.
-- Use the `SETUP.md` instructions for onboarding new developers.
+- `Assets/Scripts/`: game code (`BallXPitt/`: Core, Factories, Managers, ScriptableObjects, Strategies). `Assets/Scenes/`: scenes. `Assets/Settings/`: project settings. `Assets/Tests/EditMode/`: tests.
+- Put game code under `Assets/Scripts/` so it compiles in the `NeonDefense` assembly.
+- `Packages/`: package manifest and lock file. `ProjectSettings/`: Unity project settings.
+- `.github/workflows/`: `validate.yml` (PR and main), `security.yml`, `sast.yml`, `deploy.yml` (tags), `release-drafter.yml`.
+
+## Conventions
+
+- Keep each script under 150 lines. Split the logic into smaller components when it grows.
+- Zero mocks. Use real physics and real game data for tests wherever possible.
+- Strict typing. Avoid `object` and untyped containers. Use typed interfaces and classes.
+- Plan, Act, Validate for every new game mechanic.
+- Use `SETUP.md` to onboard new developers.
+
+## Gotchas
+
+- Do not change `m_EditorVersion` in `ProjectVersion.txt` as a side effect. The editor version is pinned on purpose.
+- Scene and asset `.meta` files carry GUIDs. Never delete a `.meta` without its asset, and never copy assets without their `.meta`.
+- `GEMINI.md` is an agent audit log. The Gemini CLI may load it as context, so check before you remove or move it.
 
 <!-- base-actions-main-policy -->
 ## GitHub Actions — padrão obrigatório (@main)
